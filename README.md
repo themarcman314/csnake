@@ -1,0 +1,2 @@
+# Simple game of snake
+This is a simple game of snake I thought I would make to practice my c skills.
