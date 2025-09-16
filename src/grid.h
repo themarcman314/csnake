@@ -3,6 +3,6 @@
 
 struct coordinates
 {
-    unsigned x;
-    unsigned y;
+    int x;
+    int y;
 };
