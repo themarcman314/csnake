@@ -3,14 +3,19 @@
 #include "draw.h"
 #include "snake.h"
 
+
+void food_spawn(struct coordinates *food);
 void map_draw(struct coordinates *c, const struct snake *s)
 {
     // clear screen
     printf("\e[1;1H\e[2J");
+    struct coordinates food;
+    food_spawn(&food);
+    printf("food:\nx: %d\ny: %d\n", food.x, food.y);
 
-    for(c->y = 0; c->y < GRID_SIZE_Y; c->y++)
+    for(c->y = 0; c->y <= GRID_SIZE_Y; c->y++)
     {
-        for(c->x = 0; c->x < GRID_SIZE_X; c->x++)
+        for(c->x = 0; c->x <= GRID_SIZE_X; c->x++)
         {
             switch (c->x)
             {
@@ -20,7 +25,7 @@ void map_draw(struct coordinates *c, const struct snake *s)
                 case 0:
                     printf("\u250F");
                     break;
-                case GRID_SIZE_Y - 1:
+                case GRID_SIZE_Y:
                     printf("\u2517");
                     break;
                 default:
@@ -29,13 +34,13 @@ void map_draw(struct coordinates *c, const struct snake *s)
                 }
                 break;
 
-            case GRID_SIZE_X - 1:
+            case GRID_SIZE_X:
                 switch (c->y)
                 {
                 case 0:
                     printf("\u2513");
                     break;
-                case GRID_SIZE_Y - 1:
+                case GRID_SIZE_Y:
                     printf("\u251B");
                     break;
                 default:
@@ -49,11 +54,12 @@ void map_draw(struct coordinates *c, const struct snake *s)
                 case 0:
                     printf("\u2501");
                     break;
-                case GRID_SIZE_Y - 1:
+                case GRID_SIZE_Y:
                     printf("\u2501");
                     break;
                 default:
                     block_draw(c, s);
+                    
                     break;
                 }
             }
