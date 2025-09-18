@@ -2,19 +2,16 @@
 #include "grid.h"
 #include "draw.h"
 #include "snake.h"
-#include "food.h"
 
 
 void food_init(struct food *food);
 void food_spawn(struct food *food);
-void map_draw(struct coordinates *c, const struct snake *s)
+
+void map_draw(struct coordinates *c, const struct snake *s, const struct food *f)
 {
     // clear screen
     printf("\e[1;1H\e[2J");
-    struct food f;
-    food_init(&f);
-    food_spawn(&f);
-    printf("food:\nx: %d\ny: %d\n", f.c_f.x, f.c_f.y);
+    printf("food:\n x: %d\n y: %d\n", f->c_f.x, f->c_f.y);
 
     for(c->y = 0; c->y <= GRID_SIZE_Y; c->y++)
     {
@@ -36,7 +33,6 @@ void map_draw(struct coordinates *c, const struct snake *s)
                     break;
                 }
                 break;
-
             case GRID_SIZE_X:
                 switch (c->y)
                 {
@@ -61,7 +57,7 @@ void map_draw(struct coordinates *c, const struct snake *s)
                     printf("\u2501");
                     break;
                 default:
-                    block_draw(c, s);
+                    block_draw(c, s, f);
                     
                     break;
                 }
@@ -71,7 +67,7 @@ void map_draw(struct coordinates *c, const struct snake *s)
     }
 }
 
-void block_draw(const struct coordinates *cur_pos, const struct snake *s)
+void block_draw(const struct coordinates *cur_pos, const struct snake *s, const struct food *f)
 {
 
     if(s->head.x == cur_pos->x && s->head.y == cur_pos->y)
@@ -96,6 +92,9 @@ void block_draw(const struct coordinates *cur_pos, const struct snake *s)
         }
 
     }
-    else
-        printf(" ");
+    else if (cur_pos->x == f->c_f.x && cur_pos->y == f->c_f.y)
+    {
+        printf("\u25cf");
+    }
+    else printf(" ");
 }

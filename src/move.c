@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include "snake.h"
 #include "grid.h"
+#include "food.h"
 
 #define HORIZONTAL_MOVE_SPEED 2
 
@@ -34,7 +35,6 @@ void snake_move_head_N(struct snake *s)
         s->head.y = GRID_SIZE_Y - 2;
     }
 }
-
 void snake_move_head_S(struct snake *s)
 {
     s->orientation = ORIENTATION_SOUTH;
@@ -61,4 +61,10 @@ void snake_move_head_W(struct snake *s)
     {
         s->head.x = GRID_SIZE_X - 2;
     }
+}
+bool is_snake_on_food(const struct snake *s, const struct food *f)
+{
+    if(s->head.x == f->c_f.x && s->head.y == f->c_f.y)
+        return true;
+    return false;
 }
