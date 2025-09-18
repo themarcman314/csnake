@@ -40,8 +40,7 @@ void map_draw(struct coordinates *c, const struct snake *s, const struct food *f
                     printf("\u2513");
                     break;
                 case GRID_SIZE_Y:
-                    printf("\u251B");
-                    break;
+                    printf("\u251B"); break;
                 default:
                     printf("\u2503");
                     break;
@@ -94,7 +93,8 @@ void block_draw(const struct coordinates *cur_pos, const struct snake *s, const 
     }
     else if (cur_pos->x == f->c_f.x && cur_pos->y == f->c_f.y)
     {
-        printf("\u25cf");
+        printf("\u2b24");
+        //printf("\u25cf");
     }
     else printf(" ");
 }
