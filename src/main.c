@@ -4,9 +4,11 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "input.h"
+#include "food.h"
 
+
+void food_init(struct food *f);
 bool time_passed(const unsigned ms);
-void snake_move_head(struct snake *s, const unsigned direction);
 
 // map key returns to snake orientation function calls
 typedef void (*snake_move_head_ptr)(struct snake *s);
@@ -28,8 +30,10 @@ int main(void)
 {
     struct coordinates c = {0, 0};
     struct snake s;
+    //struct food f;
     init_snake(&s);
     init_termios();
+    //food_init(&f);
 
     while(1)
     {
@@ -40,9 +44,10 @@ int main(void)
             key_read = key_scanned;
         if(time_passed(100))
         {
-            map_draw(&c, &s);
             if(key_read>=0)
                 snake_move_funcs[key_read](&s);
+            map_draw(&c, &s);
+            printf("x: %d\ny: %d\n", s.head.x, s.head.y);
         }
     }
     return 0;

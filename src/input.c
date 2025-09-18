@@ -3,6 +3,7 @@
 #include <unistd.h> // needed for fileno of stdin
 #include "input.h"
 
+
 void init_termios(void)
 {
     struct termios term1;
@@ -24,6 +25,7 @@ void init_termios(void)
     }
 }
 
+// TODO: add support for wasd keys?
 int read_arrow_key_in(void)
 {
     char c[3];

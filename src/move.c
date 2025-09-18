@@ -8,7 +8,7 @@
 #include "snake.h"
 #include "grid.h"
 
-#define HORIZONTAL_MOVE_SPEED 4
+#define HORIZONTAL_MOVE_SPEED 2
 
 bool time_passed(const unsigned ms)
 {

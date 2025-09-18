@@ -2,16 +2,19 @@
 #include "grid.h"
 #include "draw.h"
 #include "snake.h"
+#include "food.h"
 
 
-void food_spawn(struct coordinates *food);
+void food_init(struct food *food);
+void food_spawn(struct food *food);
 void map_draw(struct coordinates *c, const struct snake *s)
 {
     // clear screen
     printf("\e[1;1H\e[2J");
-    struct coordinates food;
-    food_spawn(&food);
-    printf("food:\nx: %d\ny: %d\n", food.x, food.y);
+    struct food f;
+    food_init(&f);
+    food_spawn(&f);
+    printf("food:\nx: %d\ny: %d\n", f.c_f.x, f.c_f.y);
 
     for(c->y = 0; c->y <= GRID_SIZE_Y; c->y++)
     {
