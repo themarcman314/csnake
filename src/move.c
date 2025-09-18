@@ -1,7 +1,3 @@
-// snake should move every tick.
-// tick duration should be configurable
-// use multiple of ms?
-
 #include <time.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -32,14 +28,14 @@ void snake_move_head_N(struct snake *s)
     s->head.y--;
     if (s->head.y == 0)
     {
-        s->head.y = GRID_SIZE_Y - 2;
+        s->head.y = GRID_SIZE_Y - 1;
     }
 }
 void snake_move_head_S(struct snake *s)
 {
     s->orientation = ORIENTATION_SOUTH;
     s->head.y++;
-    if (s->head.y == GRID_SIZE_Y - 1)
+    if (s->head.y == GRID_SIZE_Y)
     {
         s->head.y = 1;
     }

@@ -11,6 +11,7 @@ struct snake
 {
     struct coordinates head;
     int orientation;
+    unsigned length;
     // TODO: add other elements
     // recursive?
     // linked list since body gets longer??
