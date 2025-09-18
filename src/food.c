@@ -27,5 +27,5 @@ void food_spawn(struct food *food)
     // Pick random even
     food->c_f.x = food->min + 2 * (rand() % food->even_count);
 
-    food->c_f.y = food->min + rand()%food->max;
+    food->c_f.y = food->min + rand()%(GRID_SIZE_Y-2);
 }
