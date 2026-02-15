@@ -2,8 +2,12 @@
 #define BOARD_H
 
 typedef struct Board Board;
+typedef struct Snake Snake;
+typedef struct SnakeSegment SnakeSegment;
 
 Board *board_create(const int width, const int height);
+
+void board_destroy(Board *b);
 
 void board_print_info(const Board *b);
 

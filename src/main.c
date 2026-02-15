@@ -1,6 +1,7 @@
 #include "board.h"
 #include "engine.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 #ifdef _WIN32
 #error "This program does not support windows :("
@@ -16,6 +17,7 @@ typedef struct {
 } Game;
 
 void game_init(Game *g);
+void game_end(Game *g);
 void game_run(Game *g);
 long long millis(void);
 
@@ -23,6 +25,8 @@ int main(void) {
 	Game g;
 	game_init(&g);
 	game_run(&g);
+
+	return EXIT_SUCCESS;
 }
 
 void game_init(Game *g) {
@@ -34,6 +38,10 @@ void game_init(Game *g) {
 		}
 	}
 	board_print_info(g->b);
+}
+
+void game_end(Game *g) {
+	board_destroy(g->b);
 }
 
 void game_run(Game *g) {
