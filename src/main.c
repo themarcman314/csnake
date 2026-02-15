@@ -1,8 +1,12 @@
 #include "board.h"
 #include "engine.h"
-#include <bits/time.h>
 #include <stdio.h>
+
+#ifdef _WIN32
+#error "This program does not support windows :("
+#else
 #include <time.h>
+#endif
 
 typedef struct {
 	int state;
