@@ -19,7 +19,7 @@ typedef struct {
 void game_init(Game *g);
 void game_end(Game *g);
 void game_run(Game *g);
-long long millis(void);
+int millis(void);
 
 int main(void) {
 	Game g;
@@ -57,7 +57,7 @@ void game_run(Game *g) {
 
 }
 
-long long millis(void) {
+int millis(void) {
 	int ms;
 #ifdef _WIN32
 #error "This program does not support windows :("
