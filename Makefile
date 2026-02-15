@@ -1,4 +1,4 @@
-CC=gcc -std=c99
+CC=gcc -std=gnu99
 FLAGS=-I$(INCLUDEDIR) 
 BUILDDIR=build
 SOURCEDIR=src
