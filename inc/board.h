@@ -19,4 +19,6 @@ char board_get_square(const Board *b, const int x, const int y);
 
 void board_set_square(Board *b, const int x, const int y, const char c);
 
+void board_update(Board *b);
+
 #endif

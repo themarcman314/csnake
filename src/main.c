@@ -37,7 +37,6 @@ void game_init(Game *g) {
 			board_set_square(g->b, x, y, '-');
 		}
 	}
-	board_print_info(g->b);
 }
 
 void game_end(Game *g) {
@@ -50,7 +49,7 @@ void game_run(Game *g) {
 		int now = millis();
 		if (now - last >= g->tick_speed) {
 			last += g->tick_speed;
-			static int a;
+			board_update(g->b);
 			board_draw(g->b);
 		}
 	}

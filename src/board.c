@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 typedef enum {
 	UP,
@@ -75,7 +76,7 @@ void board_print_info(const Board *b) {
  * Initialize somewhere on the board
  */
 void board_snake_init(Board *b) {
-	b->s.head = snake_segment_create(b->width / 2, b->width / 2);
+	b->s.head = snake_segment_create(b->width / 2, b->height / 2);
 	b->s.head_dir = UP;
 	b->s.length = 0;
 }
@@ -109,4 +110,15 @@ void snake_segment_add(Snake *s) {
 	}
 	snake_segment_find_new_coords(s, x, y);
 	snake_segment_create(x, y);
+}
+
+void board_update(Board *b) {
+	memset(b->squares, ' ', b->width * b->height);
+	SnakeSegment *current_seg = b->s.head;
+	board_set_square(b, current_seg->x, current_seg->y, '@');
+	current_seg = current_seg->child;
+	while (current_seg != NULL) {
+		board_set_square(b, current_seg->x, current_seg->y, '+');
+		current_seg = current_seg->child;
+	}
 }
