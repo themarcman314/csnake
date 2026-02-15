@@ -22,4 +22,5 @@ void board_draw(const Board *b) {
 	}
 	// bottom wall
 	for (int x = 0; x < board_width + 2; x++) putchar('#');
+	putchar('\n');
 }
