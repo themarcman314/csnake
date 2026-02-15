@@ -8,17 +8,11 @@ struct Board{
 	char *squares;
 };
 
-Board *board_create(int width, int height) {
+Board *board_create(const int width, const int height) {
 	Board *b = malloc(sizeof(Board));
 	b->height = height; b->width = width;
-	b->squares = (char *)malloc(b->width * b->height * sizeof(char));
-
-	for (int i = 0; i < b->height * b->width; i++) {
-		b->squares[i] = '-';
-	}
-	b->squares[0] = '#';
-	b->squares[4] = '#';
-	b->squares[(b->height-1)] = '#';
+	int board_size = b->width * b->height * sizeof(char);
+	b->squares = (char *)calloc(1, board_size); // allocate board and init to 0
 	return b;
 }
 
@@ -34,6 +28,11 @@ char board_get_square(const Board *b, const int x, const int y) {
 	return b->squares[y*b->width + x];
 }
 
+void board_set_square(Board *b, const int x, const int y, const char c) {
+	b->squares[y*b->width + x] = c;
+}
+
 void board_print_info(const Board *b) {
 	printf("width: %d\nheigth: %d\n", b->width, b->height);
 }
+
