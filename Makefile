@@ -1,8 +1,8 @@
-.PHONY: clean
-
 CC=gcc -std=c99
+FLAGS=-I$(INCLUDEDIR) 
 BUILDDIR=build
 SOURCEDIR=src
+INCLUDEDIR=inc
 SOURCES=$(wildcard $(SOURCEDIR)/*.c)
 OBJ=$(patsubst $(SOURCEDIR)/%.c, $(BUILDDIR)/%.o, $(SOURCES))
 
@@ -15,7 +15,10 @@ $(BUILDDIR)/csnake: $(OBJ)
 	$(CC) $^ -o $@
 
 $(OBJ): $(BUILDDIR)/%.o: $(SOURCEDIR)/%.c
-	$(CC) -c $< -o $@
+	$(CC) -c $(FLAGS) $< -o $@
 
-clean: $(BUILDDIR)/*.o $(BUILDDIR)/csnake
+run: all
+	$(BUILDDIR)/csnake
+
+clean:
 	rm $(BUILDDIR)/*

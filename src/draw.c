@@ -1,23 +1,11 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include "board.h"
 
-struct Board{
-	int width;
-	int height;
-	char *squares;
-};
-
-Board board_create(int width, int height) {
-	Board b;
-	b.height = height; b.width = width;
-	b.squares = (char *)malloc(b.width * b.height * sizeof(char));
-	return b;
-}
-
-void board_print(Board b) {
-	for(int w = 0; w < b.width; w++) {
-		printf("%c", b.squares[w]);
+void board_draw(const Board *b) {
+	for(int y = 0; y < board_get_height(b); y++) {
+		for(int x = 0; x < board_get_width(b); x++) {
+			printf("%c", board_get_square(b, x, y));
+		}
+		printf("\n");
 	}
-	printf("\n");
 }
