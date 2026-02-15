@@ -1,3 +1,6 @@
+#ifndef BOARD_H
+#define BOARD_H
+
 typedef struct Board Board;
 
 Board *board_create(const int width, const int height);
@@ -11,3 +14,5 @@ int board_get_height(const Board *b);
 char board_get_square(const Board *b, const int x, const int y);
 
 void board_set_square(Board *b, const int x, const int y, const char c);
+
+#endif
