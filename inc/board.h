@@ -1,6 +1,8 @@
 #ifndef BOARD_H
 #define BOARD_H
 
+#include <stdbool.h>
+
 typedef struct Board Board;
 typedef struct Snake Snake;
 typedef struct SnakeSegment SnakeSegment;
@@ -24,5 +26,7 @@ void board_update(Board *b);
 void snake_head_set_direction(Board *b);
 
 void snake_update(Snake *s);
+
+bool board_check_collisions(Board *b);
 
 #endif

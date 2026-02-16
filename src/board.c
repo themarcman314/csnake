@@ -156,6 +156,16 @@ void snake_update(Snake *s) {
 	}
 }
 
+bool board_check_collisions(Board *b) {
+	// snake against board
+	if (b->s.head->x < 0 || b->s.head->x >= b->width || b->s.head->y < 0 ||
+	    b->s.head->y >= b->height) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
 void board_update(Board *b) {
 	snake_update(&b->s);
 	memset(b->squares, ' ', b->width * b->height);

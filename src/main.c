@@ -48,10 +48,10 @@ void game_run(Game *g) {
 		if (now - last >= g->tick_speed) {
 			last += g->tick_speed;
 			board_update(g->b);
+			if(board_check_collisions(g->b)) break;
 			board_draw(g->b);
 		}
 	}
-
 }
 
 int millis(void) {
