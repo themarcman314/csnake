@@ -21,4 +21,8 @@ void board_set_square(Board *b, const int x, const int y, const char c);
 
 void board_update(Board *b);
 
+void snake_head_set_direction(Board *b);
+
+void snake_update(Snake *s);
+
 #endif

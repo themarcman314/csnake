@@ -1,14 +1,15 @@
 #include "board.h"
+#include "input.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 typedef enum {
-	UP,
-	DOWN,
-	LEFT,
-	RIGHT,
+	SNAKE_UP,
+	SNAKE_DOWN,
+	SNAKE_LEFT,
+	SNAKE_RIGHT,
 } Direction;
 
 struct SnakeSegment {
@@ -28,6 +29,7 @@ struct Board {
 	char *squares;
 };
 
+TermInputKey term_get_key(void);
 void board_snake_init(Board *b);
 SnakeSegment *snake_segment_create(const int x, const int y);
 
@@ -77,7 +79,7 @@ void board_print_info(const Board *b) {
  */
 void board_snake_init(Board *b) {
 	b->s.head = snake_segment_create(b->width / 2, b->height / 2);
-	b->s.head_dir = UP;
+	b->s.head_dir = SNAKE_UP;
 	b->s.length = 0;
 }
 
@@ -87,6 +89,25 @@ SnakeSegment *snake_segment_create(const int x, const int y) {
 	s->x = x;
 	s->y = y;
 	return s;
+}
+
+void snake_head_set_direction(Board *b) {
+	switch (term_get_key()) {
+	case IN_UP:
+		b->s.head_dir = SNAKE_UP;
+		break;
+	case IN_DOWN:
+		b->s.head_dir = SNAKE_DOWN;
+		break;
+	case IN_LEFT:
+		b->s.head_dir = SNAKE_LEFT;
+		break;
+	case IN_RIGHT:
+		b->s.head_dir = SNAKE_RIGHT;
+		break;
+	case IN_NONE:
+		break;
+	}
 }
 
 /*
@@ -112,7 +133,31 @@ void snake_segment_add(Snake *s) {
 	snake_segment_create(x, y);
 }
 
+void snake_update(Snake *s) {
+	SnakeSegment *current;
+	switch (s->head_dir) {
+	case SNAKE_UP:
+		s->head->y--;
+		break;
+	case SNAKE_DOWN:
+		s->head->y++;
+		break;
+	case SNAKE_LEFT:
+		s->head->x--;
+		break;
+	case SNAKE_RIGHT:
+		s->head->x++;
+		break;
+	}
+	current = s->head;
+	while (current->child != NULL) {
+		current->child->x = current->x;
+		current->child->y = current->y;
+	}
+}
+
 void board_update(Board *b) {
+	snake_update(&b->s);
 	memset(b->squares, ' ', b->width * b->height);
 	SnakeSegment *current_seg = b->s.head;
 	board_set_square(b, current_seg->x, current_seg->y, '@');

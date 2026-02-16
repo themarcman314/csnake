@@ -1,5 +1,6 @@
 #include "board.h"
 #include "engine.h"
+#include "input.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -30,13 +31,9 @@ int main(void) {
 }
 
 void game_init(Game *g) {
+	term_enable_raw();
 	g->tick_speed = 500;
 	g->b = board_create(50, 20);
-	for (int y = 0; y < board_get_height(g->b); y++) {
-		for (int x = 0; x < board_get_width(g->b); x++) {
-			board_set_square(g->b, x, y, '-');
-		}
-	}
 }
 
 void game_end(Game *g) {
@@ -46,6 +43,7 @@ void game_end(Game *g) {
 void game_run(Game *g) {
 	int last = millis();
 	while (1) {
+		snake_head_set_direction(g->b);
 		int now = millis();
 		if (now - last >= g->tick_speed) {
 			last += g->tick_speed;
