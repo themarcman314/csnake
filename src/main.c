@@ -2,6 +2,7 @@
 #include "engine.h"
 #include "input.h"
 #include <stdlib.h>
+#include <stdio.h>
 
 #ifdef _WIN32
 #error "This program does not support windows :("
@@ -32,7 +33,7 @@ int main(void) {
 void game_init(Game *g) {
 	term_enable_raw();
 	g->tick_speed = 500;
-	g->b = board_create(50, 20);
+	g->b = board_create(5, 5);
 }
 
 void game_end(Game *g) {
@@ -49,6 +50,7 @@ void game_run(Game *g) {
 			board_update(g->b);
 			if(board_check_collisions(g->b)) break;
 			board_draw(g->b);
+			static int count = 0;
 		}
 	}
 }

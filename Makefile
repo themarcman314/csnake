@@ -1,5 +1,5 @@
 CC=gcc
-FLAGS=-I$(INCLUDEDIR) -std=gnu99
+FLAGS=-I$(INCLUDEDIR) -std=gnu99 -g
 BUILDDIR=build
 SOURCEDIR=src
 INCLUDEDIR=inc
