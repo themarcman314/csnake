@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 typedef enum {
 	SNAKE_UP,
@@ -11,6 +12,10 @@ typedef enum {
 	SNAKE_LEFT,
 	SNAKE_RIGHT,
 } Direction;
+
+struct Food {
+	int x, y;
+};
 
 struct SnakeSegment {
 	int x, y;
@@ -26,12 +31,15 @@ struct Snake {
 struct Board {
 	int width, height;
 	Snake s;
+	Food f;
 	char *squares;
 };
 
 TermInputKey term_get_key(void);
 void board_snake_init(Board *b);
 SnakeSegment *snake_segment_create(const int x, const int y);
+void food_spawn(Board *b);
+void food_set_square(Food *f, const int x, const int y);
 
 Board *board_create(const int width, const int height) {
 	Board *b = malloc(sizeof(Board));
@@ -41,6 +49,7 @@ Board *board_create(const int width, const int height) {
 	b->height = height;
 	b->width = width;
 	board_snake_init(b);
+	food_init(b);
 	int board_size = b->width * b->height * sizeof(char);
 	b->squares =
 	    (char *)calloc(1, board_size); // allocate board and init to 0
@@ -117,7 +126,7 @@ void snake_head_set_direction(Board *b) {
  * If n-1 is NORTH of n, then n+1 will go SOUTH.
  * Similarily if n-1 is WEST of n, then n+1 will go EAST
  */
-void snake_segment_find_new_coords(const Snake *s, int x, int y) {
+void snake_segment_find_new_coords(const Snake *s, const int x, const int y) {
 	assert(0 && "not implemented");
 }
 
@@ -156,7 +165,29 @@ void snake_update(Snake *s) {
 	}
 }
 
-bool board_check_collisions(Board *b) {
+void food_init(Board *b) {
+	srand(time(NULL));
+	food_spawn(b);
+}
+
+void food_set_square(Food *f, const int x, const int y) {
+	f->x = x;
+	f->y = y;
+}
+
+void food_spawn(Board *b) {
+	// set to width instead of width + 1 since array starts at 0
+	int x = rand() % b->width;
+	int y = rand() % b->height;
+	food_set_square(&b->f, x, y);
+}
+
+void board_check_all_collisions(const Board *B) {
+
+}
+
+
+bool board_check_collisions(const Board *b) {
 	// snake against board
 	if (b->s.head->x < 0 || b->s.head->x >= b->width || b->s.head->y < 0 ||
 	    b->s.head->y >= b->height) {
@@ -166,9 +197,18 @@ bool board_check_collisions(Board *b) {
 	}
 }
 
+bool snake_ate_food(Snake *s, Food *f) {
+	if(s->head->x == f->x && s->head->y == f->y) return true;
+	return false;
+}
+
 void board_update(Board *b) {
 	snake_update(&b->s);
+	if(snake_ate_food(&b->s, &b->f)) {
+		food_spawn(b);
+	}
 	memset(b->squares, ' ', b->width * b->height);
+	board_set_square(b, b->f.x, b->f.y, '*');
 	SnakeSegment *current_seg = b->s.head;
 	board_set_square(b, current_seg->x, current_seg->y, '@');
 	current_seg = current_seg->child;

@@ -6,6 +6,7 @@
 typedef struct Board Board;
 typedef struct Snake Snake;
 typedef struct SnakeSegment SnakeSegment;
+typedef struct Food Food;
 
 Board *board_create(const int width, const int height);
 
@@ -27,6 +28,8 @@ void snake_head_set_direction(Board *b);
 
 void snake_update(Snake *s);
 
-bool board_check_collisions(Board *b);
+bool board_check_collisions(const Board *b);
+
+void food_init(Board *b);
 
 #endif
