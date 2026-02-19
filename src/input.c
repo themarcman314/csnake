@@ -14,6 +14,7 @@ void term_enable_raw(void) {
 	struct termios p;
 	// read current parameters
 	tcgetattr(STDIN_FILENO, &p);
+	term_normal_settings = p;
 	p.c_lflag &= ~(ECHO | ICANON);
 	p.c_cc[VMIN] = 0;
 	p.c_cc[VTIME] = 0;
