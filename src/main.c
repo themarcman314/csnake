@@ -1,6 +1,7 @@
 #include "board.h"
 #include "engine.h"
 #include "input.h"
+#include "debug.h"
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -32,8 +33,9 @@ int main(void) {
 
 void game_init(Game *g) {
 	term_enable_raw();
-	g->tick_speed = 500;
-	g->b = board_create(5, 5);
+	debug_init();
+	g->tick_speed = 200;
+	g->b = board_create(50, 10);
 }
 
 void game_end(Game *g) {
@@ -50,7 +52,6 @@ void game_run(Game *g) {
 			board_update(g->b);
 			if(board_check_collisions(g->b)) break;
 			board_draw(g->b);
-			static int count = 0;
 		}
 	}
 }
