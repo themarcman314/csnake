@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "board.h"
+#include "debug.h"
 
 void board_draw(const Board *b) {
 	const int board_width = board_get_width(b);
@@ -23,4 +24,5 @@ void board_draw(const Board *b) {
 	// bottom wall
 	for (int x = 0; x < board_width + 2; x++) putchar('#');
 	putchar('\n');
+	LogDebug("board was drawn\n");
 }

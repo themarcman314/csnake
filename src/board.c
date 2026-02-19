@@ -1,4 +1,5 @@
 #include "board.h"
+#include "debug.h"
 #include "input.h"
 #include <assert.h>
 #include <stdio.h>
@@ -35,6 +36,7 @@ struct Board {
 	char *squares;
 };
 
+void snake_print(Snake *s);
 TermInputKey term_get_key(void);
 void board_snake_init(Board *b);
 SnakeSegment *snake_segment_create(const int x, const int y);
@@ -90,14 +92,20 @@ void board_print_info(const Board *b) {
 void board_snake_init(Board *b) {
 	b->s.head = snake_segment_create(b->width / 2, b->height / 2);
 	b->s.head_dir = SNAKE_UP;
-	b->s.length = 0;
+	b->s.length = 1;
 }
 
 SnakeSegment *snake_segment_create(const int x, const int y) {
 	SnakeSegment *s = malloc(sizeof(SnakeSegment));
-	s->child = NULL;
-	s->x = x;
-	s->y = y;
+	if (s != NULL) {
+		s->child = NULL;
+		s->x = x;
+		s->y = y;
+	} else {
+		fprintf(stderr, "Issue creating node\n");
+		LogDebug("unable to create node\n");
+		exit(EXIT_FAILURE);
+	}
 	return s;
 }
 
@@ -130,7 +138,6 @@ void snake_head_set_direction(Board *b) {
 void snake_segment_find_new_coords(const Snake *s, int *x_new, int *y_new) {
 	// assert(0 && "not implemented");
 	if (s->head->child == NULL) {
-		printf("creating 2nd node...\n");
 		switch (s->head_dir) {
 		case SNAKE_UP:
 			*x_new = s->head->x;
@@ -169,52 +176,50 @@ void snake_segment_find_new_coords(const Snake *s, int *x_new, int *y_new) {
 			*x_new = current->child->x + 1;
 			*y_new = current->child->y;
 		}
-		printf("new coords:\nx= %d\ny= %d\n", *x_new, *y_new);
 	}
+	LogDebug("new coords:\nx= %d\ny= %d\n", *x_new, *y_new);
 }
 
 void snake_segment_add(Snake *s) {
-	s->length++;
-	SnakeSegment *current;
+	SnakeSegment *current = s->head;
 	int x, y = 0;
-	current = s->head;
-	assert(s->head != NULL);
+	//assert(s->head->child == NULL);
 	while (current->child != NULL) {
 		current = current->child;
 	}
 	snake_segment_find_new_coords(s, &x, &y);
 	current->child = snake_segment_create(x, y);
+	s->length++;
 }
 
-// work your way back instead of forward
 void snake_update_square_position(Snake *s) {
-	SnakeSegment *current;
-	SnakeSegment coords;
-	SnakeSegment next_coords;
-	coords.x = s->head->x;
-	coords.y = s->head->y;
-	switch (s->head_dir) {
-	case SNAKE_UP:
-		s->head->y--;
-		break;
-	case SNAKE_DOWN:
-		s->head->y++;
-		break;
-	case SNAKE_LEFT:
-		s->head->x--;
-		break;
-	case SNAKE_RIGHT:
-		s->head->x++;
-		break;
-	}
-	current = s->head;
-	while (current->child != NULL) {
-		coords.x = current->child->x;
-		next_coords.y = current->child->y;
-		current->child->x = next_coords.x;
-		current->child->y = next_coords.y;
+	SnakeSegment *current = s->head;
+	int x[s->length];
+	int y[s->length];
+	// save to temp arrays
+	for (int i = 0; i < s->length; i++) {
+		x[i] = current->x;
+		y[i] = current->y;
 		current = current->child;
+		LogDebug("before update\n");
+		snake_print(s);
 	}
+	switch (s->head_dir) {
+		case SNAKE_UP: s->head->y--; break;
+		case SNAKE_DOWN: s->head->y++; break;
+		case SNAKE_LEFT: s->head->x--; break;
+		case SNAKE_RIGHT: s->head->x++; break;
+	}
+	current = s->head->child;
+	// set new coords from temp array
+	for (int i = 1; i < s->length; i++) {
+		current->x = x[i-1];
+		current->y = y[i-1];
+		current = current->child;
+		LogDebug("after update\n");
+		snake_print(s);
+	}
+
 }
 
 void food_init(Board *b) {
@@ -232,6 +237,7 @@ void food_spawn(Board *b) {
 	int x = rand() % b->width;
 	int y = rand() % b->height;
 	food_set_square(&b->f, x, y);
+	LogDebug("food spawned\n");
 }
 
 void board_check_all_collisions(const Board *B) {}
@@ -244,6 +250,7 @@ bool board_check_collisions(const Board *b) {
 	} else {
 		return false;
 	}
+	LogDebug("checked board collisions\n");
 }
 
 bool snake_ate_food(Snake *s, Food *f) {
@@ -254,17 +261,34 @@ bool snake_ate_food(Snake *s, Food *f) {
 
 void board_update(Board *b) {
 	snake_update_square_position(&b->s);
+	LogDebug("after update position\n");
+	snake_print(&b->s);
 	if (snake_ate_food(&b->s, &b->f)) {
 		snake_segment_add(&b->s);
 		food_spawn(b);
 	}
+	LogDebug("checked if snake ate food\n");
 	memset(b->squares, ' ', b->width * b->height);
 	board_set_square(b, b->f.x, b->f.y, '*');
 	SnakeSegment *current_seg = b->s.head;
 	board_set_square(b, current_seg->x, current_seg->y, '@');
 	while (current_seg->child != NULL) {
-		static int stuff = 0;
+		LogDebug("got into while loop\n");
 		current_seg = current_seg->child;
+		LogDebug("was able to set to child\n");
+		LogDebug("setting...\nx: %d\ny: %d\n", current_seg->x,
+			 current_seg->y);
 		board_set_square(b, current_seg->x, current_seg->y, '+');
+		LogDebug("could set segment\n");
+	}
+	LogDebug("updated board\n");
+}
+
+void snake_print(Snake *s) {
+	SnakeSegment *current = s->head;
+	LogDebug("snake:\n");
+	while (current != NULL) {
+		LogDebug("x: %d y: %d\n", current->x, current->y);
+		current = current->child;
 	}
 }
