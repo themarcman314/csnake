@@ -28,7 +28,7 @@ void snake_head_set_direction(Board *b);
 
 void snake_update_square_position(Snake *s);
 
-bool board_check_collisions(const Board *b);
+bool board_check_all_collisions(const Board *b);
 
 void food_init(Board *b);
 

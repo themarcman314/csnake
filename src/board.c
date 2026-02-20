@@ -2,6 +2,7 @@
 #include "debug.h"
 #include "input.h"
 #include <assert.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -42,6 +43,8 @@ SnakeSegment *snake_segment_create(const int x, const int y);
 void food_spawn(Board *b);
 void food_set_square(Food *f, const int x, const int y);
 void snake_segment_add(Snake *s);
+bool snake_check_collisions(const Snake *s);
+bool board_check_collisions(const Board *b);
 
 Board *board_create(const int width, const int height) {
 	Board *b = malloc(sizeof(Board));
@@ -108,19 +111,28 @@ SnakeSegment *snake_segment_create(const int x, const int y) {
 	return s;
 }
 
+// FIXME: updates are polled quicker than tick leading to inconsistent snake death at 2+ length
 void snake_head_set_direction(Board *b) {
 	switch (term_get_key()) {
 	case IN_UP:
-		b->s.head_dir = SNAKE_UP;
+		if (b->s.head_dir != SNAKE_DOWN) {
+			b->s.head_dir = SNAKE_UP;
+		}
 		break;
 	case IN_DOWN:
-		b->s.head_dir = SNAKE_DOWN;
+		if (b->s.head_dir != SNAKE_UP) {
+			b->s.head_dir = SNAKE_DOWN;
+		}
 		break;
 	case IN_LEFT:
-		b->s.head_dir = SNAKE_LEFT;
+		if (b->s.head_dir != SNAKE_RIGHT) {
+			b->s.head_dir = SNAKE_LEFT;
+		}
 		break;
 	case IN_RIGHT:
-		b->s.head_dir = SNAKE_RIGHT;
+		if (b->s.head_dir != SNAKE_LEFT) {
+			b->s.head_dir = SNAKE_RIGHT;
+		}
 		break;
 	case IN_NONE:
 		break;
@@ -182,7 +194,7 @@ void snake_segment_find_new_coords(const Snake *s, int *x_new, int *y_new) {
 void snake_segment_add(Snake *s) {
 	SnakeSegment *current = s->head;
 	int x, y = 0;
-	//assert(s->head->child == NULL);
+	// assert(s->head->child == NULL);
 	while (current->child != NULL) {
 		current = current->child;
 	}
@@ -204,21 +216,28 @@ void snake_update_square_position(Snake *s) {
 		snake_print(s);
 	}
 	switch (s->head_dir) {
-		case SNAKE_UP: s->head->y--; break;
-		case SNAKE_DOWN: s->head->y++; break;
-		case SNAKE_LEFT: s->head->x--; break;
-		case SNAKE_RIGHT: s->head->x++; break;
+	case SNAKE_UP:
+		s->head->y--;
+		break;
+	case SNAKE_DOWN:
+		s->head->y++;
+		break;
+	case SNAKE_LEFT:
+		s->head->x--;
+		break;
+	case SNAKE_RIGHT:
+		s->head->x++;
+		break;
 	}
 	current = s->head->child;
 	// set new coords from temp array
 	for (int i = 1; i < s->length; i++) {
-		current->x = x[i-1];
-		current->y = y[i-1];
+		current->x = x[i - 1];
+		current->y = y[i - 1];
 		current = current->child;
 		LogDebug("after update\n");
 		snake_print(s);
 	}
-
 }
 
 void food_init(Board *b) {
@@ -239,7 +258,23 @@ void food_spawn(Board *b) {
 	LogDebug("food spawned\n");
 }
 
-void board_check_all_collisions(const Board *B) {}
+bool board_check_all_collisions(const Board *b) {
+	if (board_check_collisions(b) || snake_check_collisions(&b->s)) {
+		return true;
+	}
+	return false;
+}
+
+bool snake_check_collisions(const Snake *s) {
+	SnakeSegment *current = s->head->child;
+	while (current != NULL) {
+		if (s->head->x == current->x && s->head->y == current->y) {
+			return true;
+		}
+		current = current->child;
+	}
+	return false;
+}
 
 bool board_check_collisions(const Board *b) {
 	// snake against board
@@ -292,5 +327,4 @@ void snake_print(Snake *s) {
 	}
 }
 
-void board_init() {
-}
+void board_init() {}
