@@ -2,4 +2,5 @@
 #define INPUT_H
 typedef enum { IN_NONE, IN_UP, IN_DOWN, IN_LEFT, IN_RIGHT } TermInputKey;
 void term_enable_raw(void);
+TermInputKey term_get_key(void);
 #endif

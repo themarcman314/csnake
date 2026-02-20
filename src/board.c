@@ -37,7 +37,6 @@ struct Board {
 };
 
 void snake_print(Snake *s);
-TermInputKey term_get_key(void);
 void board_snake_init(Board *b);
 SnakeSegment *snake_segment_create(const int x, const int y);
 void food_spawn(Board *b);
@@ -291,4 +290,7 @@ void snake_print(Snake *s) {
 		LogDebug("x: %d y: %d\n", current->x, current->y);
 		current = current->child;
 	}
+}
+
+void board_init() {
 }
