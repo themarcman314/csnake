@@ -28,3 +28,9 @@ run: all
 
 clean:
 	rm $(BUILDDIR)/*
+
+uml: docs
+	plantuml docs/state_machine.uml
+
+docs:
+	mkdir docs

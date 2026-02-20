@@ -1,0 +1,21 @@
+@startuml
+[*] --> welcome
+hide empty description
+state "<b>game_welcome</b>\n<i>Show welcome screen</i>" as welcome
+state "<b>game_end</b>\n<i>End the Game</i>" as end
+state "<b>game_run</b>\n<i>Run the game</i>" as run
+state "<b>game_configure</b>\n<i>Game configuration settings screen</i>" as config
+state "<b>game_configure_input_settings</b>\n<i>Input settings configuration</i>" as settings
+state "<b>game_close</b>\n<i>Close game</i>" as close
+
+welcome --> config: User presses a key
+config --> run: User presses 'r'
+config --> settings : User presses 'i'
+run --> end : Snake collision
+end --> run : User presses 'r'
+settings --> config : User presses 'b'
+end --> config : User presses 'c'
+end --> close : User presses 'q'
+
+
+@enduml
