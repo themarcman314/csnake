@@ -5,6 +5,7 @@
 #include "timer.h"
 #include <stdio.h>
 #include <unistd.h>
+
 typedef enum {
 	STATE_GAME_WELCOME,
 	STATE_GAME_CONFIGURE,
@@ -23,14 +24,14 @@ typedef struct {
 
 void game_init(Game *g);
 void term_init();
+void term_clear_full(void);
+void term_get_offset(const int width, const int length, int *offset_row,
+		     int *offset_colums);
 
 GameState game_welcome(void);
 GameState game_end(Game *g);
 GameState game_run(Game *g);
 GameState game_configure(Game *g);
-
-void term_get_offset(const int width, const int length, int *offset_row,
-		     int *offset_colums);
 
 void game_init(Game *g) {
 	term_enable_raw();
@@ -42,16 +43,40 @@ void game_init(Game *g) {
 }
 
 GameState game_end(Game *g) {
-	board_destroy(g->b);
+	snake_kill(g->b->s);
+	term_clear_full();
+	printf("============== csnake ==============\n");
+	printf("            game over :(            \n");
+	printf("                                    \n");
+	printf("            score: %4d            \n", g->score);
+	printf("                                    \n");
+	printf("    Press                    Press  \n");
+	printf("     'r'                      'q'   \n");
+	printf(" to play again              to quit \n");
+	printf("====================================\n");
+	int key;
+	while ((key = term_get_key()) == IN_NONE)
+		;
+	if (key == IN_PLAY_AGAIN) {
+		snake_create(g->b);
+		return STATE_GAME_RUN;
+	}
 	return STATE_GAME_EXIT;
 }
 
 GameState game_run(Game *g) {
 	static int last_tick = 0;
-	snake_head_set_direction(g->b);
+	snake_head_set_next_direction(g->b);
 	int now = millis();
 	if (now - last_tick >= g->tick_speed) {
 		last_tick = now;
+		snake_head_set_direction(g->b->s);
+		snake_update_square_position(g->b->s);
+		if (snake_ate_food(g->b->s, g->b->f)) {
+			g->score++;
+			snake_segment_add(g->b->s);
+			food_spawn(g->b);
+		}
 		board_update(g->b);
 		if (board_check_all_collisions(g->b)) {
 			return STATE_GAME_END;

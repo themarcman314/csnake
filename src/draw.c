@@ -9,14 +9,15 @@
 
 int term_rows, term_colums;
 
+void term_clear_quick(void);
+
 void board_draw(const Board *b) {
 	const int board_width = board_get_width(b);
 	const int board_height = board_get_height(b);
 
 	// int x_padding = board_width + 2;
 
-	// move cursor to top of screen and overwrite
-	printf("\033[H");
+	term_clear_quick();
 	// draw top wall
 	for (int x = 0; x < board_width + 2; x++)
 		putchar('#');
@@ -50,4 +51,13 @@ void term_get_offset(const int width, const int length, int *offset_row,
 		     int *offset_colums) {
 	*offset_row = (term_rows - length) / 2;
 	*offset_colums = (term_colums - width) / 2;
+}
+
+void term_clear_quick(void) {
+	// move cursor to top of screen and overwrite
+	printf("\033[H");
+}
+void term_clear_full(void) {
+	// move cursor to top and clear from cursor
+	printf("\033[H\033[J");
 }
