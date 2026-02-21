@@ -56,10 +56,13 @@ GameState game_end(Game *g) {
 	printf(" to play again              to quit \n");
 	printf("====================================\n");
 	int key;
-	while ((key = term_get_key()) == IN_NONE)
-		;
+	key = term_get_key();
+	while (key != IN_PLAY_AGAIN && key != IN_QUIT) {
+		key = term_get_key();
+	}
 	if (key == IN_PLAY_AGAIN) {
 		snake_create(g->b);
+		food_init(g->b);
 		return STATE_GAME_RUN;
 	}
 	return STATE_GAME_EXIT;
