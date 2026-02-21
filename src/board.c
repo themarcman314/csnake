@@ -9,6 +9,7 @@
 #include <time.h>
 
 typedef enum {
+	SNAKE_NONE,
 	SNAKE_UP,
 	SNAKE_DOWN,
 	SNAKE_LEFT,
@@ -74,9 +75,7 @@ void snake_kill(Snake *s) {
 	}
 	free(s);
 }
-void food_destroy(Food *f) {
-	free(f);
-}
+void food_destroy(Food *f) { free(f); }
 void board_destroy(Board *b) {
 	LogDebug("Destroying Board");
 	free(b->squares);
@@ -108,7 +107,7 @@ void snake_create(Board *b) {
 		goto snake_create_failed;
 	}
 	b->s->head = snake_segment_create(b->width / 2, b->height / 2);
-	b->s->head_dir_next = SNAKE_UP;
+	b->s->head_dir_next = SNAKE_NONE;
 	b->s->length = 1;
 
 	b->f = malloc(sizeof(Food));
@@ -162,6 +161,8 @@ void snake_head_set_next_direction(Board *b) {
 		}
 		break;
 	case IN_NONE:
+		break;
+	default:
 		break;
 	}
 }
@@ -259,6 +260,7 @@ void snake_update_square_position(Snake *s) {
 	case SNAKE_RIGHT:
 		s->head->x++;
 		break;
+	case SNAKE_NONE: break;
 	}
 	current = s->head->child;
 	// set new coords from temp array
