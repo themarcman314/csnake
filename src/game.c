@@ -44,6 +44,7 @@ void game_init(Game *g) {
 
 GameState game_end(Game *g) {
 	snake_kill(g->b->s);
+	food_destroy(g->b->f);
 	term_clear_full();
 	printf("============== csnake ==============\n");
 	printf("            game over :(            \n");
@@ -77,10 +78,10 @@ GameState game_run(Game *g) {
 			snake_segment_add(g->b->s);
 			food_spawn(g->b);
 		}
-		board_update(g->b);
 		if (board_check_all_collisions(g->b)) {
 			return STATE_GAME_END;
 		};
+		board_update(g->b);
 		board_draw(g->b);
 	}
 	return STATE_GAME_RUN;

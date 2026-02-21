@@ -15,7 +15,9 @@ typedef struct {
 } Board;
 
 
-Board *board_create(const int width, const int height); void board_destroy(Board *b);
+Board *board_create(const int width, const int height);
+
+void board_destroy(Board *b);
 
 void board_print_info(const Board *b);
 
@@ -46,6 +48,8 @@ bool snake_ate_food(Snake *s, Food *f);
 void snake_segment_add(Snake *s);
 
 void food_spawn(Board *b);
+
+void food_destroy(Food *f);
 
 void snake_create(Board *b);
 

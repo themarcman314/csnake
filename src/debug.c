@@ -16,7 +16,7 @@ void log_to_file(char const *file, int line, char const *format, ...) {
 	}
 	fprintf(f, "[%s:%d] ", file, line);
 	vfprintf(f, format, list);
-	putchar('\n');
+	fputc('\n', f);
 	va_end(list);
 	fclose(f);
 #endif

@@ -34,6 +34,7 @@ struct Snake {
 };
 
 void snake_print(Snake *s);
+void snake_create(Board *b);
 SnakeSegment *snake_segment_create(const int x, const int y);
 void food_set_square(Food *f, const int x, const int y);
 bool snake_check_collisions(const Snake *s);
@@ -46,14 +47,15 @@ Board *board_create(const int width, const int height) {
 	}
 	b->height = height;
 	b->width = width;
-	snake_create(b);
-	food_init(b);
 	int board_size = b->width * b->height * sizeof(char);
 	b->squares =
 	    (char *)calloc(1, board_size); // allocate board and init to 0
 	if (b->squares == NULL) {
 		goto fail_squares;
 	}
+
+	snake_create(b);
+	food_init(b);
 	return b;
 
 fail_squares:
@@ -65,26 +67,35 @@ fail_board:
 
 void snake_kill(Snake *s) {
 	LogDebug("Killing snake");
+	while (s->head != NULL) {
+		SnakeSegment *tmp = s->head;
+		s->head = s->head->child;
+		free(tmp);
+	}
 	free(s);
+}
+void food_destroy(Food *f) {
+	free(f);
 }
 void board_destroy(Board *b) {
 	LogDebug("Destroying Board");
+	free(b->squares);
 	free(b);
 }
 
-inline int board_get_width(const Board *b) { return b->width; }
+int board_get_width(const Board *b) { return b->width; }
 
-inline int board_get_height(const Board *b) { return b->height; }
+int board_get_height(const Board *b) { return b->height; }
 
-inline char board_get_square(const Board *b, const int x, const int y) {
+char board_get_square(const Board *b, const int x, const int y) {
 	return b->squares[y * b->width + x];
 }
 
-inline void board_set_square(Board *b, const int x, const int y, const char c) {
+void board_set_square(Board *b, const int x, const int y, const char c) {
 	b->squares[y * b->width + x] = c;
 }
 
-inline void board_print_info(const Board *b) {
+void board_print_info(const Board *b) {
 	printf("width: %d\nheigth: %d\n", b->width, b->height);
 }
 
