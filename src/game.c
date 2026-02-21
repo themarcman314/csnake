@@ -34,10 +34,10 @@ GameState game_run(Game *g);
 GameState game_configure(Game *g);
 
 void game_init(Game *g) {
+	term_clear_full();
 	term_enable_raw();
 	debug_init();
 	term_init();
-	term_clear_full();
 	g->state = STATE_GAME_WELCOME;
 	g->tick_speed = 200;
 	g->b = board_create(50, 10);
@@ -98,6 +98,7 @@ GameState game_welcome(void) {
 				"   Press a key to start   \n"
 				"==========================\n";
 	printf("%s", welcome_screen);
+	fflush(stdout);
 	while (term_get_key() == IN_NONE)
 		;
 	return STATE_GAME_CONFIGURE;
