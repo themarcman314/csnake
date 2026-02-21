@@ -39,7 +39,7 @@ void game_init(Game *g) {
 	debug_init();
 	term_init();
 	g->state = STATE_GAME_WELCOME;
-	g->tick_speed = 200;
+	g->tick_speed = 150;
 	g->b = board_create(50, 10);
 }
 
@@ -83,6 +83,7 @@ GameState game_run(Game *g) {
 			food_spawn(g->b);
 		}
 		if (board_check_all_collisions(g->b)) {
+			sleep(1);
 			return STATE_GAME_END;
 		};
 		board_update(g->b);
