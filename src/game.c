@@ -39,7 +39,7 @@ void game_init(Game *g) {
 	debug_init();
 	term_init();
 	g->state = STATE_GAME_WELCOME;
-	g->tick_speed = 150;
+	g->tick_speed = 200;
 	g->b = board_create(50, 10);
 }
 
@@ -71,7 +71,7 @@ GameState game_end(Game *g) {
 
 GameState game_run(Game *g) {
 	static int last_tick = 0;
-	snake_head_set_next_direction(g->b);
+	snake_head_set_next_direction(g->b->s);
 	int now = millis();
 	if (now - last_tick >= g->tick_speed) {
 		last_tick = now;

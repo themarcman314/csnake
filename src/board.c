@@ -16,21 +16,30 @@ typedef enum {
 	SNAKE_RIGHT,
 } Direction;
 
+#define SNAKE_DIR_QUEUE_SIZE 3
+
 struct Food {
 	int x, y;
 };
 
 typedef struct SnakeSegment SnakeSegment;
+typedef struct HeadDirQueue HeadDirQueue;
 
 struct SnakeSegment {
 	int x, y;
 	SnakeSegment *child;
 };
 
+struct HeadDirQueue {
+	Direction head_dir_next[SNAKE_DIR_QUEUE_SIZE];
+	unsigned index_write;
+	unsigned index_read;
+};
+
 struct Snake {
 	SnakeSegment *head;
 	int length;
-	Direction head_dir_next;
+	HeadDirQueue queue;
 	Direction head_dir_current;
 };
 
@@ -107,7 +116,10 @@ void snake_create(Board *b) {
 		goto snake_create_failed;
 	}
 	b->s->head = snake_segment_create(b->width / 2, b->height / 2);
-	b->s->head_dir_next = SNAKE_NONE;
+	memset(b->s->queue.head_dir_next, SNAKE_NONE,
+	       sizeof(b->s->queue.head_dir_next) / sizeof(Direction));
+	b->s->queue.index_write = 0;
+	b->s->queue.index_read = 0;
 	b->s->length = 1;
 
 	b->f = malloc(sizeof(Food));
@@ -138,26 +150,46 @@ SnakeSegment *snake_segment_create(const int x, const int y) {
 	return s;
 }
 
-void snake_head_set_next_direction(Board *b) {
-	switch (term_get_key()) {
+void snake_head_set_next_direction(Snake *s) {
+	TermInputKey key = term_get_key();
+	unsigned const next_index =
+	    (s->queue.index_write + 1) % SNAKE_DIR_QUEUE_SIZE;
+	Direction t = SNAKE_NONE;
+	switch (key) {
 	case IN_UP:
-		if (b->s->head_dir_current != SNAKE_DOWN) {
-			b->s->head_dir_next = SNAKE_UP;
+		if (t != SNAKE_DOWN) {
+			if (next_index != s->queue.index_read) { // not full
+				s->queue.head_dir_next[s->queue.index_write] =
+				    SNAKE_UP;
+				s->queue.index_write = next_index;
+			}
 		}
 		break;
 	case IN_DOWN:
-		if (b->s->head_dir_current != SNAKE_UP) {
-			b->s->head_dir_next = SNAKE_DOWN;
+		if (t != SNAKE_UP) {
+			if (next_index != s->queue.index_read) { // not full
+				s->queue.head_dir_next[s->queue.index_write] =
+				    SNAKE_DOWN;
+				s->queue.index_write = next_index;
+			}
 		}
 		break;
 	case IN_LEFT:
-		if (b->s->head_dir_current != SNAKE_RIGHT) {
-			b->s->head_dir_next = SNAKE_LEFT;
+		if (t != SNAKE_RIGHT) {
+			if (next_index != s->queue.index_read) { // not full
+				s->queue.head_dir_next[s->queue.index_write] =
+				    SNAKE_LEFT;
+				s->queue.index_write = next_index;
+			}
 		}
 		break;
 	case IN_RIGHT:
-		if (b->s->head_dir_current != SNAKE_LEFT) {
-			b->s->head_dir_next = SNAKE_RIGHT;
+		if (t != SNAKE_LEFT) {
+			if (next_index != s->queue.index_read) { // not full
+				s->queue.head_dir_next[s->queue.index_write] =
+				    SNAKE_RIGHT;
+				s->queue.index_write = next_index;
+			}
 		}
 		break;
 	case IN_NONE:
@@ -168,7 +200,23 @@ void snake_head_set_next_direction(Board *b) {
 }
 
 void snake_head_set_direction(Snake *s) {
-	s->head_dir_current = s->head_dir_next;
+	putchar('[');
+	for (int index = 0;
+	     index < sizeof(s->queue.head_dir_next) / sizeof(unsigned);
+	     index++) {
+		printf("%d, ", s->queue.head_dir_next[index]);
+	}
+	putchar(']');
+	printf("\nread index: %d\nwrite index: %d\n",
+	       s->queue.index_read % SNAKE_DIR_QUEUE_SIZE,
+	       s->queue.index_write % SNAKE_DIR_QUEUE_SIZE);
+
+	if (s->queue.index_write != s->queue.index_read) {
+		s->head_dir_current =
+		    s->queue.head_dir_next[s->queue.index_read];
+		s->queue.index_read =
+		    (s->queue.index_read + 1) % SNAKE_DIR_QUEUE_SIZE;
+	}
 }
 
 /*
@@ -197,6 +245,8 @@ void snake_segment_find_new_coords(const Snake *s, int *x_new, int *y_new) {
 		case SNAKE_RIGHT:
 			*x_new = s->head->x - 1;
 			*y_new = s->head->y;
+			break;
+		default:
 			break;
 		}
 	} else {
@@ -260,7 +310,8 @@ void snake_update_square_position(Snake *s) {
 	case SNAKE_RIGHT:
 		s->head->x++;
 		break;
-	case SNAKE_NONE: break;
+	case SNAKE_NONE:
+		break;
 	}
 	current = s->head->child;
 	// set new coords from temp array
