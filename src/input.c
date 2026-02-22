@@ -31,7 +31,7 @@ void term_disable_raw(void) {
 
 TermInputKey term_get_key(void) {
 	char c;
-	TermInputKey key;
+	TermInputKey key = IN_NONE;
 	// if we read exactly one byte
 	if (read(STDIN_FILENO, &c, 1) == 1) {
 		switch (c) {
@@ -55,7 +55,7 @@ TermInputKey term_get_key(void) {
 			break;
 
 		default:
-			key = IN_NONE;
+			key = IN_OTHER;
 			break;
 		}
 	}
