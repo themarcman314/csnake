@@ -71,11 +71,11 @@ GameState game_end(Game *g) {
 
 GameState game_run(Game *g) {
 	static int last_tick = 0;
-	snake_head_set_next_direction(g->b->s);
+	snake_head_direction_set_next(g->b->s);
 	int now = millis();
 	if (now - last_tick >= g->tick_speed) {
 		last_tick = now;
-		snake_head_set_direction(g->b->s);
+		snake_head_direction_set(g->b->s);
 		snake_update_square_position(g->b->s);
 		if (snake_ate_food(g->b->s, g->b->f)) {
 			g->score++;

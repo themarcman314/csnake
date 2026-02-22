@@ -49,6 +49,9 @@ SnakeSegment *snake_segment_create(const int x, const int y);
 void food_set_square(Food *f, const int x, const int y);
 bool snake_check_collisions(const Snake *s);
 bool board_check_collisions(const Board *b);
+static bool snake_head_direction_is_opposite(Direction a, Direction b);
+Direction snake_head_direction_translate_from_input(TermInputKey key,
+						    Direction current);
 
 Board *board_create(const int width, const int height) {
 	Board *b = malloc(sizeof(Board));
@@ -150,67 +153,59 @@ SnakeSegment *snake_segment_create(const int x, const int y) {
 	return s;
 }
 
-void snake_head_set_next_direction(Snake *s) {
+void snake_head_direction_set_next(Snake *s) {
 	TermInputKey key = term_get_key();
-	unsigned const next_index =
-	    (s->queue.index_write + 1) % SNAKE_DIR_QUEUE_SIZE;
-	Direction t = SNAKE_NONE;
-	switch (key) {
-	case IN_UP:
-		if (t != SNAKE_DOWN) {
-			if (next_index != s->queue.index_read) { // not full
-				s->queue.head_dir_next[s->queue.index_write] =
-				    SNAKE_UP;
-				s->queue.index_write = next_index;
-			}
+	if (key == IN_NONE) {
+		return;
+	}
+	Direction dir_last;
+	Direction dir_current =
+	    snake_head_direction_translate_from_input(key, s->head_dir_current);
+	// get last direction
+	if (s->queue.index_write != s->queue.index_read) { // not empty
+		unsigned index_last =
+		    (s->queue.index_write + SNAKE_DIR_QUEUE_SIZE - 1) %
+		    SNAKE_DIR_QUEUE_SIZE;
+		dir_last = s->queue.head_dir_next[index_last];
+	} else { // empty
+		dir_last = s->head_dir_current;
+	}
+	// ignore 180° reversals in direction
+	if (!snake_head_direction_is_opposite(dir_last, dir_current)) {
+		unsigned index_next =
+		    (s->queue.index_write + 1) % SNAKE_DIR_QUEUE_SIZE;
+		if (index_next != s->queue.index_read) { // not full
+			s->queue.head_dir_next[s->queue.index_write] =
+			    dir_current;
+			s->queue.index_write = index_next;
 		}
-		break;
-	case IN_DOWN:
-		if (t != SNAKE_UP) {
-			if (next_index != s->queue.index_read) { // not full
-				s->queue.head_dir_next[s->queue.index_write] =
-				    SNAKE_DOWN;
-				s->queue.index_write = next_index;
-			}
-		}
-		break;
-	case IN_LEFT:
-		if (t != SNAKE_RIGHT) {
-			if (next_index != s->queue.index_read) { // not full
-				s->queue.head_dir_next[s->queue.index_write] =
-				    SNAKE_LEFT;
-				s->queue.index_write = next_index;
-			}
-		}
-		break;
-	case IN_RIGHT:
-		if (t != SNAKE_LEFT) {
-			if (next_index != s->queue.index_read) { // not full
-				s->queue.head_dir_next[s->queue.index_write] =
-				    SNAKE_RIGHT;
-				s->queue.index_write = next_index;
-			}
-		}
-		break;
-	case IN_NONE:
-		break;
-	default:
-		break;
 	}
 }
 
-void snake_head_set_direction(Snake *s) {
-	putchar('[');
-	for (int index = 0;
-	     index < sizeof(s->queue.head_dir_next) / sizeof(unsigned);
-	     index++) {
-		printf("%d, ", s->queue.head_dir_next[index]);
-	}
-	putchar(']');
-	printf("\nread index: %d\nwrite index: %d\n",
-	       s->queue.index_read % SNAKE_DIR_QUEUE_SIZE,
-	       s->queue.index_write % SNAKE_DIR_QUEUE_SIZE);
+static bool snake_head_direction_is_opposite(Direction a, Direction b) {
+	return (a == SNAKE_UP && b == SNAKE_DOWN) ||
+	       (a == SNAKE_DOWN && b == SNAKE_UP) ||
+	       (a == SNAKE_LEFT && b == SNAKE_RIGHT) ||
+	       (a == SNAKE_RIGHT && b == SNAKE_LEFT);
+}
 
+Direction snake_head_direction_translate_from_input(TermInputKey key,
+						    Direction current) {
+	switch (key) {
+	case IN_UP:
+		return SNAKE_UP;
+	case IN_DOWN:
+		return SNAKE_DOWN;
+	case IN_LEFT:
+		return SNAKE_LEFT;
+	case IN_RIGHT:
+		return SNAKE_RIGHT;
+	default:
+		return current;
+	}
+}
+
+void snake_head_direction_set(Snake *s) {
 	if (s->queue.index_write != s->queue.index_read) {
 		s->head_dir_current =
 		    s->queue.head_dir_next[s->queue.index_read];
