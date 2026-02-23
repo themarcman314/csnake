@@ -15,7 +15,11 @@ run --> end : Snake collision
 end --> run : User presses 'r'
 settings --> config : User presses 'b'
 end --> config : User presses 'c'
+welcome --> close : User presses 'q'
 end --> close : User presses 'q'
+run --> close : User presses 'q'
+config --> close : User presses 'q'
+settings --> close : User presses 'q'
 
 
 @enduml
