@@ -43,17 +43,17 @@ struct Snake {
 	Direction head_dir_current;
 };
 
-void snake_print(Snake *s);
+void snake_print(Snake const *s);
 void snake_create(Board *b);
-SnakeSegment *snake_segment_create(const int x, const int y);
-void food_set_square(Food *f, const int x, const int y);
-bool snake_check_collisions(const Snake *s);
-bool board_check_collisions(const Board *b);
-static bool snake_head_direction_is_opposite(Direction a, Direction b);
-Direction snake_head_direction_translate_from_input(TermInputKey key,
-						    Direction current);
+SnakeSegment *snake_segment_create(int const x, int const y);
+void food_set_square(Food *f, int const x, int const y);
+bool snake_check_collisions(Snake const *s);
+bool board_check_collisions(Board const *b);
+static bool snake_head_direction_is_opposite(Direction const a, Direction const b);
+Direction snake_head_direction_translate_from_input(TermInputKey const key,
+						    Direction const current);
 
-Board *board_create(const int width, const int height) {
+Board *board_create(int const width, int const height) {
 	Board *b = malloc(sizeof(Board));
 	if (b == NULL) {
 		goto fail_board;
@@ -94,19 +94,19 @@ void board_destroy(Board *b) {
 	free(b);
 }
 
-int board_get_width(const Board *b) { return b->width; }
+int board_get_width(Board const *b) { return b->width; }
 
-int board_get_height(const Board *b) { return b->height; }
+int board_get_height(Board const *b) { return b->height; }
 
-char board_get_square(const Board *b, const int x, const int y) {
+char board_get_square(Board const *b, int const x, int const y) {
 	return b->squares[y * b->width + x];
 }
 
-void board_set_square(Board *b, const int x, const int y, const char c) {
+void board_set_square(Board *b, int const x, int const y, char const c) {
 	b->squares[y * b->width + x] = c;
 }
 
-void board_print_info(const Board *b) {
+void board_print_info(Board const *b) {
 	printf("width: %d\nheigth: %d\n", b->width, b->height);
 }
 
@@ -183,15 +183,15 @@ void snake_head_direction_set_next(Snake *s) {
 	}
 }
 
-static bool snake_head_direction_is_opposite(Direction a, Direction b) {
+static bool snake_head_direction_is_opposite(Direction const a, Direction const b) {
 	return (a == SNAKE_UP && b == SNAKE_DOWN) ||
 	       (a == SNAKE_DOWN && b == SNAKE_UP) ||
 	       (a == SNAKE_LEFT && b == SNAKE_RIGHT) ||
 	       (a == SNAKE_RIGHT && b == SNAKE_LEFT);
 }
 
-Direction snake_head_direction_translate_from_input(TermInputKey key,
-						    Direction current) {
+Direction snake_head_direction_translate_from_input(TermInputKey const key,
+						    Direction const current) {
 	switch (key) {
 	case IN_UP:
 		return SNAKE_UP;
@@ -222,7 +222,7 @@ void snake_head_direction_set(Snake *s) {
  * If n-1 is NORTH of n, then n+1 will go SOUTH.
  * Similarily if n-1 is WEST of n, then n+1 will go EAST
  */
-void snake_segment_find_new_coords(const Snake *s, int *x_new, int *y_new) {
+void snake_segment_find_new_coords(Snake const *s, int *x_new, int *y_new) {
 	// assert(0 && "not implemented");
 	if (s->head->child == NULL) {
 		switch (s->head_dir_current) {
@@ -325,27 +325,27 @@ void food_init(Board *b) {
 	food_spawn(b);
 }
 
-void food_set_square(Food *f, const int x, const int y) {
+void food_set_square(Food *f, int const x, int const y) {
 	f->x = x;
 	f->y = y;
 }
 
 void food_spawn(Board *b) {
 	// set to width instead of width + 1 since array starts at 0
-	int x = rand() % b->width;
-	int y = rand() % b->height;
+	int const x = rand() % b->width;
+	int const y = rand() % b->height;
 	food_set_square(b->f, x, y);
 	LogDebug("food spawned");
 }
 
-bool board_check_all_collisions(const Board *b) {
+bool board_check_all_collisions(Board const *b) {
 	if (board_check_collisions(b) || snake_check_collisions(b->s)) {
 		return true;
 	}
 	return false;
 }
 
-bool snake_check_collisions(const Snake *s) {
+bool snake_check_collisions(Snake const *s) {
 	SnakeSegment *current = s->head->child;
 	while (current != NULL) {
 		if (s->head->x == current->x && s->head->y == current->y) {
@@ -356,7 +356,7 @@ bool snake_check_collisions(const Snake *s) {
 	return false;
 }
 
-bool board_check_collisions(const Board *b) {
+bool board_check_collisions(Board const *b) {
 	// snake against board
 	if (b->s->head->x < 0 || b->s->head->x >= b->width ||
 	    b->s->head->y < 0 || b->s->head->y >= b->height) {
@@ -385,7 +385,7 @@ void board_update(Board *b) {
 	LogDebug("updated board");
 }
 
-void snake_print(Snake *s) {
+void snake_print(Snake const *s) {
 	SnakeSegment *current = s->head;
 	LogDebug("snake:");
 	while (current != NULL) {
