@@ -120,7 +120,8 @@ void snake_create(Board *b) {
 	}
 	b->s->head = snake_segment_create(b->width / 2, b->height / 2);
 	memset(b->s->queue.head_dir_next, SNAKE_NONE,
-	       sizeof(b->s->queue.head_dir_next) / sizeof(Direction));
+	       SNAKE_DIR_QUEUE_SIZE);
+	b->s->head_dir_current = SNAKE_NONE;
 	b->s->queue.index_write = 0;
 	b->s->queue.index_read = 0;
 	b->s->length = 1;
