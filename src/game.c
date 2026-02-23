@@ -22,16 +22,20 @@ typedef struct {
 	Board *b;
 } Game;
 
-void game_init(Game *g);
+void term_print_size(void);
 void term_init();
 void term_clear_full(void);
-void term_get_offset(const int width, const int length, int *offset_row,
+void term_disable_raw(void);
+void term_get_offset(const int width, const int height, int *offset_row,
 		     int *offset_colums);
+void term_print_spaces(int const num);
+void term_print_newlines(int const num);
 
 GameState game_welcome(void);
-GameState game_end(Game *g);
-GameState game_run(Game *g);
-GameState game_configure(Game *g);
+void game_init(Game *const g);
+GameState game_end(Game *const g);
+GameState game_run(Game *const g);
+GameState game_configure(Game *const g);
 
 void game_init(Game *g) {
 	term_clear_full();
@@ -43,20 +47,32 @@ void game_init(Game *g) {
 	g->b = board_create(50, 10);
 }
 
-GameState game_end(Game *g) {
+GameState game_end(Game *const g) {
 	snake_kill(g->b->s);
 	food_destroy(g->b->f);
-	g->score = 0;
 	term_clear_full();
+	int offset_rows, offset_colums;
+	term_get_offset(36, 9, &offset_rows, &offset_colums);
+	term_print_newlines(offset_rows);
+	term_print_spaces(offset_colums);
 	printf("============== csnake ==============\n");
+	term_print_spaces(offset_colums);
 	printf("            game over :(            \n");
+	term_print_spaces(offset_colums);
 	printf("                                    \n");
+	term_print_spaces(offset_colums);
 	printf("            score: %4d            \n", g->score);
+	term_print_spaces(offset_colums);
 	printf("                                    \n");
+	term_print_spaces(offset_colums);
 	printf("    Press                    Press  \n");
+	term_print_spaces(offset_colums);
 	printf("     'r'                      'q'   \n");
+	term_print_spaces(offset_colums);
 	printf(" to play again              to quit \n");
+	term_print_spaces(offset_colums);
 	printf("====================================\n");
+	g->score = 0;
 	int key;
 	key = term_get_key();
 	while (key != IN_PLAY_AGAIN && key != IN_QUIT) {
@@ -94,12 +110,19 @@ GameState game_run(Game *g) {
 }
 
 GameState game_welcome(void) {
+	int offset_rows, offset_colums;
 
-	char welcome_screen[] = "========= csnake =========\n"
-				"                          \n"
-				"   Press a key to start   \n"
-				"==========================\n";
-	printf("%s", welcome_screen);
+	term_get_offset(26, 4, &offset_rows, &offset_colums);
+	term_print_newlines(offset_rows);
+	term_print_spaces(offset_colums);
+	printf("%s", "========= csnake =========\n");
+	term_print_spaces(offset_colums);
+	printf("%s", "                          \n");
+	term_print_spaces(offset_colums);
+	printf("%s", "   Press a key to start   \n");
+	term_print_spaces(offset_colums);
+	printf("%s", "==========================\n");
+
 	fflush(stdout);
 	while (term_get_key() == IN_NONE)
 		;
@@ -112,6 +135,7 @@ void game_fsm_run(void) {
 	Game g;
 	game_init(&g);
 	while (g.state != STATE_GAME_EXIT) {
+		term_init();
 		switch (g.state) {
 		case STATE_GAME_WELCOME:
 			g.state = game_welcome();

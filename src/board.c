@@ -30,6 +30,12 @@ struct SnakeSegment {
 	SnakeSegment *child;
 };
 
+/*
+ * Allows us to store consecutive directions in a tick.
+ * This makes the user experience better as several pending directions can be
+ * queued per tick. otherwise user input is limited to once per tick leading to
+ * a less responsive feel
+ */
 struct HeadDirQueue {
 	Direction head_dir_next[SNAKE_DIR_QUEUE_SIZE];
 	unsigned index_write;
@@ -49,7 +55,8 @@ SnakeSegment *snake_segment_create(int const x, int const y);
 void food_set_square(Food *f, int const x, int const y);
 bool snake_check_collisions(Snake const *s);
 bool board_check_collisions(Board const *b);
-static bool snake_head_direction_is_opposite(Direction const a, Direction const b);
+static bool snake_head_direction_is_opposite(Direction const a,
+					     Direction const b);
 Direction snake_head_direction_translate_from_input(TermInputKey const key,
 						    Direction const current);
 
@@ -79,19 +86,36 @@ fail_board:
 }
 
 void snake_kill(Snake *s) {
+	if (!s)
+		return; // prevent double free
 	LogDebug("Killing snake");
 	while (s->head != NULL) {
 		SnakeSegment *tmp = s->head;
 		s->head = s->head->child;
-		free(tmp);
+		if (tmp) {
+			free(tmp);
+			tmp = NULL;
+		}
 	}
 	free(s);
+	s = NULL;
 }
-void food_destroy(Food *f) { free(f); }
+void food_destroy(Food *f) {
+	if (f) {
+		free(f);
+		f = NULL;
+	}
+}
 void board_destroy(Board *b) {
 	LogDebug("Destroying Board");
-	free(b->squares);
-	free(b);
+	if (b->squares) {
+		free(b->squares);
+		b->squares = NULL;
+	}
+	if (b) {
+		free(b);
+		b = NULL;
+	}
 }
 
 int board_get_width(Board const *b) { return b->width; }
@@ -119,8 +143,7 @@ void snake_create(Board *b) {
 		goto snake_create_failed;
 	}
 	b->s->head = snake_segment_create(b->width / 2, b->height / 2);
-	memset(b->s->queue.head_dir_next, SNAKE_NONE,
-	       SNAKE_DIR_QUEUE_SIZE);
+	memset(b->s->queue.head_dir_next, SNAKE_NONE, SNAKE_DIR_QUEUE_SIZE);
 	b->s->head_dir_current = SNAKE_NONE;
 	b->s->queue.index_write = 0;
 	b->s->queue.index_read = 0;
@@ -183,7 +206,8 @@ void snake_head_direction_set_next(Snake *s) {
 	}
 }
 
-static bool snake_head_direction_is_opposite(Direction const a, Direction const b) {
+static bool snake_head_direction_is_opposite(Direction const a,
+					     Direction const b) {
 	return (a == SNAKE_UP && b == SNAKE_DOWN) ||
 	       (a == SNAKE_DOWN && b == SNAKE_UP) ||
 	       (a == SNAKE_LEFT && b == SNAKE_RIGHT) ||
