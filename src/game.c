@@ -39,13 +39,14 @@ void game_init(Game *g) {
 	debug_init();
 	term_init();
 	g->state = STATE_GAME_WELCOME;
-	g->tick_speed = 200;
+	g->tick_speed = 100;
 	g->b = board_create(50, 10);
 }
 
 GameState game_end(Game *g) {
 	snake_kill(g->b->s);
 	food_destroy(g->b->f);
+	g->score = 0;
 	term_clear_full();
 	printf("============== csnake ==============\n");
 	printf("            game over :(            \n");
