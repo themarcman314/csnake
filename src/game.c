@@ -28,8 +28,8 @@ void term_clear_full(void);
 void term_disable_raw(void);
 void term_get_offset(const int width, const int height, int *offset_row,
 		     int *offset_colums);
-void term_print_spaces(int const num);
-void term_print_newlines(int const num);
+void term_board_draw_collision(Board const *const b, int const board_x,
+			       int const board_y);
 
 GameState game_welcome(void);
 void game_init(Game *const g);
@@ -53,24 +53,23 @@ GameState game_end(Game *const g) {
 	term_clear_full();
 	int offset_rows, offset_colums;
 	term_get_offset(36, 9, &offset_rows, &offset_colums);
-	term_print_newlines(offset_rows);
-	term_print_spaces(offset_colums);
+	printf("\033[%d;%dH", offset_rows, offset_colums);
 	printf("============== csnake ==============\n");
-	term_print_spaces(offset_colums);
+	printf("\033[%d;%dH", ++offset_rows, offset_colums);
 	printf("            game over :(            \n");
-	term_print_spaces(offset_colums);
+	printf("\033[%d;%dH", ++offset_rows, offset_colums);
 	printf("                                    \n");
-	term_print_spaces(offset_colums);
+	printf("\033[%d;%dH", ++offset_rows, offset_colums);
 	printf("            score: %4d            \n", g->score);
-	term_print_spaces(offset_colums);
+	printf("\033[%d;%dH", ++offset_rows, offset_colums);
 	printf("                                    \n");
-	term_print_spaces(offset_colums);
+	printf("\033[%d;%dH", ++offset_rows, offset_colums);
 	printf("    Press                    Press  \n");
-	term_print_spaces(offset_colums);
+	printf("\033[%d;%dH", ++offset_rows, offset_colums);
 	printf("     'r'                      'q'   \n");
-	term_print_spaces(offset_colums);
+	printf("\033[%d;%dH", ++offset_rows, offset_colums);
 	printf(" to play again              to quit \n");
-	term_print_spaces(offset_colums);
+	printf("\033[%d;%dH", ++offset_rows, offset_colums);
 	printf("====================================\n");
 	g->score = 0;
 	int key;
@@ -100,6 +99,9 @@ GameState game_run(Game *g) {
 			food_spawn(g->b);
 		}
 		if (board_check_all_collisions(g->b)) {
+			int x, y;
+			snake_get_head_position(g->b->s, &x, &y);
+			term_board_draw_collision(g->b, x, y);
 			sleep(1);
 			return STATE_GAME_END;
 		};
@@ -113,14 +115,13 @@ GameState game_welcome(void) {
 	int offset_rows, offset_colums;
 
 	term_get_offset(26, 4, &offset_rows, &offset_colums);
-	term_print_newlines(offset_rows);
-	term_print_spaces(offset_colums);
+	printf("\033[%d;%dH", ++offset_rows, offset_colums);
 	printf("%s", "========= csnake =========\n");
-	term_print_spaces(offset_colums);
+	printf("\033[%d;%dH", ++offset_rows, offset_colums);
 	printf("%s", "                          \n");
-	term_print_spaces(offset_colums);
+	printf("\033[%d;%dH", ++offset_rows, offset_colums);
 	printf("%s", "   Press a key to start   \n");
-	term_print_spaces(offset_colums);
+	printf("\033[%d;%dH", ++offset_rows, offset_colums);
 	printf("%s", "==========================\n");
 
 	fflush(stdout);

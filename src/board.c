@@ -369,6 +369,11 @@ bool board_check_all_collisions(Board const *b) {
 	return false;
 }
 
+void snake_get_head_position(Snake const *s, int *x, int *y) {
+	*x = s->head->x;
+	*y = s->head->y;
+}
+
 bool snake_check_collisions(Snake const *s) {
 	SnakeSegment *current = s->head->child;
 	while (current != NULL) {
