@@ -2,6 +2,7 @@
 #define BOARD_H
 
 #include <stdbool.h>
+#include "input.h"
 
 typedef struct Snake Snake;
 typedef struct Food Food;
@@ -30,7 +31,7 @@ void snake_create(Board *b);
 void snake_kill(Snake *s);
 void snake_get_head_position(Snake const *s, int *x, int *y);
 void snake_update_square_position(Snake *s);
-void snake_head_direction_set_next(Snake *s);
+void snake_head_direction_set_next(Snake * const s, TermInputKey const key);
 void snake_head_direction_set(Snake *s);
 
 void food_init(Board *b);

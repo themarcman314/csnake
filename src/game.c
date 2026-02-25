@@ -17,6 +17,7 @@ typedef enum {
 
 typedef struct {
 	GameState state;
+	TermInputKey key;
 	int score;
 	int tick_speed;
 	Board *b;
@@ -31,7 +32,7 @@ void term_get_offset(const int width, const int height, int *offset_row,
 void term_board_draw_collision(Board const *const b, int const board_x,
 			       int const board_y);
 
-GameState game_welcome(void);
+GameState game_welcome(TermInputKey key);
 void game_init(Game *const g);
 GameState game_end(Game *const g);
 GameState game_run(Game *const g);
@@ -74,8 +75,8 @@ GameState game_end(Game *const g) {
 	g->score = 0;
 	int key;
 	key = term_get_key();
-	while (key != IN_PLAY_AGAIN && key != IN_QUIT) {
-		key = term_get_key();
+	if (key != IN_PLAY_AGAIN && key != IN_QUIT) {
+		return STATE_GAME_END;
 	}
 	if (key == IN_PLAY_AGAIN) {
 		snake_create(g->b);
@@ -87,7 +88,6 @@ GameState game_end(Game *const g) {
 
 GameState game_run(Game *g) {
 	static int last_tick = 0;
-	snake_head_direction_set_next(g->b->s);
 	int now = millis();
 	if (now - last_tick >= g->tick_speed) {
 		last_tick = now;
@@ -111,23 +111,29 @@ GameState game_run(Game *g) {
 	return STATE_GAME_RUN;
 }
 
-GameState game_welcome(void) {
-	int offset_rows, offset_colums;
+GameState game_welcome(TermInputKey key) {
+	static int last_tick = 0;
+	int now = millis();
+	if (now - last_tick >= 50) {
+		last_tick = now;
+		term_clear_full();
+		int offset_rows, offset_colums;
 
-	term_get_offset(26, 4, &offset_rows, &offset_colums);
-	printf("\033[%d;%dH", ++offset_rows, offset_colums);
-	printf("%s", "========= csnake =========\n");
-	printf("\033[%d;%dH", ++offset_rows, offset_colums);
-	printf("%s", "                          \n");
-	printf("\033[%d;%dH", ++offset_rows, offset_colums);
-	printf("%s", "   Press a key to start   \n");
-	printf("\033[%d;%dH", ++offset_rows, offset_colums);
-	printf("%s", "==========================\n");
+		term_get_offset(26, 4, &offset_rows, &offset_colums);
+		printf("\033[%d;%dH", ++offset_rows, offset_colums);
+		printf("%s", "========= csnake =========\n");
+		printf("\033[%d;%dH", ++offset_rows, offset_colums);
+		printf("%s", "                          \n");
+		printf("\033[%d;%dH", ++offset_rows, offset_colums);
+		printf("%s", "   Press a key to start   \n");
+		printf("\033[%d;%dH", ++offset_rows, offset_colums);
+		printf("%s", "==========================\n");
+	}
 
 	fflush(stdout);
-	while (term_get_key() == IN_NONE)
-		;
-	return STATE_GAME_CONFIGURE;
+	if (key != IN_NONE)
+		return STATE_GAME_CONFIGURE;
+	return STATE_GAME_WELCOME;
 }
 
 GameState game_configure(Game *g) { return STATE_GAME_RUN; }
@@ -137,9 +143,14 @@ void game_fsm_run(void) {
 	game_init(&g);
 	while (g.state != STATE_GAME_EXIT) {
 		term_init();
+		g.key = term_get_key();
+		if (g.key == IN_QUIT)
+			g.state = STATE_GAME_EXIT;
+		snake_head_direction_set_next(g.b->s, g.key);
+
 		switch (g.state) {
 		case STATE_GAME_WELCOME:
-			g.state = game_welcome();
+			g.state = game_welcome(g.key);
 			break;
 		case STATE_GAME_RUN:
 			g.state = game_run(&g);
@@ -150,6 +161,10 @@ void game_fsm_run(void) {
 		case STATE_GAME_CONFIGURE:
 			g.state = game_configure(&g);
 			break;
+		case STATE_GAME_EXIT:
+			food_destroy(g.b->f);
+			snake_kill(g.b->s);
+			board_destroy(g.b);
 
 		default:
 			g.state = STATE_GAME_EXIT;

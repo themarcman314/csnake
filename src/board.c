@@ -177,8 +177,7 @@ SnakeSegment *snake_segment_create(const int x, const int y) {
 	return s;
 }
 
-void snake_head_direction_set_next(Snake *s) {
-	TermInputKey key = term_get_key();
+void snake_head_direction_set_next(Snake * const s, TermInputKey const key) {
 	if (key == IN_NONE) {
 		return;
 	}
