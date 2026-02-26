@@ -95,8 +95,8 @@ void term_print_size(void) {
 
 void term_get_offset(int const width, int const height, int *offset_rows,
 		     int *offset_colums) {
-	*offset_rows = ((term_rows - height) / 2) + 1;
-	*offset_colums = ((term_colums - width) / 2) + 1;
+	*offset_rows = ((term_rows - height) / 2);
+	*offset_colums = ((term_colums - width) / 2);
 }
 
 void term_clear_quick(void) {
