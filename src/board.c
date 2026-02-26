@@ -79,42 +79,39 @@ Board *board_create(int const width, int const height) {
 	return b;
 
 fail_squares:
-	board_destroy(b);
+	board_destroy(&b);
 fail_board:
 	fprintf(stderr, "Unable to allocate memory for board");
 	exit(EXIT_FAILURE);
 }
 
-void snake_kill(Snake *s) {
-	if (!s)
-		return; // prevent double free
+void snake_kill(Snake **p_s) {
+	if (!p_s || !*p_s)
+		return;
+	Snake *s = *p_s;
 	LogDebug("Killing snake");
 	while (s->head != NULL) {
 		SnakeSegment *tmp = s->head;
 		s->head = s->head->child;
-		if (tmp) {
-			free(tmp);
-			tmp = NULL;
-		}
+		free(tmp);
+		tmp = NULL;
 	}
 	free(s);
-	s = NULL;
+	*p_s = NULL;
 }
-void food_destroy(Food *f) {
-	if (f) {
-		free(f);
-		f = NULL;
+void food_destroy(Food **f) {
+	if (f || *f) {
+		free(*f);
+		*f = NULL;
 	}
 }
-void board_destroy(Board *b) {
-	LogDebug("Destroying Board");
-	if (b->squares) {
+void board_destroy(Board **p_b) {
+	if (p_b || *p_b) {
+		LogDebug("Destroying Board");
+		Board *b = *p_b;
 		free(b->squares);
-		b->squares = NULL;
-	}
-	if (b) {
 		free(b);
-		b = NULL;
+		*p_b = NULL;
 	}
 }
 
@@ -151,9 +148,9 @@ void snake_create(Board *b) {
 	return;
 
 food_create_failed:
-	snake_kill(b->s);
+	snake_kill(&b->s);
 snake_create_failed:
-	board_destroy(b);
+	board_destroy(&b);
 	exit(EXIT_FAILURE);
 }
 
@@ -181,7 +178,7 @@ SnakeSegment *snake_segment_create(const int x, const int y) {
 	return s;
 }
 
-void snake_head_direction_set_next(Snake * const s, TermInputKey const key) {
+void snake_head_direction_set_next(Snake *const s, TermInputKey const key) {
 	if (key == IN_NONE) {
 		return;
 	}

@@ -49,8 +49,6 @@ void game_init(Game *g) {
 }
 
 GameState game_end(Game *const g) {
-	// snake_kill(g->b->s);
-	// food_destroy(g->b->f);
 	static int last_tick = 0;
 	int now = millis();
 	if (now - last_tick >= g->tick_speed) {
@@ -149,13 +147,13 @@ void game_fsm_run(void) {
 		g.key = term_get_key();
 		if (g.key == IN_QUIT)
 			g.state = STATE_GAME_EXIT;
-		snake_head_direction_set_next(g.b->s, g.key);
 
 		switch (g.state) {
 		case STATE_GAME_WELCOME:
 			g.state = game_welcome(g.key);
 			break;
 		case STATE_GAME_RUN:
+			snake_head_direction_set_next(g.b->s, g.key);
 			g.state = game_run(&g);
 			break;
 		case STATE_GAME_END:
@@ -165,9 +163,9 @@ void game_fsm_run(void) {
 			g.state = game_configure(&g);
 			break;
 		case STATE_GAME_EXIT:
-			food_destroy(g.b->f);
-			snake_kill(g.b->s);
-			board_destroy(g.b);
+			food_destroy(&g.b->f);
+			snake_kill(&g.b->s);
+			board_destroy(&g.b);
 
 		default:
 			g.state = STATE_GAME_EXIT;
