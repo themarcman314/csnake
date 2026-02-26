@@ -49,37 +49,40 @@ void game_init(Game *g) {
 }
 
 GameState game_end(Game *const g) {
-	snake_kill(g->b->s);
-	food_destroy(g->b->f);
-	term_clear_full();
-	int offset_rows, offset_colums;
-	term_get_offset(36, 9, &offset_rows, &offset_colums);
-	printf("\033[%d;%dH", offset_rows, offset_colums);
-	printf("============== csnake ==============\n");
-	printf("\033[%d;%dH", ++offset_rows, offset_colums);
-	printf("            game over :(            \n");
-	printf("\033[%d;%dH", ++offset_rows, offset_colums);
-	printf("                                    \n");
-	printf("\033[%d;%dH", ++offset_rows, offset_colums);
-	printf("            score: %4d            \n", g->score);
-	printf("\033[%d;%dH", ++offset_rows, offset_colums);
-	printf("                                    \n");
-	printf("\033[%d;%dH", ++offset_rows, offset_colums);
-	printf("    Press                    Press  \n");
-	printf("\033[%d;%dH", ++offset_rows, offset_colums);
-	printf("     'r'                      'q'   \n");
-	printf("\033[%d;%dH", ++offset_rows, offset_colums);
-	printf(" to play again              to quit \n");
-	printf("\033[%d;%dH", ++offset_rows, offset_colums);
-	printf("====================================\n");
+	// snake_kill(g->b->s);
+	// food_destroy(g->b->f);
+	static int last_tick = 0;
+	int now = millis();
+	if (now - last_tick >= g->tick_speed) {
+		last_tick = now;
+		term_clear_full();
+		int offset_rows, offset_colums;
+		term_get_offset(36, 9, &offset_rows, &offset_colums);
+		printf("\033[%d;%dH", offset_rows, offset_colums);
+		printf("============== csnake ==============\n");
+		printf("\033[%d;%dH", ++offset_rows, offset_colums);
+		printf("            game over :(            \n");
+		printf("\033[%d;%dH", ++offset_rows, offset_colums);
+		printf("                                    \n");
+		printf("\033[%d;%dH", ++offset_rows, offset_colums);
+		printf("            score: %4d            \n", g->score);
+		printf("\033[%d;%dH", ++offset_rows, offset_colums);
+		printf("                                    \n");
+		printf("\033[%d;%dH", ++offset_rows, offset_colums);
+		printf("    Press                    Press  \n");
+		printf("\033[%d;%dH", ++offset_rows, offset_colums);
+		printf("     'r'                      'q'   \n");
+		printf("\033[%d;%dH", ++offset_rows, offset_colums);
+		printf(" to play again              to quit \n");
+		printf("\033[%d;%dH", ++offset_rows, offset_colums);
+		printf("====================================\n");
+	}
 	g->score = 0;
-	int key;
-	key = term_get_key();
-	if (key != IN_PLAY_AGAIN && key != IN_QUIT) {
+	if (g->key != IN_PLAY_AGAIN && g->key != IN_QUIT) {
 		return STATE_GAME_END;
 	}
-	if (key == IN_PLAY_AGAIN) {
-		snake_create(g->b);
+	if (g->key == IN_PLAY_AGAIN) {
+		snake_init(g->b);
 		food_init(g->b);
 		return STATE_GAME_RUN;
 	}

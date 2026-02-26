@@ -142,12 +142,7 @@ void snake_create(Board *b) {
 	if (b->s == NULL) {
 		goto snake_create_failed;
 	}
-	b->s->head = snake_segment_create(b->width / 2, b->height / 2);
-	memset(b->s->queue.head_dir_next, SNAKE_NONE, SNAKE_DIR_QUEUE_SIZE);
-	b->s->head_dir_current = SNAKE_NONE;
-	b->s->queue.index_write = 0;
-	b->s->queue.index_read = 0;
-	b->s->length = 1;
+	snake_init(b);
 
 	b->f = malloc(sizeof(Food));
 	if (b->f == NULL) {
@@ -160,6 +155,15 @@ food_create_failed:
 snake_create_failed:
 	board_destroy(b);
 	exit(EXIT_FAILURE);
+}
+
+void snake_init(Board *b) {
+	b->s->head = snake_segment_create(b->width / 2, b->height / 2);
+	memset(b->s->queue.head_dir_next, SNAKE_NONE, SNAKE_DIR_QUEUE_SIZE);
+	b->s->head_dir_current = SNAKE_NONE;
+	b->s->queue.index_write = 0;
+	b->s->queue.index_read = 0;
+	b->s->length = 1;
 }
 
 SnakeSegment *snake_segment_create(const int x, const int y) {

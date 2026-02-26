@@ -28,6 +28,7 @@ void board_update(Board *b);
 bool snake_ate_food(Snake *s, Food *f);
 void snake_segment_add(Snake *s);
 void snake_create(Board *b);
+void snake_init(Board *b);
 void snake_kill(Snake *s);
 void snake_get_head_position(Snake const *s, int *x, int *y);
 void snake_update_square_position(Snake *s);
