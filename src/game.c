@@ -1,4 +1,6 @@
+#include "ansi.h"
 #include "board.h"
+#include "conf.h"
 #include "debug.h"
 #include "engine.h"
 #include "input.h"
@@ -31,6 +33,8 @@ void term_get_offset(const int width, const int height, int *offset_row,
 		     int *offset_colums);
 void term_board_draw_collision(Board const *const b, int const board_x,
 			       int const board_y);
+void term_color_set(char *color);
+void term_color_clear(void);
 
 GameState game_welcome(TermInputKey key);
 void game_init(Game *const g);
@@ -44,8 +48,8 @@ void game_init(Game *g) {
 	debug_init();
 	term_init();
 	g->state = STATE_GAME_WELCOME;
-	g->tick_speed = 100;
-	g->b = board_create(50, 10);
+	g->tick_speed = 1000.0 / TICK_FREQUENCY;
+	g->b = board_create(BOARD_WIDTH, BOARD_HEIGHT);
 }
 
 GameState game_end(Game *const g) {
@@ -57,29 +61,38 @@ GameState game_end(Game *const g) {
 		int offset_rows, offset_colums;
 		term_get_offset(36, 9, &offset_rows, &offset_colums);
 		printf("\033[%d;%dH", offset_rows, offset_colums);
+		term_color_set(GRN);
 		printf("============== csnake ==============\n");
+		term_color_clear();
 		printf("\033[%d;%dH", ++offset_rows, offset_colums);
+		term_color_set(RED);
 		printf("            game over :(            \n");
+		term_color_clear();
 		printf("\033[%d;%dH", ++offset_rows, offset_colums);
 		printf("                                    \n");
 		printf("\033[%d;%dH", ++offset_rows, offset_colums);
+		term_color_set(MAG);
 		printf("            score: %4d            \n", g->score);
+		term_color_clear();
 		printf("\033[%d;%dH", ++offset_rows, offset_colums);
 		printf("                                    \n");
 		printf("\033[%d;%dH", ++offset_rows, offset_colums);
+		term_color_set(CYN);
 		printf("    Press                    Press  \n");
 		printf("\033[%d;%dH", ++offset_rows, offset_colums);
 		printf("     'r'                      'q'   \n");
 		printf("\033[%d;%dH", ++offset_rows, offset_colums);
 		printf(" to play again              to quit \n");
 		printf("\033[%d;%dH", ++offset_rows, offset_colums);
+		term_color_set(GRN);
 		printf("====================================\n");
+		term_color_clear();
 	}
-	g->score = 0;
 	if (g->key != IN_PLAY_AGAIN && g->key != IN_QUIT) {
 		return STATE_GAME_END;
 	}
 	if (g->key == IN_PLAY_AGAIN) {
+		g->score = 0;
 		snake_init(g->b);
 		food_init(g->b);
 		return STATE_GAME_RUN;
@@ -122,13 +135,18 @@ GameState game_welcome(TermInputKey key) {
 
 		term_get_offset(26, 4, &offset_rows, &offset_colums);
 		printf("\033[%d;%dH", ++offset_rows, offset_colums);
+		term_color_set(GRN);
 		printf("%s", "========= csnake =========\n");
+		term_color_clear();
 		printf("\033[%d;%dH", ++offset_rows, offset_colums);
 		printf("%s", "                          \n");
 		printf("\033[%d;%dH", ++offset_rows, offset_colums);
+		term_color_set(CYN);
 		printf("%s", "   Press a key to start   \n");
 		printf("\033[%d;%dH", ++offset_rows, offset_colums);
+		term_color_set(GRN);
 		printf("%s", "==========================\n");
+		term_color_clear();
 	}
 
 	fflush(stdout);

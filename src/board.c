@@ -1,6 +1,7 @@
 #include "board.h"
 #include "debug.h"
 #include "input.h"
+#include "conf.h"
 #include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -404,12 +405,12 @@ bool snake_ate_food(Snake *s, Food *f) {
 
 void board_update(Board *b) {
 	memset(b->squares, ' ', b->width * b->height);
-	board_set_square(b, b->f->x, b->f->y, '*');
+	board_set_square(b, b->f->x, b->f->y, FOOD_CHAR);
 	SnakeSegment *current_seg = b->s->head;
-	board_set_square(b, current_seg->x, current_seg->y, '@');
+	board_set_square(b, current_seg->x, current_seg->y, SNAKE_HEAD_CHAR);
 	while (current_seg->child != NULL) {
 		current_seg = current_seg->child;
-		board_set_square(b, current_seg->x, current_seg->y, '+');
+		board_set_square(b, current_seg->x, current_seg->y, SNAKE_BODY_CHAR);
 	}
 	LogDebug("updated board");
 }
