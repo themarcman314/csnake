@@ -53,6 +53,15 @@ TermInputKey term_get_key(void) {
 		case 'q':
 			key = IN_QUIT;
 			break;
+		case '\n':
+			key = IN_ENTER;
+			break;
+		case '+':
+			key = IN_PLUS;
+			break;
+		case '-':
+			key = IN_MINUS;
+			break;
 
 		default:
 			key = IN_OTHER;
