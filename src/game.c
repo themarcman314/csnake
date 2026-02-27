@@ -77,10 +77,17 @@ GameState game_end(Game *const g) {
 		printf("\033[%d;%dH", ++offset_rows, offset_colums);
 		printf("                                    \n");
 		printf("\033[%d;%dH", ++offset_rows, offset_colums);
-		term_color_set(CYN);
 		printf("    Press                    Press  \n");
 		printf("\033[%d;%dH", ++offset_rows, offset_colums);
-		printf("     'r'                      'q'   \n");
+		printf("     '");
+		term_color_set(CYN);
+		putchar('r');
+		term_color_clear();
+		printf("'                      '");
+		term_color_set(CYN);
+		putchar('q');
+		term_color_clear();
+		printf("'   \n");
 		printf("\033[%d;%dH", ++offset_rows, offset_colums);
 		printf(" to play again              to quit \n");
 		printf("\033[%d;%dH", ++offset_rows, offset_colums);
@@ -88,16 +95,13 @@ GameState game_end(Game *const g) {
 		printf("====================================\n");
 		term_color_clear();
 	}
-	if (g->key != IN_PLAY_AGAIN && g->key != IN_QUIT) {
-		return STATE_GAME_END;
-	}
-	if (g->key == IN_PLAY_AGAIN) {
+	if (g->key == IN_PLAY_AGAIN || g->key == IN_ENTER) {
 		g->score = 0;
 		snake_init(g->b);
 		food_init(g->b);
 		return STATE_GAME_RUN;
 	}
-	return STATE_GAME_EXIT;
+	return STATE_GAME_END;
 }
 
 GameState game_run(Game *g) {
@@ -157,6 +161,7 @@ GameState game_welcome(TermInputKey key) {
 
 GameState game_configure(Game *g) {
 
+	static float freq = TICK_FREQUENCY;
 	static int last_tick = 0;
 	int now = millis();
 	if (now - last_tick >= 50) {
@@ -166,39 +171,38 @@ GameState game_configure(Game *g) {
 		term_get_offset(36, 4, &offset_rows, &offset_colums);
 		printf("\033[%d;%dH", ++offset_rows, offset_colums);
 		term_color_set(GRN);
-		printf("%s", "============== csnake ==============\n");
+		printf("============== csnake ==============\n");
+		term_color_clear();
 		printf("\033[%d;%dH", ++offset_rows, offset_colums);
-		printf("Set snake speed with +/- keys\n");
+		printf("   Set snake speed with ");
+		term_color_set(CYN);
+		putchar('+');
+		term_color_clear();
+		putchar('/');
+		term_color_set(CYN);
+		putchar('-');
+		term_color_clear();
+		printf(" keys\n");
 		printf("\033[%d;%dH", ++offset_rows, offset_colums);
-		printf("Snake speed: %f (tiles per second)\n",
-		       (1000.0F / (float)(g->tick_speed)));
+		printf("Snake speed: %s%.1f%s (tiles per second)\n", MAG, freq, COLOR_RESET);
 		printf("\033[%d;%dH", ++offset_rows, offset_colums);
-		printf("Snake speed: %d (ms)\n",g->tick_speed);
+		printf("     Quit with '%sq%s' at any time\n", CYN, COLOR_RESET);
 		printf("\033[%d;%dH", ++offset_rows, offset_colums);
-		printf("Select move keys:\n");
-		printf("\033[%d;%dH", ++offset_rows, offset_colums);
-		// printf("UP: %c",);
-		// printf("LEFT: %d",);
-		// printf("DOWN: %d",);
-		// printf("RIGHT: %d",);
-		printf("Quit with 'q' at any time\n");
-		printf("\033[%d;%dH", ++offset_rows, offset_colums);
-		printf("%s", "====================================\n");
+		term_color_set(GRN);
+		printf("====================================\n");
 		term_color_clear();
 	}
+	float const delta = 0.1; // +- 0.1 Hz
+
 	switch (g->key) {
-		int const delta = 1000.0 / 100.0;
 	case IN_ENTER:
+		g->tick_speed = 1000.0F / freq;
 		return STATE_GAME_RUN;
 	case IN_PLUS:
-		if (g->tick_speed + delta < 0) {
-			g->tick_speed = 0;
-		} else {
-			g->tick_speed -= delta;
-		}
+		freq += delta;
 		break;
 	case IN_MINUS:
-		g->tick_speed += delta;
+		freq -= delta;
 		break;
 	default:
 		break;
