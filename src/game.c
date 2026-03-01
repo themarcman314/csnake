@@ -5,6 +5,7 @@
 #include "engine.h"
 #include "input.h"
 #include "timer.h"
+#include <stdbool.h>
 #include <stdio.h>
 #include <unistd.h>
 
@@ -58,20 +59,20 @@ GameState game_end(Game *const g) {
 		last_tick = now;
 		term_clear_full();
 		int offset_rows, offset_colums;
-		term_get_offset(36, 9, &offset_rows, &offset_colums);
+		term_get_offset(40, 11, &offset_rows, &offset_colums);
 		printf("\033[%d;%dH", offset_rows, offset_colums);
 		term_color_set(GRN);
-		printf("============== csnake ==============\n");
+		printf("================ csnake ================\n");
 		term_color_clear();
 		printf("\033[%d;%dH", ++offset_rows, offset_colums);
 		term_color_set(RED);
-		printf("            game over :(            \n");
+		printf("              game over :(            \n");
 		term_color_clear();
 		printf("\033[%d;%dH", ++offset_rows, offset_colums);
 		printf("                                    \n");
 		printf("\033[%d;%dH", ++offset_rows, offset_colums);
 		term_color_set(MAG);
-		printf("            score: %4d            \n", g->score);
+		printf("              score: %4d            \n", g->score);
 		term_color_clear();
 		printf("\033[%d;%dH", ++offset_rows, offset_colums);
 		printf("                                    \n");
@@ -84,14 +85,18 @@ GameState game_end(Game *const g) {
 		term_color_clear();
 		printf("'                      '");
 		term_color_set(CYN);
-		putchar('q');
+		putchar('c');
 		term_color_clear();
 		printf("'   \n");
 		printf("\033[%d;%dH", ++offset_rows, offset_colums);
-		printf(" to play again              to quit \n");
+		printf(" to play again            to configure\n");
+		++offset_rows;
+		printf("\033[%d;%dH", ++offset_rows, offset_colums);
+		printf("       Quit with '%sq%s' at any time\n", CYN,
+		       COLOR_RESET);
 		printf("\033[%d;%dH", ++offset_rows, offset_colums);
 		term_color_set(GRN);
-		printf("====================================\n");
+		printf("========================================\n");
 		term_color_clear();
 	}
 	if (g->key == IN_PLAY_AGAIN || g->key == IN_ENTER) {
@@ -99,6 +104,8 @@ GameState game_end(Game *const g) {
 		snake_init(g->b);
 		food_init(g->b);
 		return STATE_GAME_RUN;
+	} else if (g->key == IN_CONFIGURE) {
+		return STATE_GAME_CONFIGURE;
 	}
 	return STATE_GAME_END;
 }
@@ -176,38 +183,28 @@ GameState game_configure(Game *g) {
 		printf("============== csnake ==============\n");
 		term_color_clear();
 		printf("\033[%d;%dH", ++offset_rows, offset_colums);
+		printf("         Set with %s+%s/%s-%s keys\n", CYN, COLOR_RESET,
+		       CYN, COLOR_RESET);
 		if (configured_board_height && configured_board_width) {
-			printf("   Set snake speed with %s+%s/%s-%s keys\n",
-			       CYN, COLOR_RESET, CYN, COLOR_RESET);
 			printf("\033[%d;%dH", ++offset_rows, offset_colums);
-			printf("  Snake speed: %s%.1f%s tiles per second\n", MAG,
-			       freq, COLOR_RESET);
-			++offset_rows;
-			printf("\033[%d;%dH", ++offset_rows, offset_colums);
-			printf("     Quit with '%sq%s' at any time\n", CYN,
-			       COLOR_RESET);
+			printf("  Snake speed: %s%.1f%s tiles per second\n",
+			       MAG, freq, COLOR_RESET);
 		} else if (configured_board_width) {
-			printf("   Set snake speed with %s+%s/%s-%s keys\n",
-			       CYN, COLOR_RESET, CYN, COLOR_RESET);
 			printf("\033[%d;%dH", ++offset_rows, offset_colums);
-			printf("      Board height: %s%d%s tiles\n", MAG, height,
-			       COLOR_RESET);
-			++offset_rows;
-			printf("\033[%d;%dH", ++offset_rows, offset_colums);
-			printf("     Quit with '%sq%s' at any time\n", CYN,
-			       COLOR_RESET);
-
+			printf("       Board height: %s%d%s tiles\n", MAG,
+			       height, COLOR_RESET);
 		} else {
-			printf("   Set snake speed with %s+%s/%s-%s keys\n",
-			       CYN, COLOR_RESET, CYN, COLOR_RESET);
 			printf("\033[%d;%dH", ++offset_rows, offset_colums);
-			printf("      Board height: %s%d%s tiles\n", MAG, width,
-			       COLOR_RESET);
-			++offset_rows;
-			printf("\033[%d;%dH", ++offset_rows, offset_colums);
-			printf("     Quit with '%sq%s' at any time\n", CYN,
+			printf("       Board width: %s%d%s tiles\n", MAG, width,
 			       COLOR_RESET);
 		}
+		++offset_rows;
+		printf("\033[%d;%dH", ++offset_rows, offset_colums);
+		printf("         Press %senter%s to set", CYN, COLOR_RESET);
+		++offset_rows;
+		printf("\033[%d;%dH", ++offset_rows, offset_colums);
+		printf("     Quit with '%sq%s' at any time\n", CYN,
+		       COLOR_RESET);
 		printf("\033[%d;%dH", ++offset_rows, offset_colums);
 		term_color_set(GRN);
 		printf("====================================\n");
@@ -216,8 +213,16 @@ GameState game_configure(Game *g) {
 
 	float const delta = 0.1; // +- 0.1 Hz
 	switch (g->key) {
+	case IN_PLAY_AGAIN:
+		configured_board_height = false;
+		configured_board_width = false;
+		g->b = board_create(width, height);
+		return STATE_GAME_RUN;
+
 	case IN_ENTER:
 		if (configured_board_height && configured_board_width) {
+			configured_board_height = false;
+			configured_board_width = false;
 			g->tick_speed = 1000.0F / freq;
 			g->b = board_create(width, height);
 			return STATE_GAME_RUN;

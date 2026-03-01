@@ -61,6 +61,8 @@ TermInputKey term_get_key(void) {
 					return IN_PLUS;
 				case '-':
 					return IN_MINUS;
+				case 'c':
+					return IN_CONFIGURE;
 				default:
 					return IN_OTHER;
 				}
@@ -85,7 +87,8 @@ TermInputKey term_get_key(void) {
 				return IN_RIGHT;
 			case 68:
 				return IN_LEFT;
-			default: return IN_OTHER;
+			default:
+				return IN_OTHER;
 			}
 		}
 	}
