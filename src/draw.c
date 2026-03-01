@@ -11,7 +11,7 @@
 
 int term_rows, term_colums;
 
-void static term_board_draw(Board const *const b);
+void static term_board_draw(Board const *const b, int const score);
 void term_clear_quick(void);
 void term_clear_full(void);
 void term_get_offset(int const width, int const height, int *offset_rows,
@@ -21,10 +21,11 @@ void term_print_newlines(int const num);
 void term_init();
 void term_color_set(char *color);
 void term_color_clear(void);
+static int count_digits(int num);
 
-void board_draw(Board const *const b) {
+void board_draw(Board const *const b, int const score) {
 #ifdef TERM_SIMPLE
-	term_board_draw(b);
+	term_board_draw(b, score);
 #elif TERM_NCURSES
 #elif GRAPHICAL
 #endif
@@ -50,7 +51,7 @@ void term_board_draw_collision(Board const *const b, int const board_x,
 void term_color_set(char *color) { printf("%s", color); }
 void term_color_clear(void) { printf("%s", COLOR_RESET); }
 
-void static term_board_draw(Board const *const b) {
+void static term_board_draw(Board const *const b, int const score) {
 	int const board_width = b->width;
 	int const board_height = b->height;
 
@@ -61,8 +62,10 @@ void static term_board_draw(Board const *const b) {
 			&offset_colums);
 
 	// offset
-	printf("\033[%d;%dH", offset_rows, offset_colums);
-	// offset_rows++;
+	printf("\033[%d;%dH", --offset_rows,
+	       offset_colums + board_width - 6 - count_digits(score) + 1);
+	printf("score: %s%d", MAG, score);
+	printf("\033[%d;%dH", ++offset_rows, offset_colums);
 
 	// draw top wall
 	term_color_set(BOARD_WALL_COLOR);
@@ -71,7 +74,6 @@ void static term_board_draw(Board const *const b) {
 	}
 	term_color_clear();
 
-	putchar('\n');
 	for (int y = 0; y < board_height; y++) {
 		// left wall
 		offset_rows++;
@@ -101,12 +103,22 @@ void static term_board_draw(Board const *const b) {
 	// bottom wall
 	printf("\033[%d;%dH", ++offset_rows, offset_colums);
 	term_color_set(BOARD_WALL_COLOR);
-	for (int x = 0; x < board_width + 2; x++)
-	{
+	for (int x = 0; x < board_width + 2; x++) {
 		putchar('#');
 	}
 	putchar('\n');
 	LogDebug("board was drawn\n");
+}
+
+static int count_digits(int num) {
+	int num_digits = 0;
+	if (num == 0)
+		return 1;
+	while (num) {
+		num /= 10;
+		num_digits++;
+	}
+	return num_digits;
 }
 
 void term_init() {

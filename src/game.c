@@ -59,7 +59,7 @@ GameState game_end(Game *const g) {
 		last_tick = now;
 		term_clear_full();
 		int offset_rows, offset_colums;
-		term_get_offset(40, 11, &offset_rows, &offset_colums);
+		term_get_offset(30, 20, &offset_rows, &offset_colums);
 		printf("\033[%d;%dH", offset_rows, offset_colums);
 		term_color_set(GRN);
 		printf("================ csnake ================\n");
@@ -130,7 +130,7 @@ GameState game_run(Game *g) {
 			return STATE_GAME_END;
 		};
 		board_update(g->b);
-		board_draw(g->b);
+		board_draw(g->b, g->score);
 	}
 	return STATE_GAME_RUN;
 }
@@ -144,7 +144,7 @@ GameState game_welcome(TermInputKey key) {
 		int offset_rows, offset_colums;
 
 		term_get_offset(26, 4, &offset_rows, &offset_colums);
-		printf("\033[%d;%dH", ++offset_rows, offset_colums);
+		printf("\033[%d;%dH", offset_rows, offset_colums);
 		term_color_set(GRN);
 		printf("%s", "========= csnake =========\n");
 		term_color_clear();
@@ -177,8 +177,8 @@ GameState game_configure(Game *g) {
 		last_tick = now;
 		term_clear_full();
 		int offset_rows, offset_colums;
-		term_get_offset(36, 4, &offset_rows, &offset_colums);
-		printf("\033[%d;%dH", ++offset_rows, offset_colums);
+		term_get_offset(36, 8, &offset_rows, &offset_colums);
+		printf("\033[%d;%dH", offset_rows, offset_colums);
 		term_color_set(GRN);
 		printf("============== csnake ==============\n");
 		term_color_clear();
