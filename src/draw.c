@@ -15,7 +15,7 @@ void static term_board_draw(Board const *const b, int const score);
 void term_clear_quick(void);
 void term_clear_full(void);
 void term_get_offset(int const width, int const height, int *offset_rows,
-		     int *offset_colums);
+                     int *offset_colums);
 void term_print_spaces(int const num);
 void term_print_newlines(int const num);
 void term_init();
@@ -25,124 +25,121 @@ static int count_digits(int num);
 
 void board_draw(Board const *const b, int const score) {
 #ifdef TERM_SIMPLE
-	term_board_draw(b, score);
+  term_board_draw(b, score);
 #elif TERM_NCURSES
 #elif GRAPHICAL
 #endif
 }
 
 void term_board_draw_collision(Board const *const b, int const board_x,
-			       int const board_y) {
-	// find board offset
-	int const height = board_get_height(b);
-	int const width = board_get_width(b);
-	int offset_rows, offset_colums;
-	term_get_offset(width, height, &offset_rows, &offset_colums);
-	// draw an X at that position
-	printf("\033[%d;%dH", board_y + offset_rows + 1,
-	       board_x + offset_colums + 1);
-	term_color_set(RED);
-	putchar('X');
-	term_color_clear();
-	term_clear_quick();
-	fflush(stdout);
+                               int const board_y) {
+  // find board offset
+  int const height = board_get_height(b);
+  int const width = board_get_width(b);
+  int offset_rows, offset_colums;
+  term_get_offset(width, height, &offset_rows, &offset_colums);
+  // draw an X at that position
+  printf("\033[%d;%dH", board_y + offset_rows + 1, board_x + offset_colums + 1);
+  term_color_set(RED);
+  putchar('X');
+  term_color_clear();
+  term_clear_quick();
+  fflush(stdout);
 }
 
 void term_color_set(char *color) { printf("%s", color); }
 void term_color_clear(void) { printf("%s", COLOR_RESET); }
 
 void static term_board_draw(Board const *const b, int const score) {
-	int const board_width = b->width;
-	int const board_height = b->height;
+  int const board_width = b->width;
+  int const board_height = b->height;
 
-	term_clear_full();
+  term_clear_full();
 
-	int offset_rows, offset_colums;
-	term_get_offset(board_width, board_height, &offset_rows,
-			&offset_colums);
+  int offset_rows, offset_colums;
+  term_get_offset(board_width, board_height, &offset_rows, &offset_colums);
 
-	// offset
-	printf("\033[%d;%dH", --offset_rows,
-	       offset_colums + board_width - 6 - count_digits(score) + 1);
-	printf("score: %s%d", MAG, score);
-	printf("\033[%d;%dH", ++offset_rows, offset_colums);
+  // offset
+  printf("\033[%d;%dH", --offset_rows,
+         offset_colums + board_width - 6 - count_digits(score) + 1);
+  printf("score: %s%d", MAG, score);
+  printf("\033[%d;%dH", ++offset_rows, offset_colums);
 
-	// draw top wall
-	term_color_set(BOARD_WALL_COLOR);
-	for (int x = 0; x < board_width + 2; x++) {
-		putchar('#');
-	}
-	term_color_clear();
+  // draw top wall
+  term_color_set(BOARD_WALL_COLOR);
+  for (int x = 0; x < board_width + 2; x++) {
+    putchar('#');
+  }
+  term_color_clear();
 
-	for (int y = 0; y < board_height; y++) {
-		// left wall
-		offset_rows++;
-		printf("\033[%d;%dH", offset_rows, offset_colums);
-		// term_print_spaces(offset_colums);
-		term_color_set(BOARD_WALL_COLOR);
-		putchar('#');
-		term_color_clear();
-		// squares
-		for (int x = 0; x < board_width; x++) {
-			char square = board_get_square(b, x, y);
-			if (square == SNAKE_BODY_CHAR ||
-			    square == SNAKE_HEAD_CHAR)
-				term_color_set(SNAKE_COLOR);
-			else if (square == FOOD_CHAR) {
-				term_color_set(FOOD_COLOR);
-			}
-			putchar(square);
-			term_color_clear();
-		}
-		// right wall
-		term_color_set(BOARD_WALL_COLOR);
-		putchar('#');
-		term_color_clear();
-		putchar('\n');
-	}
-	// bottom wall
-	printf("\033[%d;%dH", ++offset_rows, offset_colums);
-	term_color_set(BOARD_WALL_COLOR);
-	for (int x = 0; x < board_width + 2; x++) {
-		putchar('#');
-	}
-	putchar('\n');
-	LogDebug("board was drawn\n");
+  for (int y = 0; y < board_height; y++) {
+    // left wall
+    offset_rows++;
+    printf("\033[%d;%dH", offset_rows, offset_colums);
+    // term_print_spaces(offset_colums);
+    term_color_set(BOARD_WALL_COLOR);
+    putchar('#');
+    term_color_clear();
+    // squares
+    for (int x = 0; x < board_width; x++) {
+      char square = board_get_square(b, x, y);
+      if (square == SNAKE_BODY_CHAR || square == SNAKE_HEAD_CHAR)
+        term_color_set(SNAKE_COLOR);
+      else if (square == FOOD_CHAR) {
+        term_color_set(FOOD_COLOR);
+      }
+      putchar(square);
+      term_color_clear();
+    }
+    // right wall
+    term_color_set(BOARD_WALL_COLOR);
+    putchar('#');
+    term_color_clear();
+    putchar('\n');
+  }
+  // bottom wall
+  printf("\033[%d;%dH", ++offset_rows, offset_colums);
+  term_color_set(BOARD_WALL_COLOR);
+  for (int x = 0; x < board_width + 2; x++) {
+    putchar('#');
+  }
+  putchar('\n');
+  LogDebug("board was drawn\n");
 }
 
 static int count_digits(int num) {
-	int num_digits = 0;
-	if (num == 0)
-		return 1;
-	while (num) {
-		num /= 10;
-		num_digits++;
-	}
-	return num_digits;
+  int num_digits = 0;
+  if (num == 0)
+    return 1;
+  while (num) {
+    num /= 10;
+    num_digits++;
+  }
+  return num_digits;
 }
 
 void term_init() {
-	struct winsize w;
-	ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-	term_rows = w.ws_row;
-	term_colums = w.ws_col;
+  struct winsize w;
+  ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+  term_rows = w.ws_row;
+  term_colums = w.ws_col;
 }
 
 void term_print_size(void) {
-	printf("rows: %d\ncolumns: %d\n", term_rows, term_colums);
+  printf("rows: %d\ncolumns: %d\n", term_rows, term_colums);
 }
 
 void term_get_offset(int const width, int const height, int *offset_rows,
-		     int *offset_colums) {
-	*offset_rows = ((term_rows - height) / 2);
-	*offset_colums = ((term_colums - width) / 2);
+                     int *offset_colums) {
+  *offset_rows = ((term_rows - height) / 2) + 1;
+  *offset_colums = ((term_colums - width) / 2);
 }
 
 void term_clear_quick(void) {
-	// move cursor to top of screen and overwrite
-	printf("\033[H");
+  // move cursor to top of screen and overwrite
+  printf("\033[H");
 }
 void term_clear_full(void) {
-	// move cursor to top and clear from cursor
-	printf("\033[H\033[J");
+  // move cursor to top and clear from cursor
+  printf("\033[H\033[J");
 }
