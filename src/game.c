@@ -155,7 +155,7 @@ GameState game_welcome(TermInputKey key) {
 		printf("%s", "   Press a key to start   ");
 		printf("\033[%d;%dH", ++offset_rows, offset_colums);
 		term_color_set(GRN);
-		printf("%s", "==========================");
+		printf("%s", "==========================\n");
 		term_color_clear();
 	}
 
