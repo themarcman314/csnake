@@ -1,5 +1,6 @@
 CC=gcc
 FLAGS=-I$(INCLUDEDIR) -std=gnu99 -g -D TERM_SIMPLE
+LFLAGS=-lm -lraylib
 BUILDDIR=build
 SOURCEDIR=src
 INCLUDEDIR=inc
@@ -15,7 +16,7 @@ $(BUILDDIR):
 	mkdir build
 
 $(BUILDDIR)/csnake: $(OBJ)
-	$(CC) $^ -o $@
+	$(CC) $^ -o $@ $(LFLAGS)
 
 $(BUILDDIR)/csnake.exe: $(OBJ)
 	$(CC) $^ -o $@

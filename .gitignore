@@ -3,3 +3,4 @@ structure.md
 compile_commands.json
 .cache
 *.log
+raylib
