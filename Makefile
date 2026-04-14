@@ -1,5 +1,5 @@
 CC=gcc
-FLAGS=-I$(INCLUDEDIR) -std=gnu99 -g -D TERM_SIMPLE
+FLAGS=-I$(INCLUDEDIR) -std=gnu99 -g
 LFLAGS=-lm -lraylib
 BUILDDIR=build
 SOURCEDIR=src
@@ -18,7 +18,10 @@ $(BUILDDIR):
 $(BUILDDIR)/csnake: $(OBJ)
 	$(CC) $^ -o $@ $(LFLAGS)
 
+graphical: FLAGS += -D GRAPHICAL
 graphical: $(BUILDDIR) $(BUILDDIR)/csnake_graphical
+
+term: FLAGS += -D TUI
 term: $(BUILDDIR) $(BUILDDIR)/csnake_term
 
 $(BUILDDIR)/csnake_graphical: $(OBJ) $(BUILDDIR)/graphical.o
@@ -34,12 +37,13 @@ $(OBJ): $(BUILDDIR)/%.o: $(SOURCEDIR)/%.c
 	$(CC) -c $(FLAGS) $< -o $@
 
 $(BUILDDIR)/term.o: $(SOURCEDIR)/term.c
-	$(CC) -c $(FLAGS) -D TERM_SIMPLE $< -o $@
+	$(CC) -c $(FLAGS) $< -o $@
 
 $(BUILDDIR)/graphical.o: $(SOURCEDIR)/graphical.c
 	$(CC) -c $(FLAGS) $< -o $@
 
 
+run: FLAGS += -D GRAPHICAL
 run: $(BUILDDIR)/csnake_graphical
 	$(BUILDDIR)/csnake_graphical
 

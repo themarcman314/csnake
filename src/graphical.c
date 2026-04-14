@@ -56,13 +56,11 @@ void board_draw(Board const *b, int const score) {
 
 	ClearBackground(RAYWHITE);
 
-	int const delta = 10;
+	int const delta = 50;
 	int const board_border_size = 20;
 	int const board_size = 10;
 
 	grid_draw(board_border_size, board_size, 5, delta, LIGHTGRAY);
-
-	EndDrawing();
 }
 
 void display_welcome() {
@@ -80,7 +78,17 @@ void display_end(int score) {}
 
 void display_configure(bool const is_configured_width,
 		       bool const is_configured_height, float const freq,
-		       int const width, int const height) {}
+		       int const width, int const height) {
+
+	ClearBackground(RAYWHITE);
+
+	int const screen_width = GetScreenWidth();
+	int const screen_height = GetScreenHeight();
+	char title[] = "configuring...";
+	int const font_size = 35;
+	DrawText(title, screen_width / 2 - MeasureText(title, font_size) / 2,
+		 screen_height / 4, font_size, GREEN);
+}
 
 void board_draw_collision(Board const *const b, int const board_x,
 			  int const board_y) {}

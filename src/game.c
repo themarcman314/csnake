@@ -71,8 +71,13 @@ GameState game_run(Game *g) {
 			return STATE_GAME_END;
 		};
 		board_update(g->b);
+#ifdef TUI
 		board_draw(g->b, g->score);
+#endif
 	}
+#ifdef GRAPHICAL
+	board_draw(g->b, g->score);
+#endif
 	return STATE_GAME_RUN;
 }
 
