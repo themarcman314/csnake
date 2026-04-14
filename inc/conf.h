@@ -9,8 +9,8 @@
 #define TICK_FREQUENCY 8.0 // tiles per second
 #define FOOD_CHAR '*'
 #define FOOD_COLOR YEL
-#define KEY_UP 'w'
-#define KEY_DOWN 's'
-#define KEY_RIGHT 'd'
-#define KEY_LEFT 'a'
-#define KEY_QUIT 'q'
+#define CONF_KEY_UP 'w'
+#define CONF_KEY_DOWN 's'
+#define CONF_KEY_RIGHT 'd'
+#define CONF_KEY_LEFT 'a'
+#define CONF_KEY_QUIT 'q'

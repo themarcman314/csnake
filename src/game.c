@@ -3,8 +3,7 @@
 #include "conf.h"
 #include "debug.h"
 #include "engine.h"
-#include "input.h"
-#include "timer.h"
+#include "term.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -20,85 +19,27 @@ typedef enum {
 
 typedef struct {
 	GameState state;
-	TermInputKey key;
+	InputKey key;
 	int score;
 	int tick_speed;
 	Board *b;
 } Game;
 
-void term_print_size(void);
-void term_init();
-void term_clear_full(void);
-void term_disable_raw(void);
-void term_get_offset(const int width, const int height, int *offset_row,
-		     int *offset_colums);
-void term_board_draw_collision(Board const *const b, int const board_x,
-			       int const board_y);
-void term_color_set(char *color);
-void term_color_clear(void);
-
-GameState game_welcome(TermInputKey key);
+GameState game_welcome(InputKey key);
 void game_init(Game *const g);
 GameState game_end(Game *const g);
 GameState game_run(Game *const g);
 GameState game_configure(Game *const g);
 
 void game_init(Game *g) {
-	term_clear_full();
-	term_enable_raw();
+	engine_init();
 	debug_init();
-	term_init();
-	g->state = STATE_GAME_WELCOME;
 	g->tick_speed = 1000.0 / TICK_FREQUENCY;
+	g->state = STATE_GAME_WELCOME;
 }
 
 GameState game_end(Game *const g) {
-	static int last_tick = 0;
-	int now = millis();
-	if (now - last_tick >= g->tick_speed) {
-		last_tick = now;
-		term_clear_full();
-		int offset_rows, offset_colums;
-		term_get_offset(30, 11, &offset_rows, &offset_colums);
-		printf("\033[%d;%dH", offset_rows, offset_colums);
-		term_color_set(GRN);
-		printf("================ csnake ================");
-		term_color_clear();
-		printf("\033[%d;%dH", ++offset_rows, offset_colums);
-		term_color_set(RED);
-		printf("              game over :(            ");
-		term_color_clear();
-		printf("\033[%d;%dH", ++offset_rows, offset_colums);
-		printf("                                    ");
-		printf("\033[%d;%dH", ++offset_rows, offset_colums);
-		term_color_set(MAG);
-		printf("              score: %4d            ", g->score);
-		term_color_clear();
-		printf("\033[%d;%dH", ++offset_rows, offset_colums);
-		printf("                                    ");
-		printf("\033[%d;%dH", ++offset_rows, offset_colums);
-		printf("    Press                    Press  ");
-		printf("\033[%d;%dH", ++offset_rows, offset_colums);
-		printf("     '");
-		term_color_set(CYN);
-		putchar('r');
-		term_color_clear();
-		printf("'                      '");
-		term_color_set(CYN);
-		putchar('c');
-		term_color_clear();
-		printf("'   ");
-		printf("\033[%d;%dH", ++offset_rows, offset_colums);
-		printf(" to play again            to configure");
-		++offset_rows;
-		printf("\033[%d;%dH", ++offset_rows, offset_colums);
-		printf("       Quit with '%sq%s' at any time", CYN,
-		       COLOR_RESET);
-		printf("\033[%d;%dH", ++offset_rows, offset_colums);
-		term_color_set(GRN);
-		printf("========================================\n");
-		term_color_clear();
-	}
+	display_end(g->score);
 	if (g->key == IN_PLAY_AGAIN || g->key == IN_ENTER) {
 		g->score = 0;
 		snake_init(g->b);
@@ -125,7 +66,7 @@ GameState game_run(Game *g) {
 		if (board_check_all_collisions(g->b)) {
 			int x, y;
 			snake_get_head_position(g->b->s, &x, &y);
-			term_board_draw_collision(g->b, x, y);
+			board_draw_collision(g->b, x, y);
 			sleep(1);
 			return STATE_GAME_END;
 		};
@@ -135,31 +76,8 @@ GameState game_run(Game *g) {
 	return STATE_GAME_RUN;
 }
 
-GameState game_welcome(TermInputKey key) {
-	static int last_tick = 0;
-	int now = millis();
-	if (now - last_tick >= 50) {
-		last_tick = now;
-		term_clear_full();
-		int offset_rows, offset_colums;
-
-		term_get_offset(26, 4, &offset_rows, &offset_colums);
-		printf("\033[%d;%dH", offset_rows, offset_colums);
-		term_color_set(GRN);
-		printf("%s", "========= csnake =========");
-		term_color_clear();
-		printf("\033[%d;%dH", ++offset_rows, offset_colums);
-		printf("%s", "                          ");
-		printf("\033[%d;%dH", ++offset_rows, offset_colums);
-		term_color_set(CYN);
-		printf("%s", "   Press a key to start   ");
-		printf("\033[%d;%dH", ++offset_rows, offset_colums);
-		term_color_set(GRN);
-		printf("%s", "==========================\n");
-		term_color_clear();
-	}
-
-	fflush(stdout);
+GameState game_welcome(InputKey key) {
+	display_welcome();
 	if (key != IN_NONE)
 		return STATE_GAME_CONFIGURE;
 	return STATE_GAME_WELCOME;
@@ -171,45 +89,8 @@ GameState game_configure(Game *g) {
 	static float freq = TICK_FREQUENCY;
 	static int width = BOARD_WIDTH;
 	static int height = BOARD_HEIGHT;
-	static int last_tick = 0;
-	int now = millis();
-	if (now - last_tick >= 50) {
-		last_tick = now;
-		term_clear_full();
-		int offset_rows, offset_colums;
-		term_get_offset(36, 8, &offset_rows, &offset_colums);
-		printf("\033[%d;%dH", offset_rows, offset_colums);
-		term_color_set(GRN);
-		printf("============== csnake ==============");
-		term_color_clear();
-		printf("\033[%d;%dH", ++offset_rows, offset_colums);
-		printf("         Set with %s+%s/%s-%s keys\n", CYN, COLOR_RESET,
-		       CYN, COLOR_RESET);
-		if (configured_board_height && configured_board_width) {
-			printf("\033[%d;%dH", ++offset_rows, offset_colums);
-			printf("  Snake speed: %s%.1f%s tiles per second",
-			       MAG, freq, COLOR_RESET);
-		} else if (configured_board_width) {
-			printf("\033[%d;%dH", ++offset_rows, offset_colums);
-			printf("       Board height: %s%d%s tiles", MAG,
-			       height, COLOR_RESET);
-		} else {
-			printf("\033[%d;%dH", ++offset_rows, offset_colums);
-			printf("       Board width: %s%d%s tiles", MAG, width,
-			       COLOR_RESET);
-		}
-		++offset_rows;
-		printf("\033[%d;%dH", ++offset_rows, offset_colums);
-		printf("         Press %senter%s to set", CYN, COLOR_RESET);
-		++offset_rows;
-		printf("\033[%d;%dH", ++offset_rows, offset_colums);
-		printf("     Quit with '%sq%s' at any time", CYN,
-		       COLOR_RESET);
-		printf("\033[%d;%dH", ++offset_rows, offset_colums);
-		term_color_set(GRN);
-		printf("====================================\n");
-		term_color_clear();
-	}
+	display_configure(configured_board_width, configured_board_height, freq,
+			  width, height);
 
 	float const delta = 0.1; // +- 0.1 Hz
 	switch (g->key) {
@@ -263,8 +144,9 @@ void game_fsm_run(void) {
 	g.b = NULL;
 	game_init(&g);
 	while (g.state != STATE_GAME_EXIT) {
-		term_init();
-		g.key = term_get_key();
+		window_get_size();
+		window_periodic_start();
+		g.key = get_key();
 		if (g.key == IN_QUIT)
 			g.state = STATE_GAME_EXIT;
 
@@ -293,5 +175,19 @@ void game_fsm_run(void) {
 			g.state = STATE_GAME_EXIT;
 			break;
 		}
+		window_periodic_end();
 	}
 }
+
+// int const board_border_size = 20;
+// int const board_size = 10;
+
+// while (!WindowShouldClose()) {
+//	BeginDrawing();
+//	ClearBackground(RAYWHITE);
+//	int const delta = window_height / board_size;
+//	board_draw(board_border_size, board_size, 5, delta, LIGHTGRAY);
+
+//	EndDrawing();
+//}
+// CloseWindow();

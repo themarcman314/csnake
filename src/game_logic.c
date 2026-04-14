@@ -58,7 +58,7 @@ bool snake_check_collisions(Snake const *s);
 bool board_check_collisions(Board const *b);
 static bool snake_head_direction_is_opposite(Direction const a,
 					     Direction const b);
-Direction snake_head_direction_translate_from_input(TermInputKey const key,
+Direction snake_head_direction_translate_from_input(InputKey const key,
 						    Direction const current);
 
 Board *board_create(int const width, int const height) {
@@ -179,7 +179,7 @@ SnakeSegment *snake_segment_create(const int x, const int y) {
 	return s;
 }
 
-void snake_head_direction_set_next(Snake *const s, TermInputKey const key) {
+void snake_head_direction_set_next(Snake *const s, InputKey const key) {
 	if (key == IN_NONE) {
 		return;
 	}
@@ -215,7 +215,7 @@ static bool snake_head_direction_is_opposite(Direction const a,
 	       (a == SNAKE_RIGHT && b == SNAKE_LEFT);
 }
 
-Direction snake_head_direction_translate_from_input(TermInputKey const key,
+Direction snake_head_direction_translate_from_input(InputKey const key,
 						    Direction const current) {
 	switch (key) {
 	case IN_UP:
