@@ -82,7 +82,6 @@ GameState game_run(Game *g) {
 #ifdef GRAPHICAL
 	if (board_check_all_collisions(g->b)) {
 		g->death_timestamp = millis();
-		board_draw(g->b, g->score);
 		return STATE_GAME_END;
 	};
 	board_draw(g->b, g->score);

@@ -12,6 +12,8 @@ struct DrawingParameters {
 	int const delta;
 	int const board_border_size;
 	int const board_wall_thickness;
+	int start_x;
+	int start_y;
 	Color color;
 };
 
@@ -99,25 +101,32 @@ void engine_init() {
 }
 
 void grid_draw(int const board_size_x, int const board_size_y,
-	       int const board_border_size, int const grid_thickness,
+	       int const start_x, int const start_y, int const grid_thickness,
 	       int const delta, Color c) {
 	// columns
 	for (int i = 0; i <= board_size_x; i++) {
-		DrawRectangle(board_border_size + i * delta, board_border_size,
-			      grid_thickness,
+		DrawRectangle(start_x + i * delta, start_y, grid_thickness,
 			      board_size_y * delta + grid_thickness, c);
 	}
 	// lines
 	for (int i = 0; i <= board_size_y; i++) {
-		DrawRectangle(board_border_size, board_border_size + i * delta,
+		DrawRectangle(start_x, start_y + i * delta,
 			      board_size_x * delta, grid_thickness, c);
 	}
 }
 
 void board_draw(Board const *b, int const score) {
 	ClearBackground(RAYWHITE);
+	int screen_width = GetScreenWidth();
+	int screen_height = GetScreenHeight();
+	p.start_x =
+	    screen_width / 2 -
+	    (p.board_wall_thickness * b->width + p.delta * b->width) / 2;
+	p.start_y =
+	    screen_height / 2 -
+	    (p.board_wall_thickness * b->height + p.delta * b->height) / 2;
 
-	grid_draw(b->width, b->height, p.board_border_size,
+	grid_draw(b->width, b->height, p.start_x, p.start_y,
 		  p.board_wall_thickness, p.delta, LIGHTGRAY);
 
 	for (int y = 0; y < b->height; y++) {
@@ -139,10 +148,8 @@ void board_draw(Board const *b, int const score) {
 
 void draw_square(DrawingParameters const *p, int const x, int const y,
 		 Color c) {
-	int pixel_start_x =
-	    p->board_border_size + p->board_wall_thickness + p->delta * x;
-	int pixel_start_y =
-	    p->board_border_size + p->board_wall_thickness + p->delta * y;
+	int pixel_start_x = p->start_x + p->board_wall_thickness + p->delta * x;
+	int pixel_start_y = p->start_y + p->board_wall_thickness + p->delta * y;
 	DrawRectangle(pixel_start_x, pixel_start_y,
 		      p->delta - p->board_wall_thickness,
 		      p->delta - p->board_wall_thickness, c);
@@ -163,7 +170,6 @@ void display_welcome() {
 void display_end(Board const *b, int const score, int game_over_timestamp) {
 	int x, y;
 	snake_get_head_position(b->s, &x, &y);
-	board_draw(b, score);
 	board_draw_collision(b, x, y);
 	int now = millis();
 	if (now - game_over_timestamp < 1000) {
@@ -193,14 +199,16 @@ void display_configure(bool const is_configured_width,
 		       bool const is_configured_height, float const freq,
 		       int const width, int const height) {
 
-	ClearBackground(RAYWHITE);
-
 	int const screen_width = GetScreenWidth();
 	int const screen_height = GetScreenHeight();
-	char title[] = "configuring...";
-	int const font_size = 35;
-	DrawText(title, screen_width / 2 - MeasureText(title, font_size) / 2,
-		 screen_height / 4, font_size, GREEN);
+	ClearBackground(RAYWHITE);
+	if (!is_configured_height && !is_configured_width) {
+		char title[] = "Set snake speed:";
+		int const font_size = 35;
+		DrawText(title,
+			 screen_width / 2 - MeasureText(title, font_size) / 2,
+			 screen_height / 4, font_size, GREEN);
+	}
 }
 
 void board_draw_collision(Board const *const b, int const board_x,
