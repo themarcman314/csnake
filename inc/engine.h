@@ -1,7 +1,10 @@
 #ifndef ENGINE
 #define ENGINE
 #include "board.h"
+#include "raylib.h"
 #include "timer.h"
+
+typedef struct DrawingParameters DrawingParameters;
 
 InputKey get_key(void);
 void board_draw(Board const *b, int const score);
@@ -19,5 +22,9 @@ void window_get_size();
 
 void window_periodic_start();
 void window_periodic_end();
+
+void set_keyboard_type();
+
+void draw_square(DrawingParameters const *p, int const x, int const y, Color c);
 
 #endif

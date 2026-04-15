@@ -1,15 +1,69 @@
 #include "board.h"
+#include "conf.h"
 #include "engine.h"
 #include "input.h"
 #include "raylib.h"
+#include <stdbool.h>
 #include <stdio.h>
+
+bool is_azerty = false;
+
+struct DrawingParameters {
+	int const delta;
+	int const board_border_size;
+	int const board_wall_thickness;
+	Color color;
+};
+
+void set_keyboard_type() {
+	if (*GetKeyName(KEY_A) == 'q') {
+		is_azerty = true;
+		// if (is_azerty) {
+		//	char title[] = "is azerty";
+		//	int font_size = 35;
+		//	DrawText(title, 100 - MeasureText(title, font_size) / 2,
+		//		 500, font_size, GREEN);
+		// }
+	}
+}
 
 InputKey get_key(void) {
 
 	int const key = GetKeyPressed();
 	switch (key) {
+		if (is_azerty) {
+		case KEY_Z:
+			return IN_UP;
+			break;
+		case KEY_Q:
+			return IN_LEFT;
+			break;
+		} else {
+		case KEY_W:
+			return IN_UP;
+			break;
+		case KEY_A:
+			return IN_LEFT;
+			break;
+		}
+	case KEY_D:
+		return IN_RIGHT;
+		break;
+	case KEY_S:
+		return IN_DOWN;
+		break;
+
 	case KEY_UP:
 		return IN_UP;
+		break;
+	case KEY_DOWN:
+		return IN_DOWN;
+		break;
+	case KEY_LEFT:
+		return IN_LEFT;
+		break;
+	case KEY_RIGHT:
+		return IN_RIGHT;
 		break;
 	case KEY_ENTER:
 		return IN_ENTER;
@@ -22,6 +76,7 @@ InputKey get_key(void) {
 		return IN_QUIT;
 	return IN_NONE;
 }
+
 void engine_init() {
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
 	printf("hello world!\n");
@@ -37,34 +92,61 @@ void engine_init() {
 	SetWindowPosition(win_border_size / 2, win_border_size / 2);
 }
 
-void grid_draw(int const board_border_size, int const board_size,
-	       int const grid_thickness, int const delta, Color c) {
+void grid_draw(int const board_size_x, int const board_size_y,
+	       int const board_border_size, int const grid_thickness,
+	       int const delta, Color c) {
 	// columns
-	for (int i = 0; i < board_size; i++) {
+	for (int i = 0; i <= board_size_x; i++) {
 		DrawRectangle(board_border_size + i * delta, board_border_size,
 			      grid_thickness,
-			      (board_size - 1) * delta + grid_thickness, c);
+			      board_size_y * delta + grid_thickness, c);
 	}
 	// lines
-	for (int i = 0; i < board_size; i++) {
+	for (int i = 0; i <= board_size_y; i++) {
 		DrawRectangle(board_border_size, board_border_size + i * delta,
-			      (board_size - 1) * delta, grid_thickness, c);
+			      board_size_x * delta, grid_thickness, c);
 	}
 }
 
 void board_draw(Board const *b, int const score) {
-
 	ClearBackground(RAYWHITE);
+	DrawingParameters p = {
+	    .delta = 25, .board_border_size = 20, .board_wall_thickness = 5};
 
-	int const delta = 50;
-	int const board_border_size = 20;
-	int const board_size = 10;
+	grid_draw(b->width, b->height, p.board_border_size,
+		  p.board_wall_thickness, p.delta, LIGHTGRAY);
 
-	grid_draw(board_border_size, board_size, 5, delta, LIGHTGRAY);
+	for (int y = 0; y < b->height; y++) {
+		for (int x = 0; x < b->width; x++) {
+			const char c = board_get_square(b, x, y);
+			if (c == SNAKE_HEAD_CHAR || c == SNAKE_BODY_CHAR) {
+				draw_square(&p, x, y, GREEN);
+			}
+			if (c == FOOD_CHAR) {
+				draw_square(&p, x, y, ORANGE);
+			}
+		}
+
+		// #define SNAKE_HEAD_CHAR '@'
+		// #define SNAKE_BODY_CHAR 'o'
+		// #define FOOD_CHAR '*'
+	}
+}
+
+void draw_square(DrawingParameters const *p, int const x, int const y,
+		 Color c) {
+	int pixel_start_x =
+	    p->board_border_size + p->board_wall_thickness + p->delta * x;
+	int pixel_start_y =
+	    p->board_border_size + p->board_wall_thickness + p->delta * y;
+	DrawRectangle(pixel_start_x, pixel_start_y,
+		      p->delta - p->board_wall_thickness,
+		      p->delta - p->board_wall_thickness, c);
 }
 
 void display_welcome() {
 	ClearBackground(RAYWHITE);
+	set_keyboard_type();
 
 	int const width = GetScreenWidth();
 	int const height = GetScreenHeight();
