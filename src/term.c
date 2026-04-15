@@ -82,7 +82,7 @@ void board_draw_collision(Board const *const b, int const board_x,
 	// draw an X at that position
 	printf("\033[%d;%dH", board_y + offset_rows + 1,
 	       board_x + offset_colums + 1);
-	term_color_set(RED);
+	term_color_set(TERM_RED);
 	putchar('X');
 	term_color_clear();
 	term_clear_quick();
@@ -223,7 +223,7 @@ void engine_init() {
 	term_clear_full();
 }
 
-void display_end(int score) {
+void display_end(Board const *b, int const score, int game_over_timestamp) {
 	int display_tick = 20;
 	static int last_tick = 0;
 	int now = millis();

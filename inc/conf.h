@@ -2,13 +2,13 @@
 
 #define BOARD_HEIGHT 10
 #define BOARD_WIDTH 50
-#define BOARD_WALL_COLOR BHBLK
+#define BOARD_WALL_COLOR TERM_BHBLK
 #define SNAKE_HEAD_CHAR '@'
 #define SNAKE_BODY_CHAR 'o'
-#define SNAKE_COLOR GRN
+#define SNAKE_COLOR TERM_GRN
 #define TICK_FREQUENCY 8.0 // tiles per second
 #define FOOD_CHAR '*'
-#define FOOD_COLOR YEL
+#define FOOD_COLOR TERM_YEL
 #define CONF_KEY_UP 'w'
 #define CONF_KEY_DOWN 's'
 #define CONF_KEY_RIGHT 'd'

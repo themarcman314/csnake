@@ -15,6 +15,9 @@ struct DrawingParameters {
 	Color color;
 };
 
+DrawingParameters p = {
+    .delta = 25, .board_border_size = 20, .board_wall_thickness = 5};
+
 void set_keyboard_type() {
 	if (*GetKeyName(KEY_A) == 'q') {
 		is_azerty = true;
@@ -68,6 +71,9 @@ InputKey get_key(void) {
 	case KEY_ENTER:
 		return IN_ENTER;
 		break;
+	case KEY_R:
+		return IN_PLAY_AGAIN;
+		break;
 	default:
 		break;
 	}
@@ -110,8 +116,6 @@ void grid_draw(int const board_size_x, int const board_size_y,
 
 void board_draw(Board const *b, int const score) {
 	ClearBackground(RAYWHITE);
-	DrawingParameters p = {
-	    .delta = 25, .board_border_size = 20, .board_wall_thickness = 5};
 
 	grid_draw(b->width, b->height, p.board_border_size,
 		  p.board_wall_thickness, p.delta, LIGHTGRAY);
@@ -156,7 +160,34 @@ void display_welcome() {
 		 height / 4, font_size, GREEN);
 }
 
-void display_end(int score) {}
+void display_end(Board const *b, int const score, int game_over_timestamp) {
+	int x, y;
+	snake_get_head_position(b->s, &x, &y);
+	board_draw(b, score);
+	board_draw_collision(b, x, y);
+	int now = millis();
+	if (now - game_over_timestamp < 1000) {
+		return;
+	}
+	int const screen_width = GetScreenWidth();
+	int const screen_height = GetScreenHeight();
+	int font_size_big = 35;
+	int font_size_small = 20;
+	char text[] = "game over :(";
+	char restart_text[] = "press 'r' to play again";
+	char score_text[20];
+	sprintf(score_text, "score: %d", score);
+	// ClearBackground(RAYWHITE);
+	DrawText(text, screen_width / 2 - MeasureText(text, font_size_big) / 2,
+		 screen_height / 4, font_size_big, RED);
+	DrawText(score_text,
+		 screen_width / 2 - MeasureText(score_text, font_size_big) / 2,
+		 screen_height / 4 + 50, font_size_big, MAROON);
+	DrawText(restart_text,
+		 screen_width / 4 -
+		     MeasureText(restart_text, font_size_small) / 2,
+		 3 * screen_height / 4, font_size_small, BLACK);
+}
 
 void display_configure(bool const is_configured_width,
 		       bool const is_configured_height, float const freq,
@@ -173,7 +204,9 @@ void display_configure(bool const is_configured_width,
 }
 
 void board_draw_collision(Board const *const b, int const board_x,
-			  int const board_y) {}
+			  int const board_y) {
+	draw_square(&p, board_x, board_y, RED);
+}
 void window_get_size() {}
 
 void window_periodic_start() { BeginDrawing(); }

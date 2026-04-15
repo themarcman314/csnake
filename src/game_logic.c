@@ -1,7 +1,7 @@
 #include "board.h"
+#include "conf.h"
 #include "debug.h"
 #include "input.h"
-#include "conf.h"
 #include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -410,7 +410,8 @@ void board_update(Board *b) {
 	board_set_square(b, current_seg->x, current_seg->y, SNAKE_HEAD_CHAR);
 	while (current_seg->child != NULL) {
 		current_seg = current_seg->child;
-		board_set_square(b, current_seg->x, current_seg->y, SNAKE_BODY_CHAR);
+		board_set_square(b, current_seg->x, current_seg->y,
+				 SNAKE_BODY_CHAR);
 	}
 	LogDebug("updated board");
 }

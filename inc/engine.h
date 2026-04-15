@@ -12,7 +12,7 @@ void board_draw_collision(Board const *const b, int const board_x,
 			  int const board_y);
 
 void engine_init();
-void display_end(int score);
+void display_end(Board const *b, int const score, int game_over_timestamp);
 void display_welcome();
 void display_configure(bool const is_configured_width,
 		       bool const is_configured_height, float const freq,

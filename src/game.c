@@ -4,6 +4,7 @@
 #include "debug.h"
 #include "engine.h"
 #include "term.h"
+#include <raylib.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -23,6 +24,7 @@ typedef struct {
 	int score;
 	int tick_speed;
 	Board *b;
+	int death_timestamp;
 } Game;
 
 GameState game_welcome(InputKey key);
@@ -39,7 +41,7 @@ void game_init(Game *g) {
 }
 
 GameState game_end(Game *const g) {
-	display_end(g->score);
+	display_end(g->b, g->score, g->death_timestamp);
 	if (g->key == IN_PLAY_AGAIN || g->key == IN_ENTER) {
 		g->score = 0;
 		snake_init(g->b);
@@ -63,6 +65,7 @@ GameState game_run(Game *g) {
 			snake_segment_add(g->b->s);
 			food_spawn(g->b);
 		}
+#ifdef TUI
 		if (board_check_all_collisions(g->b)) {
 			int x, y;
 			snake_get_head_position(g->b->s, &x, &y);
@@ -70,12 +73,18 @@ GameState game_run(Game *g) {
 			sleep(1);
 			return STATE_GAME_END;
 		};
+#endif
 		board_update(g->b);
 #ifdef TUI
 		board_draw(g->b, g->score);
 #endif
 	}
 #ifdef GRAPHICAL
+	if (board_check_all_collisions(g->b)) {
+		g->death_timestamp = millis();
+		board_draw(g->b, g->score);
+		return STATE_GAME_END;
+	};
 	board_draw(g->b, g->score);
 #endif
 	return STATE_GAME_RUN;
