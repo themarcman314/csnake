@@ -102,8 +102,10 @@ GameState game_configure(Game *g) {
 	static float freq = TICK_FREQUENCY;
 	static int width = BOARD_WIDTH;
 	static int height = BOARD_HEIGHT;
-	display_configure(configured_board_width, configured_board_height, freq,
-			  width, height);
+	static Board *demo;
+
+	display_configure(demo, configured_board_width, configured_board_height,
+			  freq, width, height);
 
 	float const delta = 0.1; // +- 0.1 Hz
 	switch (g->key) {
@@ -122,6 +124,8 @@ GameState game_configure(Game *g) {
 			return STATE_GAME_RUN;
 		} else if (configured_board_width) {
 			configured_board_height = true;
+			demo = board_create(width, height);
+			printf("created demo board!: %p\n", demo);
 		} else {
 			configured_board_width = true;
 		}

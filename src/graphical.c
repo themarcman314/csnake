@@ -214,7 +214,7 @@ void set_start_coords_grid(int grid_width, int grid_height) {
 		    2;
 }
 
-void display_configure(bool const is_configured_width,
+void display_configure(Board *demo, bool const is_configured_width,
 		       bool const is_configured_height, float const freq,
 		       int const width, int const height) {
 
@@ -295,10 +295,24 @@ void display_configure(bool const is_configured_width,
 			     speed_number_string_len,
 			 40 + p.screen_height / 4, p.font_size_big, MAROON);
 
-		// Board *b = board_create(width, height);
+		InputKey directions[] = {IN_UP, IN_RIGHT, IN_DOWN, IN_LEFT};
+		static int i = 0;
 
-		// snake_head_direction_set(b->s);
-		// snake_update_square_position(b->s);
+		static int last_tick = 0;
+		int now = millis();
+		if (now - last_tick >= 1000.0F / freq) {
+			last_tick = now;
+			if (board_check_edge(demo)) {
+				i++;
+			} else {
+			}
+			snake_head_direction_set_next(demo->s,
+						      directions[i % 4]);
+			snake_head_direction_set(demo->s);
+			snake_update_square_position(demo->s);
+			board_update(demo);
+		}
+		board_draw(demo, 0);
 	}
 }
 

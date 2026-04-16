@@ -300,7 +300,7 @@ void display_welcome() {
 	fflush(stdout);
 }
 
-void display_configure(bool const is_configured_width,
+void display_configure(Board *demo, bool const is_configured_width,
 		       bool const is_configured_height, float const freq,
 		       int const width, int const height) {
 

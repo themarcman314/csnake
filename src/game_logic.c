@@ -396,6 +396,14 @@ bool board_check_collisions(Board const *b) {
 	}
 	LogDebug("checked board collisions");
 }
+bool board_check_edge(Board const *b) {
+	if (b->s->head->x <= 0 || b->s->head->x >= b->width - 1 ||
+	    b->s->head->y <= 0 || b->s->head->y >= b->height - 1) {
+		return true;
+	} else {
+		return false;
+	}
+}
 
 bool snake_ate_food(Snake *s, Food *f) {
 	if (s->head->x == f->x && s->head->y == f->y)
