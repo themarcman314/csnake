@@ -14,11 +14,16 @@ struct DrawingParameters {
 	int const board_wall_thickness;
 	int start_x;
 	int start_y;
+	int const font_size_big;
+	int const font_size_small;
 	Color color;
 };
 
-DrawingParameters p = {
-    .delta = 25, .board_border_size = 20, .board_wall_thickness = 5};
+DrawingParameters p = {.delta = 25,
+		       .board_border_size = 20,
+		       .board_wall_thickness = 5,
+		       .font_size_big = 35,
+		       .font_size_small = 20};
 
 void set_keyboard_type() {
 	if (*GetKeyName(KEY_A) == 'q') {
@@ -57,6 +62,12 @@ InputKey get_key(void) {
 	case KEY_S:
 		return IN_DOWN;
 		break;
+	case KEY_EQUAL:
+		return IN_PLUS;
+		break;
+	case KEY_MINUS:
+		return IN_MINUS;
+		break;
 
 	case KEY_UP:
 		return IN_UP;
@@ -76,6 +87,9 @@ InputKey get_key(void) {
 	case KEY_R:
 		return IN_PLAY_AGAIN;
 		break;
+	case KEY_C:
+		return IN_CONFIGURE;
+		break;
 	default:
 		break;
 	}
@@ -87,7 +101,6 @@ InputKey get_key(void) {
 
 void engine_init() {
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
-	printf("hello world!\n");
 	InitWindow(50, 50, "my hello world window");
 	SetTargetFPS(60);
 	int const screenWidth = GetMonitorWidth(GetCurrentMonitor());
@@ -177,22 +190,22 @@ void display_end(Board const *b, int const score, int game_over_timestamp) {
 	}
 	int const screen_width = GetScreenWidth();
 	int const screen_height = GetScreenHeight();
-	int font_size_big = 35;
-	int font_size_small = 20;
 	char text[] = "game over :(";
 	char restart_text[] = "press 'r' to play again";
 	char score_text[20];
 	sprintf(score_text, "score: %d", score);
 	// ClearBackground(RAYWHITE);
-	DrawText(text, screen_width / 2 - MeasureText(text, font_size_big) / 2,
-		 screen_height / 4, font_size_big, RED);
+	DrawText(text,
+		 screen_width / 2 - MeasureText(text, p.font_size_big) / 2,
+		 screen_height / 4, p.font_size_big, RED);
 	DrawText(score_text,
-		 screen_width / 2 - MeasureText(score_text, font_size_big) / 2,
-		 screen_height / 4 + 50, font_size_big, MAROON);
+		 screen_width / 2 -
+		     MeasureText(score_text, p.font_size_big) / 2,
+		 screen_height / 4 + 50, p.font_size_big, MAROON);
 	DrawText(restart_text,
 		 screen_width / 4 -
-		     MeasureText(restart_text, font_size_small) / 2,
-		 3 * screen_height / 4, font_size_small, BLACK);
+		     MeasureText(restart_text, p.font_size_small) / 2,
+		 3 * screen_height / 4, p.font_size_small, BLACK);
 }
 
 void display_configure(bool const is_configured_width,
@@ -203,11 +216,74 @@ void display_configure(bool const is_configured_width,
 	int const screen_height = GetScreenHeight();
 	ClearBackground(RAYWHITE);
 	if (!is_configured_height && !is_configured_width) {
-		char title[] = "Set snake speed:";
-		int const font_size = 35;
+		char title[] = "Set board width:";
 		DrawText(title,
-			 screen_width / 2 - MeasureText(title, font_size) / 2,
-			 screen_height / 4, font_size, GREEN);
+			 screen_width / 2 -
+			     MeasureText(title, p.font_size_big) / 2,
+			 screen_height / 4, p.font_size_big, BLACK);
+		char width_number_string[5];
+		char width_string[] = " tiles wide";
+		sprintf(width_number_string, "%d", width);
+		int const width_number_string_len =
+		    MeasureText(width_number_string, p.font_size_big);
+		int const speed_string_len =
+		    MeasureText(width_string, p.font_size_big);
+		DrawText(width_number_string,
+			 screen_width / 2 -
+			     (width_number_string_len + speed_string_len) / 2,
+			 40 + screen_height / 4, p.font_size_big, BLUE);
+		DrawText(width_string,
+			 screen_width / 2 -
+			     (width_number_string_len + speed_string_len) / 2 +
+			     width_number_string_len,
+			 40 + screen_height / 4, p.font_size_big, MAROON);
+	}
+	if (!is_configured_height && is_configured_width) {
+		char title[] = "Set board height:";
+		DrawText(title,
+			 screen_width / 2 -
+			     MeasureText(title, p.font_size_big) / 2,
+			 screen_height / 4, p.font_size_big, BLACK);
+		char height_number_string[5];
+		char height_string[] = " tiles high";
+		sprintf(height_number_string, "%d", height);
+		int const height_number_string_len =
+		    MeasureText(height_number_string, p.font_size_big);
+		int const height_string_len =
+		    MeasureText(height_string, p.font_size_big);
+		DrawText(height_number_string,
+			 screen_width / 2 -
+			     (height_number_string_len + height_string_len) / 2,
+			 40 + screen_height / 4, p.font_size_big, BLUE);
+		DrawText(height_string,
+			 screen_width / 2 -
+			     (height_number_string_len + height_string_len) /
+				 2 +
+			     height_number_string_len,
+			 40 + screen_height / 4, p.font_size_big, MAROON);
+	}
+	if (is_configured_height && is_configured_width) {
+		char title[] = "Set snake speed:";
+		DrawText(title,
+			 screen_width / 2 -
+			     MeasureText(title, p.font_size_big) / 2,
+			 screen_height / 4, p.font_size_big, BLACK);
+		char speed_number_string[5];
+		char speed_string[] = " ticks/second (Hz)";
+		sprintf(speed_number_string, "%.2f", freq);
+		int const speed_number_string_len =
+		    MeasureText(speed_number_string, p.font_size_big);
+		int const speed_string_len =
+		    MeasureText(speed_string, p.font_size_big);
+		DrawText(speed_number_string,
+			 screen_width / 2 -
+			     (speed_number_string_len + speed_string_len) / 2,
+			 40 + screen_height / 4, p.font_size_big, BLUE);
+		DrawText(speed_string,
+			 screen_width / 2 -
+			     (speed_number_string_len + speed_string_len) / 2 +
+			     speed_number_string_len,
+			 40 + screen_height / 4, p.font_size_big, MAROON);
 	}
 }
 
