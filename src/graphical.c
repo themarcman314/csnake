@@ -9,6 +9,8 @@
 bool is_azerty = false;
 
 struct DrawingParameters {
+	int screen_width;
+	int screen_height;
 	int const delta;
 	int const board_border_size;
 	int const board_wall_thickness;
@@ -16,7 +18,6 @@ struct DrawingParameters {
 	int start_y;
 	int const font_size_big;
 	int const font_size_small;
-	Color color;
 };
 
 DrawingParameters p = {.delta = 25,
@@ -130,14 +131,8 @@ void grid_draw(int const board_size_x, int const board_size_y,
 
 void board_draw(Board const *b, int const score) {
 	ClearBackground(RAYWHITE);
-	int screen_width = GetScreenWidth();
-	int screen_height = GetScreenHeight();
-	p.start_x =
-	    screen_width / 2 -
-	    (p.board_wall_thickness * b->width + p.delta * b->width) / 2;
-	p.start_y =
-	    screen_height / 2 -
-	    (p.board_wall_thickness * b->height + p.delta * b->height) / 2;
+
+	set_start_coords_grid(b->width, b->height);
 
 	grid_draw(b->width, b->height, p.start_x, p.start_y,
 		  p.board_wall_thickness, p.delta, LIGHTGRAY);
@@ -208,19 +203,33 @@ void display_end(Board const *b, int const score, int game_over_timestamp) {
 		 3 * screen_height / 4, p.font_size_small, BLACK);
 }
 
+void set_start_coords_grid(int grid_width, int grid_height) {
+	p.screen_width = GetScreenWidth();
+	p.screen_height = GetScreenHeight();
+	p.start_x =
+	    (p.screen_width - (p.board_wall_thickness + p.delta * grid_width)) /
+	    2;
+	p.start_y = (p.screen_height -
+		     (p.board_wall_thickness + p.delta * grid_height)) /
+		    2;
+}
+
 void display_configure(bool const is_configured_width,
 		       bool const is_configured_height, float const freq,
 		       int const width, int const height) {
 
-	int const screen_width = GetScreenWidth();
-	int const screen_height = GetScreenHeight();
+	set_start_coords_grid(width, height);
+
 	ClearBackground(RAYWHITE);
 	if (!is_configured_height && !is_configured_width) {
+
+		grid_draw(width, height, p.start_x, p.start_y,
+			  p.board_wall_thickness, p.delta, LIGHTGRAY);
 		char title[] = "Set board width:";
 		DrawText(title,
-			 screen_width / 2 -
+			 p.screen_width / 2 -
 			     MeasureText(title, p.font_size_big) / 2,
-			 screen_height / 4, p.font_size_big, BLACK);
+			 p.screen_height / 4, p.font_size_big, BLACK);
 		char width_number_string[5];
 		char width_string[] = " tiles wide";
 		sprintf(width_number_string, "%d", width);
@@ -229,21 +238,23 @@ void display_configure(bool const is_configured_width,
 		int const speed_string_len =
 		    MeasureText(width_string, p.font_size_big);
 		DrawText(width_number_string,
-			 screen_width / 2 -
+			 p.screen_width / 2 -
 			     (width_number_string_len + speed_string_len) / 2,
-			 40 + screen_height / 4, p.font_size_big, BLUE);
+			 40 + p.screen_height / 4, p.font_size_big, BLUE);
 		DrawText(width_string,
-			 screen_width / 2 -
+			 p.screen_width / 2 -
 			     (width_number_string_len + speed_string_len) / 2 +
 			     width_number_string_len,
-			 40 + screen_height / 4, p.font_size_big, MAROON);
-	}
-	if (!is_configured_height && is_configured_width) {
+			 40 + p.screen_height / 4, p.font_size_big, MAROON);
+	} else if (!is_configured_height && is_configured_width) {
+
+		grid_draw(width, height, p.start_x, p.start_y,
+			  p.board_wall_thickness, p.delta, LIGHTGRAY);
 		char title[] = "Set board height:";
 		DrawText(title,
-			 screen_width / 2 -
+			 p.screen_width / 2 -
 			     MeasureText(title, p.font_size_big) / 2,
-			 screen_height / 4, p.font_size_big, BLACK);
+			 p.screen_height / 4, p.font_size_big, BLACK);
 		char height_number_string[5];
 		char height_string[] = " tiles high";
 		sprintf(height_number_string, "%d", height);
@@ -252,22 +263,21 @@ void display_configure(bool const is_configured_width,
 		int const height_string_len =
 		    MeasureText(height_string, p.font_size_big);
 		DrawText(height_number_string,
-			 screen_width / 2 -
+			 p.screen_width / 2 -
 			     (height_number_string_len + height_string_len) / 2,
-			 40 + screen_height / 4, p.font_size_big, BLUE);
+			 40 + p.screen_height / 4, p.font_size_big, BLUE);
 		DrawText(height_string,
-			 screen_width / 2 -
+			 p.screen_width / 2 -
 			     (height_number_string_len + height_string_len) /
 				 2 +
 			     height_number_string_len,
-			 40 + screen_height / 4, p.font_size_big, MAROON);
-	}
-	if (is_configured_height && is_configured_width) {
+			 40 + p.screen_height / 4, p.font_size_big, MAROON);
+	} else if (is_configured_height && is_configured_width) {
 		char title[] = "Set snake speed:";
 		DrawText(title,
-			 screen_width / 2 -
+			 p.screen_width / 2 -
 			     MeasureText(title, p.font_size_big) / 2,
-			 screen_height / 4, p.font_size_big, BLACK);
+			 p.screen_height / 4, p.font_size_big, BLACK);
 		char speed_number_string[5];
 		char speed_string[] = " ticks/second (Hz)";
 		sprintf(speed_number_string, "%.2f", freq);
@@ -276,14 +286,19 @@ void display_configure(bool const is_configured_width,
 		int const speed_string_len =
 		    MeasureText(speed_string, p.font_size_big);
 		DrawText(speed_number_string,
-			 screen_width / 2 -
+			 p.screen_width / 2 -
 			     (speed_number_string_len + speed_string_len) / 2,
-			 40 + screen_height / 4, p.font_size_big, BLUE);
+			 40 + p.screen_height / 4, p.font_size_big, BLUE);
 		DrawText(speed_string,
-			 screen_width / 2 -
+			 p.screen_width / 2 -
 			     (speed_number_string_len + speed_string_len) / 2 +
 			     speed_number_string_len,
-			 40 + screen_height / 4, p.font_size_big, MAROON);
+			 40 + p.screen_height / 4, p.font_size_big, MAROON);
+
+		// Board *b = board_create(width, height);
+
+		// snake_head_direction_set(b->s);
+		// snake_update_square_position(b->s);
 	}
 }
 

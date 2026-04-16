@@ -27,4 +27,6 @@ void set_keyboard_type();
 
 void draw_square(DrawingParameters const *p, int const x, int const y, Color c);
 
+void set_start_coords_grid(int grid_width, int grid_height);
+
 #endif
