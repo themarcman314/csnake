@@ -3,6 +3,7 @@
 #include "conf.h"
 #include "debug.h"
 #include "engine.h"
+#include "input.h"
 #include "term.h"
 #include <raylib.h>
 #include <stdbool.h>
@@ -32,6 +33,13 @@ void game_init(Game *const g);
 GameState game_end(Game *const g);
 GameState game_run(Game *const g);
 GameState game_configure(Game *const g);
+
+void conf_decrement(bool const is_width_configured,
+		    bool const is_height_configured, float const delta,
+		    int *height, int *width, float *freq);
+void conf_increment(bool const is_width_configured,
+		    bool const is_height_configured, float const delta,
+		    int *height, int *width, float *freq);
 
 void game_init(Game *g) {
 	engine_init();
@@ -108,6 +116,16 @@ GameState game_configure(Game *g) {
 			  freq, width, height);
 
 	float const delta = 0.1; // +- 0.1 Hz
+
+	if (IsKeyPressedRepeat(KEY_EQUAL)) {
+		conf_increment(configured_board_width, configured_board_height,
+			       delta, &height, &width, &freq);
+	} else if (IsKeyPressedRepeat(KEY_MINUS)) {
+
+		conf_decrement(configured_board_width, configured_board_height,
+			       delta, &height, &width, &freq);
+	}
+
 	switch (g->key) {
 	case IN_PLAY_AGAIN:
 		configured_board_height = false;
@@ -125,30 +143,18 @@ GameState game_configure(Game *g) {
 		} else if (configured_board_width) {
 			configured_board_height = true;
 			demo = board_create(width, height);
-			printf("created demo board!: %p\n", demo);
 		} else {
 			configured_board_width = true;
 		}
 		break;
 	case IN_PLUS:
-		if (configured_board_height && configured_board_width) {
-			freq += delta;
-		} else if (configured_board_width) {
-			height++;
-		} else {
-			width++;
-		}
+		conf_increment(configured_board_width, configured_board_height,
+			       delta, &height, &width, &freq);
+
 		break;
 	case IN_MINUS:
-		if (width == 0 || height == 0 || freq == 0)
-			break;
-		if (configured_board_height && configured_board_width) {
-			freq -= delta;
-		} else if (configured_board_width) {
-			height--;
-		} else {
-			width--;
-		}
+		conf_decrement(configured_board_width, configured_board_height,
+			       delta, &height, &width, &freq);
 		break;
 	default:
 		break;
@@ -208,3 +214,36 @@ void game_fsm_run(void) {
 //	EndDrawing();
 //}
 // CloseWindow();
+//
+//
+
+void conf_decrement(bool const is_width_configured,
+		    bool const is_height_configured, float const delta,
+		    int *height, int *width, float *freq) {
+
+	if (is_height_configured && is_width_configured) {
+		if (*freq < 0.6)
+			return;
+		*freq -= delta;
+	} else if (is_width_configured) {
+		if (*height == 2)
+			return;
+		(*height)--;
+	} else {
+		if (*width == 2)
+			return;
+		(*width)--;
+	}
+}
+void conf_increment(bool const is_width_configured,
+		    bool const is_height_configured, float const delta,
+		    int *height, int *width, float *freq) {
+
+	if (is_height_configured && is_width_configured) {
+		*freq += delta;
+	} else if (is_width_configured) {
+		(*height)++;
+	} else {
+		(*width)++;
+	}
+}

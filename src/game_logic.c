@@ -413,7 +413,6 @@ bool snake_ate_food(Snake *s, Food *f) {
 
 void board_update(Board *b) {
 	memset(b->squares, ' ', b->width * b->height);
-	board_set_square(b, b->f->x, b->f->y, FOOD_CHAR);
 	SnakeSegment *current_seg = b->s->head;
 	board_set_square(b, current_seg->x, current_seg->y, SNAKE_HEAD_CHAR);
 	while (current_seg->child != NULL) {
@@ -421,6 +420,7 @@ void board_update(Board *b) {
 		board_set_square(b, current_seg->x, current_seg->y,
 				 SNAKE_BODY_CHAR);
 	}
+	board_set_square(b, b->f->x, b->f->y, FOOD_CHAR);
 	LogDebug("updated board");
 }
 

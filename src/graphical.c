@@ -140,17 +140,13 @@ void board_draw(Board const *b, int const score) {
 	for (int y = 0; y < b->height; y++) {
 		for (int x = 0; x < b->width; x++) {
 			const char c = board_get_square(b, x, y);
-			if (c == SNAKE_HEAD_CHAR || c == SNAKE_BODY_CHAR) {
-				draw_square(&p, x, y, GREEN);
-			}
 			if (c == FOOD_CHAR) {
 				draw_square(&p, x, y, ORANGE);
+			} else if (c == SNAKE_HEAD_CHAR ||
+				   c == SNAKE_BODY_CHAR) {
+				draw_square(&p, x, y, GREEN);
 			}
 		}
-
-		// #define SNAKE_HEAD_CHAR '@'
-		// #define SNAKE_BODY_CHAR 'o'
-		// #define FOOD_CHAR '*'
 	}
 }
 
@@ -273,6 +269,25 @@ void display_configure(Board *demo, bool const is_configured_width,
 			     height_number_string_len,
 			 40 + p.screen_height / 4, p.font_size_big, MAROON);
 	} else if (is_configured_height && is_configured_width) {
+
+		InputKey directions[] = {IN_UP, IN_RIGHT, IN_DOWN, IN_LEFT};
+		static int i = 0;
+
+		static int last_tick = 0;
+		int now = millis();
+		if (now - last_tick >= 1000.0F / freq) {
+			last_tick = now;
+			if (board_check_edge(demo)) {
+				i++;
+			} else {
+			}
+			snake_head_direction_set_next(demo->s,
+						      directions[i % 4]);
+			snake_head_direction_set(demo->s);
+			snake_update_square_position(demo->s);
+			board_update(demo);
+		}
+		board_draw(demo, 0);
 		char title[] = "Set snake speed:";
 		DrawText(title,
 			 p.screen_width / 2 -
@@ -294,25 +309,6 @@ void display_configure(Board *demo, bool const is_configured_width,
 			     (speed_number_string_len + speed_string_len) / 2 +
 			     speed_number_string_len,
 			 40 + p.screen_height / 4, p.font_size_big, MAROON);
-
-		InputKey directions[] = {IN_UP, IN_RIGHT, IN_DOWN, IN_LEFT};
-		static int i = 0;
-
-		static int last_tick = 0;
-		int now = millis();
-		if (now - last_tick >= 1000.0F / freq) {
-			last_tick = now;
-			if (board_check_edge(demo)) {
-				i++;
-			} else {
-			}
-			snake_head_direction_set_next(demo->s,
-						      directions[i % 4]);
-			snake_head_direction_set(demo->s);
-			snake_update_square_position(demo->s);
-			board_update(demo);
-		}
-		board_draw(demo, 0);
 	}
 }
 
