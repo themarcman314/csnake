@@ -92,7 +92,7 @@ GameState game_run(Game *g) {
 		g->death_timestamp = millis();
 		return STATE_GAME_END;
 	};
-	board_draw(g->b, g->score);
+	board_draw(g->b, g->score, true);
 #endif
 	return STATE_GAME_RUN;
 }

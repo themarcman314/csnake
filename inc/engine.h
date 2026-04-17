@@ -7,7 +7,8 @@
 typedef struct DrawingParameters DrawingParameters;
 
 InputKey get_key(void);
-void board_draw(Board const *b, int const score);
+
+void board_draw(Board const *b, int const score, bool show_score);
 void board_draw_collision(Board const *const b, int const board_x,
 			  int const board_y);
 bool board_check_collisions(Board const *b);

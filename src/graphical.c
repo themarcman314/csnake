@@ -129,7 +129,7 @@ void grid_draw(int const board_size_x, int const board_size_y,
 	}
 }
 
-void board_draw(Board const *b, int const score) {
+void board_draw(Board const *b, int const score, bool show_score) {
 	ClearBackground(RAYWHITE);
 
 	set_start_coords_grid(b->width, b->height);
@@ -147,6 +147,14 @@ void board_draw(Board const *b, int const score) {
 				draw_square(&p, x, y, GREEN);
 			}
 		}
+	}
+	if (show_score) {
+		char score_text[20] = "";
+		sprintf(score_text, "score: %d", score);
+		DrawText(score_text,
+			 p.screen_width - 50 -
+			     MeasureText(score_text, p.font_size_big),
+			 50, p.font_size_big, BLUE);
 	}
 }
 
@@ -185,7 +193,8 @@ void display_end(Board const *b, int const score, int game_over_timestamp) {
 	char restart_text[] = "press 'r' to play again";
 	char score_text[20];
 	sprintf(score_text, "score: %d", score);
-	// ClearBackground(RAYWHITE);
+	ClearBackground(RAYWHITE);
+	board_draw(b, score, false);
 	DrawText(text,
 		 screen_width / 2 - MeasureText(text, p.font_size_big) / 2,
 		 screen_height / 4, p.font_size_big, RED);
@@ -287,7 +296,7 @@ void display_configure(Board *demo, bool const is_configured_width,
 			snake_update_square_position(demo->s);
 			board_update(demo);
 		}
-		board_draw(demo, 0);
+		board_draw(demo, 0, false);
 		char title[] = "Set snake speed:";
 		DrawText(title,
 			 p.screen_width / 2 -
