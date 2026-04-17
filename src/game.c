@@ -1,3 +1,4 @@
+#include "game.h"
 #include "ansi.h"
 #include "board.h"
 #include "conf.h"
@@ -34,12 +35,10 @@ GameState game_end(Game *const g);
 GameState game_run(Game *const g);
 GameState game_configure(Game *const g);
 
-void conf_decrement(bool const is_width_configured,
-		    bool const is_height_configured, float const delta,
-		    int *height, int *width, float *freq);
-void conf_increment(bool const is_width_configured,
-		    bool const is_height_configured, float const delta,
-		    int *height, int *width, float *freq);
+void conf_decrement(GameConfigureState state, float const delta, int *height,
+		    int *width, float *freq);
+void conf_increment(GameConfigureState state, float const delta, int *height,
+		    int *width, float *freq);
 
 void game_init(Game *g) {
 	engine_init();
@@ -105,56 +104,53 @@ GameState game_welcome(InputKey key) {
 }
 
 GameState game_configure(Game *g) {
-	static bool configured_board_height = false;
-	static bool configured_board_width = false;
+	static GameConfigureState conf_state = STATE_CONFIGURE_NAME;
 	static float freq = TICK_FREQUENCY;
 	static int width = BOARD_WIDTH;
 	static int height = BOARD_HEIGHT;
 	static Board *demo;
 
-	display_configure(demo, configured_board_width, configured_board_height,
-			  freq, width, height);
+	display_configure(demo, conf_state, freq, width, height);
 
 	float const delta = 0.1; // +- 0.1 Hz
 
 	if (IsKeyPressedRepeat(KEY_EQUAL)) {
-		conf_increment(configured_board_width, configured_board_height,
-			       delta, &height, &width, &freq);
+		conf_increment(conf_state, delta, &height, &width, &freq);
 	} else if (IsKeyPressedRepeat(KEY_MINUS)) {
-
-		conf_decrement(configured_board_width, configured_board_height,
-			       delta, &height, &width, &freq);
+		conf_decrement(conf_state, delta, &height, &width, &freq);
 	}
 
 	switch (g->key) {
 	case IN_PLAY_AGAIN:
-		configured_board_height = false;
-		configured_board_width = false;
+		conf_state = STATE_CONFIGURE_NAME;
 		g->b = board_create(width, height);
 		return STATE_GAME_RUN;
 
 	case IN_ENTER:
-		if (configured_board_height && configured_board_width) {
-			configured_board_height = false;
-			configured_board_width = false;
+		if (conf_state == STATE_CONFIGURE_SNAKE_SPEED) {
+			conf_state = STATE_CONFIGURE_NAME;
+			food_destroy(&demo->f);
+			snake_kill(&demo->s);
+			board_destroy(&demo);
 			g->tick_speed = 1000.0F / freq;
 			g->b = board_create(width, height);
 			return STATE_GAME_RUN;
-		} else if (configured_board_width) {
-			configured_board_height = true;
+		} else if (conf_state == STATE_CONFIGURE_WIDTH) {
+			conf_state = STATE_CONFIGURE_HEIGHT;
 			demo = board_create(width, height);
-		} else {
-			configured_board_width = true;
+		} else if (conf_state == STATE_CONFIGURE_HEIGHT) {
+			conf_state = STATE_CONFIGURE_SNAKE_SPEED;
+		} else if (conf_state == STATE_CONFIGURE_NAME) {
+
+			conf_state = STATE_CONFIGURE_WIDTH;
 		}
 		break;
 	case IN_PLUS:
-		conf_increment(configured_board_width, configured_board_height,
-			       delta, &height, &width, &freq);
+		conf_increment(conf_state, delta, &height, &width, &freq);
 
 		break;
 	case IN_MINUS:
-		conf_decrement(configured_board_width, configured_board_height,
-			       delta, &height, &width, &freq);
+		conf_decrement(conf_state, delta, &height, &width, &freq);
 		break;
 	default:
 		break;
@@ -202,30 +198,14 @@ void game_fsm_run(void) {
 	}
 }
 
-// int const board_border_size = 20;
-// int const board_size = 10;
+void conf_decrement(GameConfigureState state, float const delta, int *height,
+		    int *width, float *freq) {
 
-// while (!WindowShouldClose()) {
-//	BeginDrawing();
-//	ClearBackground(RAYWHITE);
-//	int const delta = window_height / board_size;
-//	board_draw(board_border_size, board_size, 5, delta, LIGHTGRAY);
-
-//	EndDrawing();
-//}
-// CloseWindow();
-//
-//
-
-void conf_decrement(bool const is_width_configured,
-		    bool const is_height_configured, float const delta,
-		    int *height, int *width, float *freq) {
-
-	if (is_height_configured && is_width_configured) {
+	if (state == STATE_CONFIGURE_SNAKE_SPEED) {
 		if (*freq < 0.6)
 			return;
 		*freq -= delta;
-	} else if (is_width_configured) {
+	} else if (state == STATE_CONFIGURE_HEIGHT) {
 		if (*height == 2)
 			return;
 		(*height)--;
@@ -235,13 +215,13 @@ void conf_decrement(bool const is_width_configured,
 		(*width)--;
 	}
 }
-void conf_increment(bool const is_width_configured,
-		    bool const is_height_configured, float const delta,
-		    int *height, int *width, float *freq) {
 
-	if (is_height_configured && is_width_configured) {
+void conf_increment(GameConfigureState state, float const delta, int *height,
+		    int *width, float *freq) {
+
+	if (state == STATE_CONFIGURE_SNAKE_SPEED) {
 		*freq += delta;
-	} else if (is_width_configured) {
+	} else if (state == STATE_CONFIGURE_HEIGHT) {
 		(*height)++;
 	} else {
 		(*width)++;

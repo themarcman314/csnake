@@ -1,6 +1,7 @@
 #include "board.h"
 #include "conf.h"
 #include "engine.h"
+#include "game.h"
 #include "input.h"
 #include "raylib.h"
 #include <stdbool.h>
@@ -43,22 +44,18 @@ void set_keyboard_type() {
 InputKey get_key(void) {
 
 	int const key = GetKeyPressed();
+	if (is_azerty) {
+		if (key == KEY_Z)
+			return IN_UP;
+		if (key == KEY_Q)
+			return IN_LEFT;
+	} else {
+		if (key == KEY_W)
+			return IN_UP;
+		if (key == KEY_A)
+			return IN_LEFT;
+	}
 	switch (key) {
-		if (is_azerty) {
-		case KEY_Z:
-			return IN_UP;
-			break;
-		case KEY_Q:
-			return IN_LEFT;
-			break;
-		} else {
-		case KEY_W:
-			return IN_UP;
-			break;
-		case KEY_A:
-			return IN_LEFT;
-			break;
-		}
 	case KEY_D:
 		return IN_RIGHT;
 		break;
@@ -221,21 +218,27 @@ void set_start_coords_grid(int grid_width, int grid_height) {
 		    2;
 }
 
-void display_configure(Board *demo, bool const is_configured_width,
-		       bool const is_configured_height, float const freq,
-		       int const width, int const height) {
+void display_configure(Board *demo, GameConfigureState const conf,
+		       float const freq, int const width, int const height) {
 
 	set_start_coords_grid(width, height);
 
 	ClearBackground(RAYWHITE);
-	if (!is_configured_height && !is_configured_width) {
-
+	switch (conf) {
+	case STATE_CONFIGURE_NAME:
+		char title_name[] = "Enter your name:";
+		DrawText(title_name,
+			 p.screen_width / 2 -
+			     MeasureText(title_name, p.font_size_big) / 2,
+			 p.screen_height / 4, p.font_size_big, BLACK);
+		break;
+	case STATE_CONFIGURE_WIDTH:
 		grid_draw(width, height, p.start_x, p.start_y,
 			  p.board_wall_thickness, p.delta, LIGHTGRAY);
-		char title[] = "Set board width:";
-		DrawText(title,
+		char title_width[] = "Set board width:";
+		DrawText(title_width,
 			 p.screen_width / 2 -
-			     MeasureText(title, p.font_size_big) / 2,
+			     MeasureText(title_width, p.font_size_big) / 2,
 			 p.screen_height / 4, p.font_size_big, BLACK);
 		char width_number_string[5];
 		char width_string[] = " tiles wide";
@@ -253,14 +256,14 @@ void display_configure(Board *demo, bool const is_configured_width,
 			     (width_number_string_len + speed_string_len) / 2 +
 			     width_number_string_len,
 			 40 + p.screen_height / 4, p.font_size_big, MAROON);
-	} else if (!is_configured_height && is_configured_width) {
-
+		break;
+	case STATE_CONFIGURE_HEIGHT:
 		grid_draw(width, height, p.start_x, p.start_y,
 			  p.board_wall_thickness, p.delta, LIGHTGRAY);
-		char title[] = "Set board height:";
-		DrawText(title,
+		char title_height[] = "Set board height:";
+		DrawText(title_height,
 			 p.screen_width / 2 -
-			     MeasureText(title, p.font_size_big) / 2,
+			     MeasureText(title_height, p.font_size_big) / 2,
 			 p.screen_height / 4, p.font_size_big, BLACK);
 		char height_number_string[5];
 		char height_string[] = " tiles high";
@@ -279,7 +282,15 @@ void display_configure(Board *demo, bool const is_configured_width,
 				 2 +
 			     height_number_string_len,
 			 40 + p.screen_height / 4, p.font_size_big, MAROON);
-	} else if (is_configured_height && is_configured_width) {
+		break;
+	case STATE_CONFIGURE_SNAKE_SPEED:
+		break;
+	}
+	if (conf == STATE_CONFIGURE_WIDTH) {
+
+	} else if (conf == STATE_CONFIGURE_HEIGHT) {
+
+	} else if (conf == STATE_CONFIGURE_SNAKE_SPEED) {
 
 		InputKey directions[] = {IN_UP, IN_RIGHT, IN_DOWN, IN_LEFT};
 		static int i = 0;
@@ -299,10 +310,10 @@ void display_configure(Board *demo, bool const is_configured_width,
 			board_update(demo);
 		}
 		board_draw(demo, 0, false);
-		char title[] = "Set snake speed:";
-		DrawText(title,
+		char title_speed[] = "Set snake speed:";
+		DrawText(title_speed,
 			 p.screen_width / 2 -
-			     MeasureText(title, p.font_size_big) / 2,
+			     MeasureText(title_speed, p.font_size_big) / 2,
 			 p.screen_height / 4, p.font_size_big, BLACK);
 		char speed_number_string[5];
 		char speed_string[] = " ticks/second (Hz)";

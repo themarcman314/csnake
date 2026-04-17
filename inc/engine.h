@@ -1,6 +1,7 @@
 #ifndef ENGINE
 #define ENGINE
 #include "board.h"
+#include "game.h"
 #include "raylib.h"
 #include "timer.h"
 
@@ -16,9 +17,9 @@ bool board_check_edge(Board const *b);
 void engine_init();
 void display_end(Board const *b, int const score, int game_over_timestamp);
 void display_welcome();
-void display_configure(Board *demo, bool const is_configured_width,
-		       bool const is_configured_height, float const freq,
-		       int const width, int const height);
+
+void display_configure(Board *demo, GameConfigureState const conf,
+		       float const freq, int const width, int const height);
 
 void window_get_size();
 
