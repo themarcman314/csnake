@@ -9,6 +9,7 @@
 bool is_azerty = false;
 
 struct DrawingParameters {
+	bool draw_fps;
 	int screen_width;
 	int screen_height;
 	int const delta;
@@ -20,7 +21,8 @@ struct DrawingParameters {
 	int const font_size_small;
 };
 
-DrawingParameters p = {.delta = 25,
+DrawingParameters p = {.draw_fps = true,
+		       .delta = 25,
 		       .board_border_size = 20,
 		       .board_wall_thickness = 5,
 		       .font_size_big = 35,
@@ -327,5 +329,9 @@ void board_draw_collision(Board const *const b, int const board_x,
 }
 void window_get_size() {}
 
-void window_periodic_start() { BeginDrawing(); }
+void window_periodic_start() {
+	BeginDrawing();
+	if (p.draw_fps)
+		DrawFPS(50, 50);
+}
 void window_periodic_end() { EndDrawing(); }
