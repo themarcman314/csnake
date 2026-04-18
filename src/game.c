@@ -108,6 +108,8 @@ GameState game_configure(Game *g) {
 	static float freq = TICK_FREQUENCY;
 	static int width = BOARD_WIDTH;
 	static int height = BOARD_HEIGHT;
+	static int demo_width = BOARD_WIDTH;
+	static int demo_height = BOARD_HEIGHT;
 	static Board *demo;
 
 	display_configure(demo, conf_state, freq, width, height);
@@ -137,8 +139,8 @@ GameState game_configure(Game *g) {
 			return STATE_GAME_RUN;
 		} else if (conf_state == STATE_CONFIGURE_WIDTH) {
 			conf_state = STATE_CONFIGURE_HEIGHT;
-			demo = board_create(width, height);
 		} else if (conf_state == STATE_CONFIGURE_HEIGHT) {
+			demo = board_create(width, height);
 			conf_state = STATE_CONFIGURE_SNAKE_SPEED;
 		} else if (conf_state == STATE_CONFIGURE_NAME) {
 
