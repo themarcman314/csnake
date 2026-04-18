@@ -1,14 +1,11 @@
 #include "game.h"
-#include "ansi.h"
 #include "board.h"
 #include "conf.h"
 #include "debug.h"
 #include "engine.h"
 #include "input.h"
-#include "term.h"
 #include <raylib.h>
 #include <stdbool.h>
-#include <stdio.h>
 #include <unistd.h>
 
 typedef enum {
@@ -72,27 +69,14 @@ GameState game_run(Game *g) {
 			snake_segment_add(g->b->s);
 			food_spawn(g->b);
 		}
-#ifdef TUI
-		if (board_check_all_collisions(g->b)) {
-			int x, y;
-			snake_get_head_position(g->b->s, &x, &y);
-			board_draw_collision(g->b, x, y);
-			sleep(1);
-			return STATE_GAME_END;
-		};
-#endif
 		board_update(g->b);
-#ifdef TUI
-		board_draw(g->b, g->score);
-#endif
 	}
-#ifdef GRAPHICAL
 	if (board_check_all_collisions(g->b)) {
 		g->death_timestamp = millis();
 		return STATE_GAME_END;
 	};
+	// should be called every itteration since
 	board_draw(g->b, g->score, true);
-#endif
 	return STATE_GAME_RUN;
 }
 
@@ -111,8 +95,32 @@ GameState game_configure(Game *g) {
 	static int demo_width = BOARD_WIDTH;
 	static int demo_height = BOARD_HEIGHT;
 	static Board *demo;
+	static char name[20] = "\0";
+	static int letterCount = 0;
 
-	display_configure(demo, conf_state, freq, width, height);
+	display_configure(demo, conf_state, freq, width, height, name,
+			  letterCount);
+
+	int char_pressed = GetCharPressed();
+	if (conf_state == STATE_CONFIGURE_NAME) {
+		if (char_pressed > 0) {
+			// NOTE: Only allow keys in range [32..125]
+			if ((char_pressed >= 32) && (char_pressed <= 125) &&
+			    (letterCount < 20)) {
+				name[letterCount] = (char)char_pressed;
+				name[letterCount + 1] =
+				    '\0'; // Add null terminator at the end of
+					  // the string
+				letterCount++;
+			}
+		}
+	}
+	if (IsKeyPressed(KEY_BACKSPACE)) {
+		letterCount--;
+		if (letterCount < 0)
+			letterCount = 0;
+		name[letterCount] = '\0';
+	}
 
 	float const delta = 0.1; // +- 0.1 Hz
 

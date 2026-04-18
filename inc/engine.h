@@ -19,7 +19,8 @@ void display_end(Board const *b, int const score, int game_over_timestamp);
 void display_welcome();
 
 void display_configure(Board *demo, GameConfigureState const conf,
-		       float const freq, int const width, int const height);
+		       float const freq, int const width, int const height,
+		       char *name, int name_len);
 
 void window_get_size();
 

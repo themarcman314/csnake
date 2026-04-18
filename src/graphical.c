@@ -219,7 +219,8 @@ void set_start_coords_grid(int grid_width, int grid_height) {
 }
 
 void display_configure(Board *demo, GameConfigureState const conf,
-		       float const freq, int const width, int const height) {
+		       float const freq, int const width, int const height,
+		       char *name, int name_len) {
 
 	set_start_coords_grid(width, height);
 
@@ -231,6 +232,11 @@ void display_configure(Board *demo, GameConfigureState const conf,
 			 p.screen_width / 2 -
 			     MeasureText(title_name, p.font_size_big) / 2,
 			 p.screen_height / 4, p.font_size_big, BLACK);
+		Rectangle textBox = {p.screen_width / 2.0f - 100,
+				     p.screen_height / 4.f + 50, 225, 50};
+		DrawRectangleRec(textBox, LIGHTGRAY);
+		DrawText(name, (int)textBox.x + 5, (int)textBox.y + 8, 40,
+			 MAROON);
 		break;
 	case STATE_CONFIGURE_WIDTH:
 		grid_draw(width, height, p.start_x, p.start_y,
@@ -245,15 +251,15 @@ void display_configure(Board *demo, GameConfigureState const conf,
 		sprintf(width_number_string, "%d", width);
 		int const width_number_string_len =
 		    MeasureText(width_number_string, p.font_size_big);
-		int const speed_string_len =
+		int const width_string_len =
 		    MeasureText(width_string, p.font_size_big);
 		DrawText(width_number_string,
 			 p.screen_width / 2 -
-			     (width_number_string_len + speed_string_len) / 2,
+			     (width_number_string_len + width_string_len) / 2,
 			 40 + p.screen_height / 4, p.font_size_big, BLUE);
 		DrawText(width_string,
 			 p.screen_width / 2 -
-			     (width_number_string_len + speed_string_len) / 2 +
+			     (width_number_string_len + width_string_len) / 2 +
 			     width_number_string_len,
 			 40 + p.screen_height / 4, p.font_size_big, MAROON);
 		break;
@@ -284,14 +290,6 @@ void display_configure(Board *demo, GameConfigureState const conf,
 			 40 + p.screen_height / 4, p.font_size_big, MAROON);
 		break;
 	case STATE_CONFIGURE_SNAKE_SPEED:
-		break;
-	}
-	if (conf == STATE_CONFIGURE_WIDTH) {
-
-	} else if (conf == STATE_CONFIGURE_HEIGHT) {
-
-	} else if (conf == STATE_CONFIGURE_SNAKE_SPEED) {
-
 		InputKey directions[] = {IN_UP, IN_RIGHT, IN_DOWN, IN_LEFT};
 		static int i = 0;
 
@@ -331,6 +329,7 @@ void display_configure(Board *demo, GameConfigureState const conf,
 			     (speed_number_string_len + speed_string_len) / 2 +
 			     speed_number_string_len,
 			 40 + p.screen_height / 4, p.font_size_big, MAROON);
+		break;
 	}
 }
 
