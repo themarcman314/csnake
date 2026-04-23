@@ -41,63 +41,63 @@ void set_keyboard_type() {
 	}
 }
 
-InputKey get_key(void) {
-
-	int const key = GetKeyPressed();
-	if (is_azerty) {
-		if (key == KEY_Z)
-			return IN_UP;
-		if (key == KEY_Q)
-			return IN_LEFT;
-	} else {
-		if (key == KEY_W)
-			return IN_UP;
-		if (key == KEY_A)
-			return IN_LEFT;
-	}
-	switch (key) {
-	case KEY_D:
-		return IN_RIGHT;
-		break;
-	case KEY_S:
-		return IN_DOWN;
-		break;
-	case KEY_EQUAL:
-		return IN_PLUS;
-		break;
-	case KEY_MINUS:
-		return IN_MINUS;
-		break;
-
-	case KEY_UP:
-		return IN_UP;
-		break;
-	case KEY_DOWN:
-		return IN_DOWN;
-		break;
-	case KEY_LEFT:
-		return IN_LEFT;
-		break;
-	case KEY_RIGHT:
-		return IN_RIGHT;
-		break;
-	case KEY_ENTER:
-		return IN_ENTER;
-		break;
-	case KEY_R:
-		return IN_PLAY_AGAIN;
-		break;
-	case KEY_C:
-		return IN_CONFIGURE;
-		break;
-	default:
-		break;
-	}
-
-	if (WindowShouldClose())
-		return IN_QUIT;
-	return IN_NONE;
-}
+// Input get_key(void) {
+//
+//	int const key = GetKeyPressed();
+//	if (is_azerty) {
+//		if (key == KEY_Z)
+//			return IN_UP;
+//		if (key == KEY_Q)
+//			return IN_LEFT;
+//	} else {
+//		if (key == KEY_W)
+//			return IN_UP;
+//		if (key == KEY_A)
+//			return IN_LEFT;
+//	}
+//	switch (key) {
+//	case KEY_D:
+//		return IN_RIGHT;
+//		break;
+//	case KEY_S:
+//		return IN_DOWN;
+//		break;
+//	case KEY_EQUAL:
+//		return IN_PLUS;
+//		break;
+//	case KEY_MINUS:
+//		return IN_MINUS;
+//		break;
+//
+//	case KEY_UP:
+//		return IN_UP;
+//		break;
+//	case KEY_DOWN:
+//		return IN_DOWN;
+//		break;
+//	case KEY_LEFT:
+//		return IN_LEFT;
+//		break;
+//	case KEY_RIGHT:
+//		return IN_RIGHT;
+//		break;
+//	case KEY_ENTER:
+//		return IN_ENTER;
+//		break;
+//	case KEY_R:
+//		return IN_PLAY_AGAIN;
+//		break;
+//	case KEY_C:
+//		return IN_CONFIGURE;
+//		break;
+//	default:
+//		break;
+//	}
+//
+//	if (WindowShouldClose())
+//		return IN_QUIT;
+//	return IN_NONE;
+// }
 
 void engine_init() {
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
@@ -290,7 +290,6 @@ void display_configure(Board *demo, GameConfigureState const conf,
 			 40 + p.screen_height / 4, p.font_size_big, MAROON);
 		break;
 	case STATE_CONFIGURE_SNAKE_SPEED:
-		InputKey directions[] = {IN_UP, IN_RIGHT, IN_DOWN, IN_LEFT};
 		static int i = 0;
 
 		static int last_tick = 0;
@@ -301,8 +300,8 @@ void display_configure(Board *demo, GameConfigureState const conf,
 				i++;
 			} else {
 			}
-			snake_head_direction_set_next(demo->s,
-						      directions[i % 4]);
+			// snake_head_direction_set_next(demo->s,
+			//			      directions[i % 4]);
 			snake_head_direction_set(demo->s);
 			snake_update_square_position(demo->s);
 			board_update(demo);

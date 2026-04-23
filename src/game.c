@@ -19,14 +19,14 @@ typedef enum {
 
 typedef struct {
 	GameState state;
-	InputKey key;
+	Input in;
 	int score;
 	int tick_speed;
 	Board *b;
 	int death_timestamp;
 } Game;
 
-GameState game_welcome(InputKey key);
+GameState game_welcome(Input in);
 void game_init(Game *const g);
 GameState game_end(Game *const g);
 GameState game_run(Game *const g);
@@ -46,12 +46,12 @@ void game_init(Game *g) {
 
 GameState game_end(Game *const g) {
 	display_end(g->b, g->score, g->death_timestamp);
-	if (g->key == IN_PLAY_AGAIN || g->key == IN_ENTER) {
+	if (g->in.in_key == KEY_R || g->in.in_key == KEY_ENTER) {
 		g->score = 0;
 		snake_init(g->b);
 		food_init(g->b);
 		return STATE_GAME_RUN;
-	} else if (g->key == IN_CONFIGURE) {
+	} else if (g->in.in_key == KEY_C) {
 		return STATE_GAME_CONFIGURE;
 	}
 	return STATE_GAME_END;
@@ -80,9 +80,9 @@ GameState game_run(Game *g) {
 	return STATE_GAME_RUN;
 }
 
-GameState game_welcome(InputKey key) {
+GameState game_welcome(Input in) {
 	display_welcome();
-	if (key != IN_NONE)
+	if (in.in_key != KEY_NULL)
 		return STATE_GAME_CONFIGURE;
 	return STATE_GAME_WELCOME;
 }
@@ -130,13 +130,13 @@ GameState game_configure(Game *g) {
 		conf_decrement(conf_state, delta, &height, &width, &freq);
 	}
 
-	switch (g->key) {
-	case IN_PLAY_AGAIN:
+	switch (g->in.in_key) {
+	case KEY_R:
 		conf_state = STATE_CONFIGURE_NAME;
 		g->b = board_create(width, height);
 		return STATE_GAME_RUN;
 
-	case IN_ENTER:
+	case KEY_ENTER:
 		if (conf_state == STATE_CONFIGURE_SNAKE_SPEED) {
 			conf_state = STATE_CONFIGURE_NAME;
 			food_destroy(&demo->f);
@@ -155,11 +155,10 @@ GameState game_configure(Game *g) {
 			conf_state = STATE_CONFIGURE_WIDTH;
 		}
 		break;
-	case IN_PLUS:
+	case KEY_EQUAL:
 		conf_increment(conf_state, delta, &height, &width, &freq);
-
 		break;
-	case IN_MINUS:
+	case KEY_MINUS:
 		conf_decrement(conf_state, delta, &height, &width, &freq);
 		break;
 	default:
@@ -175,16 +174,16 @@ void game_fsm_run(void) {
 	while (g.state != STATE_GAME_EXIT) {
 		window_get_size();
 		window_periodic_start();
-		g.key = get_key();
-		if (g.key == IN_QUIT)
+		g.in.in_key = GetKeyPressed();
+		if (WindowShouldClose())
 			g.state = STATE_GAME_EXIT;
 
 		switch (g.state) {
 		case STATE_GAME_WELCOME:
-			g.state = game_welcome(g.key);
+			g.state = game_welcome(g.in);
 			break;
 		case STATE_GAME_RUN:
-			snake_head_direction_set_next(g.b->s, g.key);
+			snake_head_direction_set_next(g.b->s, g.in);
 			g.state = game_run(&g);
 			break;
 		case STATE_GAME_END:

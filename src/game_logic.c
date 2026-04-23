@@ -3,6 +3,7 @@
 #include "debug.h"
 #include "input.h"
 #include <assert.h>
+#include <raylib.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -58,7 +59,7 @@ bool snake_check_collisions(Snake const *s);
 bool board_check_collisions(Board const *b);
 static bool snake_head_direction_is_opposite(Direction const a,
 					     Direction const b);
-Direction snake_head_direction_translate_from_input(InputKey const key,
+Direction snake_head_direction_translate_from_input(Input const key,
 						    Direction const current);
 
 Board *board_create(int const width, int const height) {
@@ -179,13 +180,13 @@ SnakeSegment *snake_segment_create(const int x, const int y) {
 	return s;
 }
 
-void snake_head_direction_set_next(Snake *const s, InputKey const key) {
-	if (key == IN_NONE) {
+void snake_head_direction_set_next(Snake *const s, Input const in) {
+	if (in.in_key == KEY_NULL) {
 		return;
 	}
 	Direction dir_last;
 	Direction dir_current =
-	    snake_head_direction_translate_from_input(key, s->head_dir_current);
+	    snake_head_direction_translate_from_input(in, s->head_dir_current);
 	// get last direction
 	if (s->queue.index_write != s->queue.index_read) { // not empty
 		unsigned index_last =
@@ -215,20 +216,49 @@ static bool snake_head_direction_is_opposite(Direction const a,
 	       (a == SNAKE_RIGHT && b == SNAKE_LEFT);
 }
 
-Direction snake_head_direction_translate_from_input(InputKey const key,
+Direction snake_head_direction_translate_from_input(Input const in,
 						    Direction const current) {
-	switch (key) {
-	case IN_UP:
+	switch (in.in_key) {
+	case KEY_UP:
 		return SNAKE_UP;
-	case IN_DOWN:
+	case KEY_DOWN:
 		return SNAKE_DOWN;
-	case IN_LEFT:
+	case KEY_LEFT:
 		return SNAKE_LEFT;
-	case IN_RIGHT:
+	case KEY_RIGHT:
 		return SNAKE_RIGHT;
 	default:
-		return current;
+		break;
 	}
+
+	if (!in.is_azerty) {
+		switch (in.in_key) {
+		case KEY_W:
+			return SNAKE_UP;
+		case KEY_A:
+			return SNAKE_LEFT;
+		default:
+			break;
+		}
+	} else {
+		switch (in.in_key) {
+		case KEY_Z:
+			return SNAKE_UP;
+		case KEY_Q:
+			return SNAKE_LEFT;
+		default:
+			break;
+		}
+	}
+	switch (in.in_key) {
+	case KEY_S:
+		return SNAKE_DOWN;
+	case KEY_D:
+		return SNAKE_RIGHT;
+	default:
+		break;
+	}
+	return current;
 }
 
 void snake_head_direction_set(Snake *s) {

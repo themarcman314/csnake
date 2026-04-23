@@ -1,4 +1,9 @@
 #ifndef INPUT
 #define INPUT
-typedef enum { IN_NONE, IN_OTHER, IN_UP, IN_DOWN, IN_LEFT, IN_RIGHT, IN_PLAY_AGAIN, IN_QUIT, IN_ENTER, IN_PLUS, IN_MINUS, IN_CONFIGURE} InputKey;
+#include <stdbool.h>
+typedef struct {
+	int in_key;
+	char in_char;
+	bool is_azerty;
+} Input;
 #endif
