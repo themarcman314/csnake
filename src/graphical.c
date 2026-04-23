@@ -105,7 +105,6 @@ void engine_init() {
 	SetTargetFPS(60);
 	int const screenWidth = GetMonitorWidth(GetCurrentMonitor());
 	int const screenHeight = GetMonitorHeight(GetCurrentMonitor());
-	printf("width: %d\nheight %d\n", screenWidth, screenHeight);
 	int const win_border_size = 50;
 	int const window_width = screenWidth - win_border_size;
 	int const window_height = screenHeight - win_border_size;
@@ -226,6 +225,23 @@ void display_configure(Board *demo, GameConfigureState const conf,
 
 	ClearBackground(RAYWHITE);
 	switch (conf) {
+	case STATE_CONFIGURE_MENU:
+		int const number_of_items = 4;
+		int border_fraction_screen_width = 15;
+		int border_fraction_screen_height = 15;
+		int rectangle_height = p.screen_height / 20;
+		int rectangle_height_spacing =
+		    p.screen_height / number_of_items;
+		for (int i = 0; i <= number_of_items; i++) {
+			DrawRectangle(
+			    p.screen_width / border_fraction_screen_width,
+			    i * rectangle_height_spacing +
+				p.screen_height / border_fraction_screen_height,
+			    (border_fraction_screen_width - 2) *
+				p.screen_width / border_fraction_screen_width,
+			    rectangle_height, GRAY);
+		}
+		break;
 	case STATE_CONFIGURE_NAME:
 		char title_name[] = "Enter your name:";
 		DrawText(title_name,
@@ -290,22 +306,22 @@ void display_configure(Board *demo, GameConfigureState const conf,
 			 40 + p.screen_height / 4, p.font_size_big, MAROON);
 		break;
 	case STATE_CONFIGURE_SNAKE_SPEED:
-		static int i = 0;
+		// static int i = 0;
 
-		static int last_tick = 0;
-		int now = millis();
-		if (now - last_tick >= 1000.0F / freq) {
-			last_tick = now;
-			if (board_check_edge(demo)) {
-				i++;
-			} else {
-			}
-			// snake_head_direction_set_next(demo->s,
-			//			      directions[i % 4]);
-			snake_head_direction_set(demo->s);
-			snake_update_square_position(demo->s);
-			board_update(demo);
-		}
+		// static int last_tick = 0;
+		// int now = millis();
+		// if (now - last_tick >= 1000.0F / freq) {
+		//	last_tick = now;
+		//	if (board_check_edge(demo)) {
+		//		i++;
+		//	} else {
+		//	}
+		//  snake_head_direction_set_next(demo->s,
+		//			      directions[i % 4]);
+		// snake_head_direction_set(demo->s);
+		// snake_update_square_position(demo->s);
+		// board_update(demo);
+		//}
 		board_draw(demo, 0, false);
 		char title_speed[] = "Set snake speed:";
 		DrawText(title_speed,

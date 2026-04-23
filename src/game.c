@@ -19,11 +19,12 @@ typedef enum {
 
 typedef struct {
 	GameState state;
-	Input in;
 	int score;
 	int tick_speed;
 	Board *b;
 	int death_timestamp;
+	Input in;
+	char player_name[20];
 } Game;
 
 GameState game_welcome(Input in);
@@ -42,6 +43,7 @@ void game_init(Game *g) {
 	debug_init();
 	g->tick_speed = 1000.0 / TICK_FREQUENCY;
 	g->state = STATE_GAME_WELCOME;
+	g->score = 0;
 }
 
 GameState game_end(Game *const g) {
@@ -88,39 +90,18 @@ GameState game_welcome(Input in) {
 }
 
 GameState game_configure(Game *g) {
-	static GameConfigureState conf_state = STATE_CONFIGURE_NAME;
+	static GameConfigureState conf_state = STATE_CONFIGURE_MENU;
 	static float freq = TICK_FREQUENCY;
 	static int width = BOARD_WIDTH;
 	static int height = BOARD_HEIGHT;
 	static int demo_width = BOARD_WIDTH;
 	static int demo_height = BOARD_HEIGHT;
 	static Board *demo;
-	static char name[20] = "\0";
+	// static char name[20] = "\0";
 	static int letterCount = 0;
 
-	display_configure(demo, conf_state, freq, width, height, name,
+	display_configure(demo, conf_state, freq, width, height, g->player_name,
 			  letterCount);
-
-	int char_pressed = GetCharPressed();
-	if (conf_state == STATE_CONFIGURE_NAME) {
-		if (char_pressed > 0) {
-			// NOTE: Only allow keys in range [32..125]
-			if ((char_pressed >= 32) && (char_pressed <= 125) &&
-			    (letterCount < 20)) {
-				name[letterCount] = (char)char_pressed;
-				name[letterCount + 1] =
-				    '\0'; // Add null terminator at the end of
-					  // the string
-				letterCount++;
-			}
-		}
-	}
-	if (IsKeyPressed(KEY_BACKSPACE)) {
-		letterCount--;
-		if (letterCount < 0)
-			letterCount = 0;
-		name[letterCount] = '\0';
-	}
 
 	float const delta = 0.1; // +- 0.1 Hz
 
@@ -131,40 +112,104 @@ GameState game_configure(Game *g) {
 	}
 
 	switch (conf_state) {
+	case STATE_CONFIGURE_MENU:
+		switch (g->in.in_key) {
+		case KEY_ENTER:
+			conf_state = STATE_CONFIGURE_NAME;
+			break;
+		}
+
+		break;
 	case STATE_CONFIGURE_NAME:
-		conf_state = STATE_CONFIGURE_WIDTH;
+		switch (g->in.in_key) {
+		case KEY_ENTER:
+			conf_state = STATE_CONFIGURE_WIDTH;
+			break;
+		}
+		int char_pressed = GetCharPressed();
+
+		if (IsKeyPressed(KEY_BACKSPACE)) {
+			letterCount--;
+			if (letterCount < 0)
+				letterCount = 0;
+			g->player_name[letterCount] = '\0';
+		}
+		if (char_pressed > 0) {
+			// NOTE: Only allow keys in range [32..125]
+			if ((char_pressed >= 32) && (char_pressed <= 125) &&
+			    (letterCount < 20)) {
+				g->player_name[letterCount] =
+				    (char)char_pressed;
+				g->player_name[letterCount + 1] =
+				    '\0'; // Add null terminator at the end of
+					  // the string
+				letterCount++;
+			}
+		}
 		break;
 	case STATE_CONFIGURE_WIDTH:
-		switch (g->in.in_key) {}
-		conf_state = STATE_CONFIGURE_HEIGHT;
+		switch (g->in.in_key) {
+		case KEY_ENTER:
+			conf_state = STATE_CONFIGURE_HEIGHT;
+			break;
+		case KEY_R:
+			conf_state = STATE_CONFIGURE_NAME;
+			g->b = board_create(width, height);
+			return STATE_GAME_RUN;
+
+		case KEY_EQUAL:
+			conf_increment(conf_state, delta, &height, &width,
+				       &freq);
+			break;
+		case KEY_MINUS:
+			conf_decrement(conf_state, delta, &height, &width,
+				       &freq);
+			break;
+		}
 		break;
 	case STATE_CONFIGURE_HEIGHT:
-		switch (g->in.in_key) {}
+		switch (g->in.in_key) {
+		case KEY_ENTER:
+			conf_state = STATE_CONFIGURE_SNAKE_SPEED;
+			break;
+		case KEY_R:
+			conf_state = STATE_CONFIGURE_NAME;
+			g->b = board_create(width, height);
+			return STATE_GAME_RUN;
+		case KEY_EQUAL:
+			conf_increment(conf_state, delta, &height, &width,
+				       &freq);
+			break;
+		case KEY_MINUS:
+			conf_decrement(conf_state, delta, &height, &width,
+				       &freq);
+			break;
+		}
 		demo = board_create(width, height);
-		conf_state = STATE_CONFIGURE_SNAKE_SPEED;
 		break;
 	case STATE_CONFIGURE_SNAKE_SPEED:
-		switch (g->in.in_key) {}
-		conf_state = STATE_CONFIGURE_NAME;
-		food_destroy(&demo->f);
-		snake_kill(&demo->s);
-		board_destroy(&demo);
-		g->tick_speed = 1000.0F / freq;
-		g->b = board_create(width, height);
-		return STATE_GAME_RUN;
+		switch (g->in.in_key) {
+		case KEY_ENTER:
+			conf_state = STATE_CONFIGURE_NAME;
+			food_destroy(&demo->f);
+			snake_kill(&demo->s);
+			board_destroy(&demo);
+			g->tick_speed = 1000.0F / freq;
+			g->b = board_create(width, height);
+			return STATE_GAME_RUN;
+			break;
+		case KEY_EQUAL:
+			conf_increment(conf_state, delta, &height, &width,
+				       &freq);
+			break;
+		case KEY_MINUS:
+			conf_decrement(conf_state, delta, &height, &width,
+				       &freq);
+		}
+		break;
 	}
 	switch (g->in.in_key) {
-	case KEY_R:
-		conf_state = STATE_CONFIGURE_NAME;
-		g->b = board_create(width, height);
-		return STATE_GAME_RUN;
 
-	case KEY_EQUAL:
-		conf_increment(conf_state, delta, &height, &width, &freq);
-		break;
-	case KEY_MINUS:
-		conf_decrement(conf_state, delta, &height, &width, &freq);
-		break;
 	default:
 		break;
 	}
@@ -202,6 +247,7 @@ void game_fsm_run(void) {
 				snake_kill(&g.b->s);
 				board_destroy(&g.b);
 			}
+			return;
 
 		default:
 			g.state = STATE_GAME_EXIT;

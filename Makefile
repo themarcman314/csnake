@@ -1,11 +1,12 @@
 CC=gcc
 FLAGS=-I$(INCLUDEDIR) -std=gnu99 -g
-LFLAGS=-lm -lraylib
+LFLAGS=-lm -lGL -lm -lpthread -ldl -lrt -lX11
 BUILDDIR=build
 SOURCEDIR=src
 INCLUDEDIR=inc
 SOURCES=$(filter-out $(SOURCEDIR)/graphical.c $(SOURCEDIR)/term.c, $(wildcard $(SOURCEDIR)/*.c))
 OBJ=$(patsubst $(SOURCEDIR)/%.c, $(BUILDDIR)/%.o, $(SOURCES))
+LIB=./libs/libraylib.a
 
 all: $(BUILDDIR) $(BUILDDIR)/csnake_graphical
 
@@ -16,27 +17,18 @@ $(BUILDDIR):
 	mkdir build
 
 $(BUILDDIR)/csnake: $(OBJ)
-	$(CC) $^ -o $@ $(LFLAGS)
+	$(CC) $^ -o $@ $(LFLAGS) 
 
 graphical: FLAGS += -D GRAPHICAL
 graphical: $(BUILDDIR) $(BUILDDIR)/csnake_graphical
 
-term: FLAGS += -D TUI
-term: $(BUILDDIR) $(BUILDDIR)/csnake_term
-
-$(BUILDDIR)/csnake_graphical: $(OBJ) $(BUILDDIR)/graphical.o
+$(BUILDDIR)/csnake_graphical: $(OBJ) $(BUILDDIR)/graphical.o $(LIB)
 	$(CC) $^ -o $@ $(LFLAGS)
-
-$(BUILDDIR)/csnake_term: $(OBJ) $(BUILDDIR)/term.o
-	$(CC) $^ -o $@
 
 $(BUILDDIR)/csnake.exe: $(OBJ)
 	$(CC) $^ -o $@
 
 $(OBJ): $(BUILDDIR)/%.o: $(SOURCEDIR)/%.c
-	$(CC) -c $(FLAGS) $< -o $@
-
-$(BUILDDIR)/term.o: $(SOURCEDIR)/term.c
 	$(CC) -c $(FLAGS) $< -o $@
 
 $(BUILDDIR)/graphical.o: $(SOURCEDIR)/graphical.c
