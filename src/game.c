@@ -130,31 +130,35 @@ GameState game_configure(Game *g) {
 		conf_decrement(conf_state, delta, &height, &width, &freq);
 	}
 
+	switch (conf_state) {
+	case STATE_CONFIGURE_NAME:
+		conf_state = STATE_CONFIGURE_WIDTH;
+		break;
+	case STATE_CONFIGURE_WIDTH:
+		switch (g->in.in_key) {}
+		conf_state = STATE_CONFIGURE_HEIGHT;
+		break;
+	case STATE_CONFIGURE_HEIGHT:
+		switch (g->in.in_key) {}
+		demo = board_create(width, height);
+		conf_state = STATE_CONFIGURE_SNAKE_SPEED;
+		break;
+	case STATE_CONFIGURE_SNAKE_SPEED:
+		switch (g->in.in_key) {}
+		conf_state = STATE_CONFIGURE_NAME;
+		food_destroy(&demo->f);
+		snake_kill(&demo->s);
+		board_destroy(&demo);
+		g->tick_speed = 1000.0F / freq;
+		g->b = board_create(width, height);
+		return STATE_GAME_RUN;
+	}
 	switch (g->in.in_key) {
 	case KEY_R:
 		conf_state = STATE_CONFIGURE_NAME;
 		g->b = board_create(width, height);
 		return STATE_GAME_RUN;
 
-	case KEY_ENTER:
-		if (conf_state == STATE_CONFIGURE_SNAKE_SPEED) {
-			conf_state = STATE_CONFIGURE_NAME;
-			food_destroy(&demo->f);
-			snake_kill(&demo->s);
-			board_destroy(&demo);
-			g->tick_speed = 1000.0F / freq;
-			g->b = board_create(width, height);
-			return STATE_GAME_RUN;
-		} else if (conf_state == STATE_CONFIGURE_WIDTH) {
-			conf_state = STATE_CONFIGURE_HEIGHT;
-		} else if (conf_state == STATE_CONFIGURE_HEIGHT) {
-			demo = board_create(width, height);
-			conf_state = STATE_CONFIGURE_SNAKE_SPEED;
-		} else if (conf_state == STATE_CONFIGURE_NAME) {
-
-			conf_state = STATE_CONFIGURE_WIDTH;
-		}
-		break;
 	case KEY_EQUAL:
 		conf_increment(conf_state, delta, &height, &width, &freq);
 		break;
