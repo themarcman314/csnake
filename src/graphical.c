@@ -2,7 +2,6 @@
 #include "conf.h"
 #include "engine.h"
 #include "game.h"
-#include "input.h"
 #include "raylib.h"
 #include <stdbool.h>
 #include <stdio.h>
@@ -40,64 +39,6 @@ void set_keyboard_type() {
 		// }
 	}
 }
-
-// Input get_key(void) {
-//
-//	int const key = GetKeyPressed();
-//	if (is_azerty) {
-//		if (key == KEY_Z)
-//			return IN_UP;
-//		if (key == KEY_Q)
-//			return IN_LEFT;
-//	} else {
-//		if (key == KEY_W)
-//			return IN_UP;
-//		if (key == KEY_A)
-//			return IN_LEFT;
-//	}
-//	switch (key) {
-//	case KEY_D:
-//		return IN_RIGHT;
-//		break;
-//	case KEY_S:
-//		return IN_DOWN;
-//		break;
-//	case KEY_EQUAL:
-//		return IN_PLUS;
-//		break;
-//	case KEY_MINUS:
-//		return IN_MINUS;
-//		break;
-//
-//	case KEY_UP:
-//		return IN_UP;
-//		break;
-//	case KEY_DOWN:
-//		return IN_DOWN;
-//		break;
-//	case KEY_LEFT:
-//		return IN_LEFT;
-//		break;
-//	case KEY_RIGHT:
-//		return IN_RIGHT;
-//		break;
-//	case KEY_ENTER:
-//		return IN_ENTER;
-//		break;
-//	case KEY_R:
-//		return IN_PLAY_AGAIN;
-//		break;
-//	case KEY_C:
-//		return IN_CONFIGURE;
-//		break;
-//	default:
-//		break;
-//	}
-//
-//	if (WindowShouldClose())
-//		return IN_QUIT;
-//	return IN_NONE;
-// }
 
 void engine_init() {
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
@@ -222,16 +163,13 @@ void set_start_coords_grid(int grid_width, int grid_height) {
 		    2;
 }
 
-void display_configure(Board *demo, GameConfigureState const conf,
-		       float const freq, int const width, int const height,
-		       char *name, int name_len) {
+void display_configure(DisplayConfigureInfo const info) {
 
-	set_start_coords_grid(width, height);
+	set_start_coords_grid(info.width, info.height);
 
 	ClearBackground(RAYWHITE);
-	switch (conf) {
+	switch (info.state_conf) {
 	case STATE_CONFIGURE_MENU:
-		int const number_of_items = 3;
 		int const border_fraction_screen_width = 15;
 		int const border_fraction_screen_height = 15;
 		int rectangle_height = p.screen_height / 20;
@@ -239,36 +177,28 @@ void display_configure(Board *demo, GameConfigureState const conf,
 				      p.screen_width /
 				      border_fraction_screen_width;
 		int rectangle_height_spacing =
-		    p.screen_height / number_of_items;
+		    p.screen_height / STATE_SELECTED_COUNT;
 		int rectangle_x = p.screen_width / border_fraction_screen_width;
 		int rectangle_y_base =
 		    p.screen_height / border_fraction_screen_height;
 
-		for (int i = 0; i <= number_of_items; i++) {
+		for (int i = 0; i < STATE_SELECTED_COUNT; i++) {
+			const char *labels[] = {"Board height", "Board width",
+						"Snake speed"};
 			DrawRectangleLines(
 			    rectangle_x,
 			    i * rectangle_height_spacing + rectangle_y_base,
 			    rectangle_width, rectangle_height, GRAY);
-			switch (i) {
-			case 0:
-				DrawText("Board height", rectangle_x + 5,
-					 i * rectangle_height_spacing +
-					     rectangle_y_base,
-					 rectangle_height - 5, BLUE);
-				break;
-			case 1:
-				DrawText("Board width", rectangle_x + 5,
-					 i * rectangle_height_spacing +
-					     rectangle_y_base,
-					 rectangle_height - 5, BLUE);
-				break;
-			case 2:
-				DrawText("Snake speed", rectangle_x + 5,
-					 i * rectangle_height_spacing +
-					     rectangle_y_base,
-					 rectangle_height - 5, BLUE);
-				break;
-			}
+			if (info.state_select == i)
+				DrawRectangle(rectangle_x + 5,
+					      i * rectangle_height_spacing +
+						  rectangle_y_base + 5,
+					      rectangle_width - 10,
+					      rectangle_height - 10, GREEN);
+			DrawText(labels[i], rectangle_x + 5,
+				 i * rectangle_height_spacing +
+				     rectangle_y_base,
+				 rectangle_height - 5, BLUE);
 		}
 		break;
 	case STATE_CONFIGURE_NAME:
@@ -280,11 +210,11 @@ void display_configure(Board *demo, GameConfigureState const conf,
 		Rectangle textBox = {p.screen_width / 2.0f - 100,
 				     p.screen_height / 4.f + 50, 225, 50};
 		DrawRectangleRec(textBox, LIGHTGRAY);
-		DrawText(name, (int)textBox.x + 5, (int)textBox.y + 8, 40,
+		DrawText(info.name, (int)textBox.x + 5, (int)textBox.y + 8, 40,
 			 MAROON);
 		break;
 	case STATE_CONFIGURE_WIDTH:
-		grid_draw(width, height, p.start_x, p.start_y,
+		grid_draw(info.width, info.height, p.start_x, p.start_y,
 			  p.board_wall_thickness, p.delta, LIGHTGRAY);
 		char title_width[] = "Set board width:";
 		DrawText(title_width,
@@ -293,7 +223,7 @@ void display_configure(Board *demo, GameConfigureState const conf,
 			 p.screen_height / 4, p.font_size_big, BLACK);
 		char width_number_string[5];
 		char width_string[] = " tiles wide";
-		sprintf(width_number_string, "%d", width);
+		sprintf(width_number_string, "%d", info.width);
 		int const width_number_string_len =
 		    MeasureText(width_number_string, p.font_size_big);
 		int const width_string_len =
@@ -309,7 +239,7 @@ void display_configure(Board *demo, GameConfigureState const conf,
 			 40 + p.screen_height / 4, p.font_size_big, MAROON);
 		break;
 	case STATE_CONFIGURE_HEIGHT:
-		grid_draw(width, height, p.start_x, p.start_y,
+		grid_draw(info.width, info.height, p.start_x, p.start_y,
 			  p.board_wall_thickness, p.delta, LIGHTGRAY);
 		char title_height[] = "Set board height:";
 		DrawText(title_height,
@@ -318,7 +248,7 @@ void display_configure(Board *demo, GameConfigureState const conf,
 			 p.screen_height / 4, p.font_size_big, BLACK);
 		char height_number_string[5];
 		char height_string[] = " tiles high";
-		sprintf(height_number_string, "%d", height);
+		sprintf(height_number_string, "%d", info.height);
 		int const height_number_string_len =
 		    MeasureText(height_number_string, p.font_size_big);
 		int const height_string_len =
@@ -351,7 +281,7 @@ void display_configure(Board *demo, GameConfigureState const conf,
 		// snake_update_square_position(demo->s);
 		// board_update(demo);
 		//}
-		board_draw(demo, 0, false);
+		board_draw(info.demo, 0, false);
 		char title_speed[] = "Set snake speed:";
 		DrawText(title_speed,
 			 p.screen_width / 2 -
@@ -359,7 +289,7 @@ void display_configure(Board *demo, GameConfigureState const conf,
 			 p.screen_height / 4, p.font_size_big, BLACK);
 		char speed_number_string[5];
 		char speed_string[] = " ticks/second (Hz)";
-		sprintf(speed_number_string, "%.2f", freq);
+		sprintf(speed_number_string, "%.2f", info.freq);
 		int const speed_number_string_len =
 		    MeasureText(speed_number_string, p.font_size_big);
 		int const speed_string_len =

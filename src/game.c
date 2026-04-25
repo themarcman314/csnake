@@ -6,6 +6,7 @@
 #include "input.h"
 #include <raylib.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <unistd.h>
 
 typedef enum {
@@ -32,6 +33,7 @@ void game_init(Game *const g);
 GameState game_end(Game *const g);
 GameState game_run(Game *const g);
 GameState game_configure(Game *const g);
+void navigate_menu(GameConfigureSelectedState *state, int const direction);
 
 void conf_decrement(GameConfigureState state, float const delta, int *height,
 		    int *width, float *freq);
@@ -90,57 +92,45 @@ GameState game_welcome(Input in) {
 }
 
 GameState game_configure(Game *g) {
-	static GameConfigureState conf_state = STATE_CONFIGURE_NAME;
-	static GameConfigureSelectedState select_state = STATE_SELECTED_WIDTH;
-	static float freq = TICK_FREQUENCY;
-	static int width = BOARD_WIDTH;
-	static int height = BOARD_HEIGHT;
-	static int demo_width = BOARD_WIDTH;
-	static int demo_height = BOARD_HEIGHT;
-	static Board *demo;
-	// static char name[20] = "\0";
 	static int letterCount = 0;
+	static DisplayConfigureInfo info;
+	static bool initialized = false;
+	if (!initialized) {
+		info.demo = NULL;
+		info.state_conf = STATE_CONFIGURE_NAME;
+		info.state_select = STATE_SELECTED_WIDTH;
+		info.freq = TICK_FREQUENCY;
+		info.width = BOARD_WIDTH;
+		info.height = BOARD_HEIGHT;
+		info.name = g->player_name;
+		initialized = true;
+	}
 
-	display_configure(demo, conf_state, freq, width, height, g->player_name,
-			  letterCount);
+	display_configure(info);
 
 	float const delta = 0.1; // +- 0.1 Hz
 
 	if (IsKeyPressedRepeat(KEY_EQUAL)) {
-		conf_increment(conf_state, delta, &height, &width, &freq);
+		conf_increment(info.state_conf, delta, &info.height,
+			       &info.width, &info.freq);
 	} else if (IsKeyPressedRepeat(KEY_MINUS)) {
-		conf_decrement(conf_state, delta, &height, &width, &freq);
+		conf_decrement(info.state_conf, delta, &info.height,
+			       &info.width, &info.freq);
 	}
 
-	switch (conf_state) {
+	switch (info.state_conf) {
 	case STATE_CONFIGURE_MENU:
 		switch (g->in.in_key) {
 		case KEY_ENTER:
-			conf_state = STATE_CONFIGURE_WIDTH;
+			info.state_conf = STATE_CONFIGURE_WIDTH;
 			break;
 		case KEY_J:
-			switch (select_state) {
-			case STATE_SELECTED_WIDTH:
-				select_state = STATE_SELECTED_HEIGHT;
-				break;
-			case STATE_SELECTED_HEIGHT:
-				select_state = STATE_SELECTED_SNAKE_SPEED;
-				break;
-			case STATE_SELECTED_SNAKE_SPEED:
-				break;
-			}
+		case KEY_DOWN:
+			navigate_menu(&info.state_select, +1);
 			break;
 		case KEY_K:
-			switch (select_state) {
-			case STATE_SELECTED_WIDTH:
-				break;
-			case STATE_SELECTED_HEIGHT:
-				select_state = STATE_SELECTED_WIDTH;
-				break;
-			case STATE_SELECTED_SNAKE_SPEED:
-				select_state = STATE_SELECTED_HEIGHT;
-				break;
-			}
+		case KEY_UP:
+			navigate_menu(&info.state_select, -1);
 			break;
 		}
 		break;
@@ -148,7 +138,7 @@ GameState game_configure(Game *g) {
 	case STATE_CONFIGURE_NAME:
 		switch (g->in.in_key) {
 		case KEY_ENTER:
-			conf_state = STATE_CONFIGURE_MENU;
+			info.state_conf = STATE_CONFIGURE_MENU;
 			break;
 		}
 		int char_pressed = GetCharPressed();
@@ -175,68 +165,71 @@ GameState game_configure(Game *g) {
 	case STATE_CONFIGURE_WIDTH:
 		switch (g->in.in_key) {
 		case KEY_ENTER:
-			conf_state = STATE_CONFIGURE_HEIGHT;
+			info.state_conf = STATE_CONFIGURE_HEIGHT;
 			break;
 		case KEY_R:
-			conf_state = STATE_CONFIGURE_NAME;
-			g->b = board_create(width, height);
+			info.state_conf = STATE_CONFIGURE_NAME;
+			g->b = board_create(info.width, info.height);
 			return STATE_GAME_RUN;
 
 		case KEY_EQUAL:
-			conf_increment(conf_state, delta, &height, &width,
-				       &freq);
+			conf_increment(info.state_conf, delta, &info.height,
+				       &info.width, &info.freq);
 			break;
 		case KEY_MINUS:
-			conf_decrement(conf_state, delta, &height, &width,
-				       &freq);
+			conf_decrement(info.state_conf, delta, &info.height,
+				       &info.width, &info.freq);
 			break;
 		}
 		break;
 	case STATE_CONFIGURE_HEIGHT:
 		switch (g->in.in_key) {
 		case KEY_ENTER:
-			conf_state = STATE_CONFIGURE_SNAKE_SPEED;
+			info.state_conf = STATE_CONFIGURE_SNAKE_SPEED;
 			break;
 		case KEY_R:
-			conf_state = STATE_CONFIGURE_NAME;
-			g->b = board_create(width, height);
+			info.state_conf = STATE_CONFIGURE_NAME;
+			g->b = board_create(info.width, info.height);
 			return STATE_GAME_RUN;
 		case KEY_EQUAL:
-			conf_increment(conf_state, delta, &height, &width,
-				       &freq);
+			conf_increment(info.state_conf, delta, &info.height,
+				       &info.width, &info.freq);
 			break;
 		case KEY_MINUS:
-			conf_decrement(conf_state, delta, &height, &width,
-				       &freq);
+			conf_decrement(info.state_conf, delta, &info.height,
+				       &info.width, &info.freq);
 			break;
 		}
-		demo = board_create(width, height);
+		info.demo = board_create(info.width, info.height);
 		break;
 	case STATE_CONFIGURE_SNAKE_SPEED:
 		switch (g->in.in_key) {
 		case KEY_ENTER:
-			conf_state = STATE_CONFIGURE_NAME;
-			food_destroy(&demo->f);
-			snake_kill(&demo->s);
-			board_destroy(&demo);
-			g->tick_speed = 1000.0F / freq;
-			g->b = board_create(width, height);
+			info.state_conf = STATE_CONFIGURE_NAME;
+			food_destroy(&info.demo->f);
+			snake_kill(&info.demo->s);
+			board_destroy(&info.demo);
+			g->tick_speed = 1000.0F / info.freq;
+			g->b = board_create(info.width, info.height);
 			return STATE_GAME_RUN;
 			break;
 		case KEY_EQUAL:
-			conf_increment(conf_state, delta, &height, &width,
-				       &freq);
+			conf_increment(info.state_conf, delta, &info.height,
+				       &info.width, &info.freq);
 			break;
 		case KEY_MINUS:
-			conf_decrement(conf_state, delta, &height, &width,
-				       &freq);
+			conf_decrement(info.state_conf, delta, &info.height,
+				       &info.width, &info.freq);
 		}
 		break;
 	}
 	return STATE_GAME_CONFIGURE;
 }
 
-void move_selected_conf_menu_up(GameConfigureSelectedState *state) {}
+void navigate_menu(GameConfigureSelectedState *state, int const direction) {
+	*state =
+	    (*state + direction + STATE_SELECTED_COUNT) % STATE_SELECTED_COUNT;
+}
 
 void game_fsm_run(void) {
 	Game g;
