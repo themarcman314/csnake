@@ -9,4 +9,11 @@ typedef enum {
 	STATE_CONFIGURE_HEIGHT,
 	STATE_CONFIGURE_SNAKE_SPEED
 } GameConfigureState;
+
+typedef enum {
+	STATE_SELECTED_WIDTH,
+	STATE_SELECTED_HEIGHT,
+	STATE_SELECTED_SNAKE_SPEED
+} GameConfigureSelectedState;
+
 #endif

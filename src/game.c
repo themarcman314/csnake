@@ -90,7 +90,8 @@ GameState game_welcome(Input in) {
 }
 
 GameState game_configure(Game *g) {
-	static GameConfigureState conf_state = STATE_CONFIGURE_MENU;
+	static GameConfigureState conf_state = STATE_CONFIGURE_NAME;
+	static GameConfigureSelectedState select_state = STATE_SELECTED_WIDTH;
 	static float freq = TICK_FREQUENCY;
 	static int width = BOARD_WIDTH;
 	static int height = BOARD_HEIGHT;
@@ -115,15 +116,39 @@ GameState game_configure(Game *g) {
 	case STATE_CONFIGURE_MENU:
 		switch (g->in.in_key) {
 		case KEY_ENTER:
-			conf_state = STATE_CONFIGURE_NAME;
+			conf_state = STATE_CONFIGURE_WIDTH;
+			break;
+		case KEY_J:
+			switch (select_state) {
+			case STATE_SELECTED_WIDTH:
+				select_state = STATE_SELECTED_HEIGHT;
+				break;
+			case STATE_SELECTED_HEIGHT:
+				select_state = STATE_SELECTED_SNAKE_SPEED;
+				break;
+			case STATE_SELECTED_SNAKE_SPEED:
+				break;
+			}
+			break;
+		case KEY_K:
+			switch (select_state) {
+			case STATE_SELECTED_WIDTH:
+				break;
+			case STATE_SELECTED_HEIGHT:
+				select_state = STATE_SELECTED_WIDTH;
+				break;
+			case STATE_SELECTED_SNAKE_SPEED:
+				select_state = STATE_SELECTED_HEIGHT;
+				break;
+			}
 			break;
 		}
-
 		break;
+
 	case STATE_CONFIGURE_NAME:
 		switch (g->in.in_key) {
 		case KEY_ENTER:
-			conf_state = STATE_CONFIGURE_WIDTH;
+			conf_state = STATE_CONFIGURE_MENU;
 			break;
 		}
 		int char_pressed = GetCharPressed();
@@ -141,8 +166,8 @@ GameState game_configure(Game *g) {
 				g->player_name[letterCount] =
 				    (char)char_pressed;
 				g->player_name[letterCount + 1] =
-				    '\0'; // Add null terminator at the end of
-					  // the string
+				    '\0'; // Add null terminator at the
+					  // end of the string
 				letterCount++;
 			}
 		}
@@ -208,13 +233,10 @@ GameState game_configure(Game *g) {
 		}
 		break;
 	}
-	switch (g->in.in_key) {
-
-	default:
-		break;
-	}
 	return STATE_GAME_CONFIGURE;
 }
+
+void move_selected_conf_menu_up(GameConfigureSelectedState *state) {}
 
 void game_fsm_run(void) {
 	Game g;

@@ -189,6 +189,7 @@ void display_end(Board const *b, int const score, int game_over_timestamp) {
 	int const screen_height = GetScreenHeight();
 	char text[] = "game over :(";
 	char restart_text[] = "press 'r' to play again";
+	char high_score_text[] = "press 'h' to view high scores";
 	char score_text[20];
 	sprintf(score_text, "score: %d", score);
 	ClearBackground(RAYWHITE);
@@ -203,6 +204,10 @@ void display_end(Board const *b, int const score, int game_over_timestamp) {
 	DrawText(restart_text,
 		 screen_width / 4 -
 		     MeasureText(restart_text, p.font_size_small) / 2,
+		 3 * screen_height / 4, p.font_size_small, BLACK);
+	DrawText(high_score_text,
+		 3 * screen_width / 4 -
+		     MeasureText(high_score_text, p.font_size_small) / 2,
 		 3 * screen_height / 4, p.font_size_small, BLACK);
 }
 
@@ -226,20 +231,44 @@ void display_configure(Board *demo, GameConfigureState const conf,
 	ClearBackground(RAYWHITE);
 	switch (conf) {
 	case STATE_CONFIGURE_MENU:
-		int const number_of_items = 4;
-		int border_fraction_screen_width = 15;
-		int border_fraction_screen_height = 15;
+		int const number_of_items = 3;
+		int const border_fraction_screen_width = 15;
+		int const border_fraction_screen_height = 15;
 		int rectangle_height = p.screen_height / 20;
+		int rectangle_width = (border_fraction_screen_width - 2) *
+				      p.screen_width /
+				      border_fraction_screen_width;
 		int rectangle_height_spacing =
 		    p.screen_height / number_of_items;
+		int rectangle_x = p.screen_width / border_fraction_screen_width;
+		int rectangle_y_base =
+		    p.screen_height / border_fraction_screen_height;
+
 		for (int i = 0; i <= number_of_items; i++) {
-			DrawRectangle(
-			    p.screen_width / border_fraction_screen_width,
-			    i * rectangle_height_spacing +
-				p.screen_height / border_fraction_screen_height,
-			    (border_fraction_screen_width - 2) *
-				p.screen_width / border_fraction_screen_width,
-			    rectangle_height, GRAY);
+			DrawRectangleLines(
+			    rectangle_x,
+			    i * rectangle_height_spacing + rectangle_y_base,
+			    rectangle_width, rectangle_height, GRAY);
+			switch (i) {
+			case 0:
+				DrawText("Board height", rectangle_x + 5,
+					 i * rectangle_height_spacing +
+					     rectangle_y_base,
+					 rectangle_height - 5, BLUE);
+				break;
+			case 1:
+				DrawText("Board width", rectangle_x + 5,
+					 i * rectangle_height_spacing +
+					     rectangle_y_base,
+					 rectangle_height - 5, BLUE);
+				break;
+			case 2:
+				DrawText("Snake speed", rectangle_x + 5,
+					 i * rectangle_height_spacing +
+					     rectangle_y_base,
+					 rectangle_height - 5, BLUE);
+				break;
+			}
 		}
 		break;
 	case STATE_CONFIGURE_NAME:
@@ -354,9 +383,9 @@ void board_draw_collision(Board const *const b, int const board_x,
 }
 void window_get_size() {}
 
-void window_periodic_start() {
-	BeginDrawing();
+void window_periodic_start() { BeginDrawing(); }
+void window_periodic_end() {
 	if (p.draw_fps)
-		DrawFPS(50, 50);
+		DrawFPS(10, 10);
+	EndDrawing();
 }
-void window_periodic_end() { EndDrawing(); }
