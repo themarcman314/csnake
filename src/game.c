@@ -18,6 +18,22 @@ typedef enum {
 	STATE_GAME_EXIT
 } GameState;
 
+typedef enum {
+	STATE_CONFIGURE_NAME,
+	STATE_CONFIGURE_MENU,
+	STATE_CONFIGURE_WIDTH,
+	STATE_CONFIGURE_HEIGHT,
+	STATE_CONFIGURE_SNAKE_SPEED,
+	STATE_CONFIGURE_APPLY,
+} GameConfigureState;
+
+typedef struct {
+	GameConfigureState current_state;
+	GameConfigureSelectedState selected_item;
+	KeyboardKey input_key;
+	GameConfigureState next_state;
+} GameConfigureStateTransition;
+
 typedef struct {
 	GameState state;
 	int score;
@@ -35,10 +51,124 @@ GameState game_run(Game *const g);
 GameState game_configure(Game *const g);
 void navigate_menu(GameConfigureSelectedState *state, int const direction);
 
-void conf_decrement(GameConfigureState state, float const delta, int *height,
-		    int *width, float *freq);
-void conf_increment(GameConfigureState state, float const delta, int *height,
-		    int *width, float *freq);
+void update_name_conf(Game *g, DisplayConfigureInfo *i);
+void update_menu_conf(Game *g, DisplayConfigureInfo *i);
+void update_width_conf(Game *g, DisplayConfigureInfo *i);
+void update_height_conf(Game *g, DisplayConfigureInfo *i);
+void update_snake_speed_conf(Game *g, DisplayConfigureInfo *i);
+
+GameConfigureStateTransition conf_transitions[] = {
+    {STATE_CONFIGURE_MENU, STATE_CONFIGURE_SELECTED_WIDTH, KEY_ENTER,
+     STATE_CONFIGURE_WIDTH},
+    {STATE_CONFIGURE_MENU, STATE_CONFIGURE_SELECTED_HEIGHT, KEY_ENTER,
+     STATE_CONFIGURE_HEIGHT},
+    {STATE_CONFIGURE_MENU, STATE_CONFIGURE_SELECTED_SNAKE_SPEED, KEY_ENTER,
+     STATE_CONFIGURE_SNAKE_SPEED},
+    {STATE_CONFIGURE_MENU, STATE_CONFIGURE_SELECTED_PLAY, KEY_ENTER,
+     STATE_CONFIGURE_APPLY},
+    {STATE_CONFIGURE_NAME, STATE_CONFIGURE_SELECTED_NONE, KEY_ENTER,
+     STATE_CONFIGURE_MENU},
+    {STATE_CONFIGURE_WIDTH, STATE_CONFIGURE_SELECTED_NONE, KEY_ENTER,
+     STATE_CONFIGURE_MENU},
+    {STATE_CONFIGURE_HEIGHT, STATE_CONFIGURE_SELECTED_NONE, KEY_ENTER,
+     STATE_CONFIGURE_MENU},
+    {STATE_CONFIGURE_SNAKE_SPEED, STATE_CONFIGURE_SELECTED_NONE, KEY_ENTER,
+     STATE_CONFIGURE_MENU},
+    {STATE_CONFIGURE_WIDTH, STATE_CONFIGURE_SELECTED_NONE, KEY_B,
+     STATE_CONFIGURE_MENU},
+    {STATE_CONFIGURE_HEIGHT, STATE_CONFIGURE_SELECTED_NONE, KEY_B,
+     STATE_CONFIGURE_MENU},
+    {STATE_CONFIGURE_SNAKE_SPEED, STATE_CONFIGURE_SELECTED_NONE, KEY_B,
+     STATE_CONFIGURE_MENU},
+};
+typedef void (*GameConfigureFunc)(Game *g, DisplayConfigureInfo *i);
+static const GameConfigureFunc conf_logic_funcs[] = {
+    [STATE_CONFIGURE_NAME] = update_name_conf,
+    [STATE_CONFIGURE_MENU] = update_menu_conf,
+    [STATE_CONFIGURE_WIDTH] = update_width_conf,
+    [STATE_CONFIGURE_HEIGHT] = update_height_conf,
+    [STATE_CONFIGURE_SNAKE_SPEED] = update_snake_speed_conf,
+    //[STATE_CONFIGURE_APPLY] = conf_update_,
+};
+static const ConfDisplayFunc conf_display_funcs[] = {
+    [STATE_CONFIGURE_NAME] = display_name_conf,
+    [STATE_CONFIGURE_MENU] = display_menu_conf,
+    [STATE_CONFIGURE_WIDTH] = display_width_conf,
+    [STATE_CONFIGURE_HEIGHT] = display_height_conf,
+    [STATE_CONFIGURE_SNAKE_SPEED] = display_snake_speed_conf,
+};
+
+void update_menu_conf(Game *g, DisplayConfigureInfo *i) {
+	switch (g->in.in_key) {
+	case KEY_J:
+	case KEY_DOWN:
+		navigate_menu(&i->state_select, +1);
+		break;
+	case KEY_K:
+	case KEY_UP:
+		navigate_menu(&i->state_select, -1);
+		break;
+	}
+}
+
+void apply_conf(Game *g, DisplayConfigureInfo *i) {
+	g->tick_speed = 1000.0F / i->freq;
+	g->b = board_create(i->width, i->height);
+}
+
+void update_name_conf(Game *g, DisplayConfigureInfo *i) {
+	static int letterCount = 0;
+	int char_pressed = GetCharPressed();
+
+	if (IsKeyPressed(KEY_BACKSPACE)) {
+		letterCount--;
+		if (letterCount < 0)
+			letterCount = 0;
+		g->player_name[letterCount] = '\0';
+	}
+	if (char_pressed > 0) {
+		// NOTE: Only allow keys in range [32..125]
+		if ((char_pressed >= 32) && (char_pressed <= 125) &&
+		    (letterCount < 20)) {
+			g->player_name[letterCount] = (char)char_pressed;
+			g->player_name[letterCount + 1] =
+			    '\0'; // Add null terminator at the
+				  // end of the string
+			letterCount++;
+		}
+	}
+}
+void update_width_conf(Game *g, DisplayConfigureInfo *i) {
+	if (g->in.in_key == KEY_EQUAL || IsKeyPressedRepeat(KEY_EQUAL)) {
+		i->width++;
+	} else if (g->in.in_key == KEY_MINUS || IsKeyPressedRepeat(KEY_MINUS)) {
+		if (i->width == 2)
+			return;
+		i->width--;
+	}
+}
+
+void update_height_conf(Game *g, DisplayConfigureInfo *i) {
+	if (g->in.in_key == KEY_EQUAL || IsKeyPressedRepeat(KEY_EQUAL)) {
+		i->height++;
+	} else if (g->in.in_key == KEY_MINUS || IsKeyPressedRepeat(KEY_MINUS)) {
+		if (i->height == 2)
+			return;
+		i->height--;
+	}
+	i->demo = board_create(i->width, i->height);
+}
+
+void update_snake_speed_conf(Game *g, DisplayConfigureInfo *i) {
+	float const delta = 0.1; // +- 0.1 Hz
+	if (g->in.in_key == KEY_EQUAL || IsKeyPressedRepeat(KEY_EQUAL)) {
+		i->freq += delta;
+	} else if (g->in.in_key == KEY_MINUS || IsKeyPressedRepeat(KEY_MINUS)) {
+		if (i->freq < 0.6f)
+			return;
+		i->freq -= delta;
+	}
+}
 
 void game_init(Game *g) {
 	engine_init();
@@ -92,13 +222,13 @@ GameState game_welcome(Input in) {
 }
 
 GameState game_configure(Game *g) {
-	static int letterCount = 0;
+	static GameConfigureState state_conf;
 	static DisplayConfigureInfo info;
 	static bool initialized = false;
 	if (!initialized) {
+		state_conf = STATE_CONFIGURE_NAME;
 		info.demo = NULL;
-		info.state_conf = STATE_CONFIGURE_NAME;
-		info.state_select = STATE_SELECTED_WIDTH;
+		info.state_select = STATE_CONFIGURE_SELECTED_WIDTH;
 		info.freq = TICK_FREQUENCY;
 		info.width = BOARD_WIDTH;
 		info.height = BOARD_HEIGHT;
@@ -106,129 +236,42 @@ GameState game_configure(Game *g) {
 		initialized = true;
 	}
 
-	display_configure(info);
+	int const num_of_conf_transitions =
+	    sizeof(conf_transitions) / sizeof(GameConfigureStateTransition);
 
-	float const delta = 0.1; // +- 0.1 Hz
-
-	if (IsKeyPressedRepeat(KEY_EQUAL)) {
-		conf_increment(info.state_conf, delta, &info.height,
-			       &info.width, &info.freq);
-	} else if (IsKeyPressedRepeat(KEY_MINUS)) {
-		conf_decrement(info.state_conf, delta, &info.height,
-			       &info.width, &info.freq);
+	for (GameConfigureState i = 0; i < num_of_conf_transitions; i++) {
+		GameConfigureStateTransition *t = &conf_transitions[i];
+		bool state_match = (state_conf == t->current_state);
+		bool key_match = (g->in.in_key == t->input_key);
+		bool sel_match =
+		    (t->selected_item == STATE_CONFIGURE_SELECTED_NONE ||
+		     info.state_select == t->selected_item);
+		if (state_match && key_match && sel_match) {
+			state_conf = t->next_state;
+			break;
+		}
 	}
-
-	switch (info.state_conf) {
-	case STATE_CONFIGURE_MENU:
-		switch (g->in.in_key) {
-		case KEY_ENTER:
-			info.state_conf = STATE_CONFIGURE_WIDTH;
-			break;
-		case KEY_J:
-		case KEY_DOWN:
-			navigate_menu(&info.state_select, +1);
-			break;
-		case KEY_K:
-		case KEY_UP:
-			navigate_menu(&info.state_select, -1);
-			break;
-		}
-		break;
-
-	case STATE_CONFIGURE_NAME:
-		switch (g->in.in_key) {
-		case KEY_ENTER:
-			info.state_conf = STATE_CONFIGURE_MENU;
-			break;
-		}
-		int char_pressed = GetCharPressed();
-
-		if (IsKeyPressed(KEY_BACKSPACE)) {
-			letterCount--;
-			if (letterCount < 0)
-				letterCount = 0;
-			g->player_name[letterCount] = '\0';
-		}
-		if (char_pressed > 0) {
-			// NOTE: Only allow keys in range [32..125]
-			if ((char_pressed >= 32) && (char_pressed <= 125) &&
-			    (letterCount < 20)) {
-				g->player_name[letterCount] =
-				    (char)char_pressed;
-				g->player_name[letterCount + 1] =
-				    '\0'; // Add null terminator at the
-					  // end of the string
-				letterCount++;
-			}
-		}
-		break;
-	case STATE_CONFIGURE_WIDTH:
-		switch (g->in.in_key) {
-		case KEY_ENTER:
-			info.state_conf = STATE_CONFIGURE_HEIGHT;
-			break;
-		case KEY_R:
-			info.state_conf = STATE_CONFIGURE_NAME;
-			g->b = board_create(info.width, info.height);
-			return STATE_GAME_RUN;
-
-		case KEY_EQUAL:
-			conf_increment(info.state_conf, delta, &info.height,
-				       &info.width, &info.freq);
-			break;
-		case KEY_MINUS:
-			conf_decrement(info.state_conf, delta, &info.height,
-				       &info.width, &info.freq);
-			break;
-		}
-		break;
-	case STATE_CONFIGURE_HEIGHT:
-		switch (g->in.in_key) {
-		case KEY_ENTER:
-			info.state_conf = STATE_CONFIGURE_SNAKE_SPEED;
-			break;
-		case KEY_R:
-			info.state_conf = STATE_CONFIGURE_NAME;
-			g->b = board_create(info.width, info.height);
-			return STATE_GAME_RUN;
-		case KEY_EQUAL:
-			conf_increment(info.state_conf, delta, &info.height,
-				       &info.width, &info.freq);
-			break;
-		case KEY_MINUS:
-			conf_decrement(info.state_conf, delta, &info.height,
-				       &info.width, &info.freq);
-			break;
-		}
-		info.demo = board_create(info.width, info.height);
-		break;
-	case STATE_CONFIGURE_SNAKE_SPEED:
-		switch (g->in.in_key) {
-		case KEY_ENTER:
-			info.state_conf = STATE_CONFIGURE_NAME;
-			food_destroy(&info.demo->f);
-			snake_kill(&info.demo->s);
-			board_destroy(&info.demo);
-			g->tick_speed = 1000.0F / info.freq;
-			g->b = board_create(info.width, info.height);
-			return STATE_GAME_RUN;
-			break;
-		case KEY_EQUAL:
-			conf_increment(info.state_conf, delta, &info.height,
-				       &info.width, &info.freq);
-			break;
-		case KEY_MINUS:
-			conf_decrement(info.state_conf, delta, &info.height,
-				       &info.width, &info.freq);
-		}
-		break;
+	if (conf_logic_funcs[state_conf]) {
+		conf_logic_funcs[state_conf](g, &info);
+	}
+	if (conf_display_funcs[state_conf]) {
+		conf_display_funcs[state_conf](info);
+	}
+	if (state_conf == STATE_CONFIGURE_APPLY) {
+		g->tick_speed = 1000.0F / info.freq;
+		g->b = board_create(info.width, info.height);
+		return STATE_GAME_RUN;
 	}
 	return STATE_GAME_CONFIGURE;
+	//	info.state_conf = STATE_CONFIGURE_NAME;
+	//	food_destroy(&info.demo->f);
+	//	snake_kill(&info.demo->s);
+	//	board_destroy(&info.demo);
+	//	break;
 }
 
 void navigate_menu(GameConfigureSelectedState *state, int const direction) {
-	*state =
-	    (*state + direction + STATE_SELECTED_COUNT) % STATE_SELECTED_COUNT;
+	*state = (*state + direction + 4) % 4;
 }
 
 void game_fsm_run(void) {
@@ -236,7 +279,6 @@ void game_fsm_run(void) {
 	g.b = NULL;
 	game_init(&g);
 	while (g.state != STATE_GAME_EXIT) {
-		window_get_size();
 		window_periodic_start();
 		g.in.in_key = GetKeyPressed();
 		if (WindowShouldClose())
@@ -269,35 +311,5 @@ void game_fsm_run(void) {
 			break;
 		}
 		window_periodic_end();
-	}
-}
-
-void conf_decrement(GameConfigureState state, float const delta, int *height,
-		    int *width, float *freq) {
-
-	if (state == STATE_CONFIGURE_SNAKE_SPEED) {
-		if (*freq < 0.6)
-			return;
-		*freq -= delta;
-	} else if (state == STATE_CONFIGURE_HEIGHT) {
-		if (*height == 2)
-			return;
-		(*height)--;
-	} else {
-		if (*width == 2)
-			return;
-		(*width)--;
-	}
-}
-
-void conf_increment(GameConfigureState state, float const delta, int *height,
-		    int *width, float *freq) {
-
-	if (state == STATE_CONFIGURE_SNAKE_SPEED) {
-		*freq += delta;
-	} else if (state == STATE_CONFIGURE_HEIGHT) {
-		(*height)++;
-	} else {
-		(*width)++;
 	}
 }

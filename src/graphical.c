@@ -163,155 +163,177 @@ void set_start_coords_grid(int grid_width, int grid_height) {
 		    2;
 }
 
-void display_configure(DisplayConfigureInfo const info) {
-
+void display_menu_conf(DisplayConfigureInfo const info) {
 	set_start_coords_grid(info.width, info.height);
-
+	int const number_menu_items = 3;
 	ClearBackground(RAYWHITE);
-	switch (info.state_conf) {
-	case STATE_CONFIGURE_MENU:
-		int const border_fraction_screen_width = 15;
-		int const border_fraction_screen_height = 15;
-		int rectangle_height = p.screen_height / 20;
-		int rectangle_width = (border_fraction_screen_width - 2) *
-				      p.screen_width /
-				      border_fraction_screen_width;
-		int rectangle_height_spacing =
-		    p.screen_height / STATE_SELECTED_COUNT;
-		int rectangle_x = p.screen_width / border_fraction_screen_width;
-		int rectangle_y_base =
-		    p.screen_height / border_fraction_screen_height;
+	int const border_fraction_screen_width = 15;
+	int const border_fraction_screen_height = 15;
+	int rectangle_height = p.screen_height / 20;
+	int rectangle_width = (border_fraction_screen_width - 2) *
+			      p.screen_width / border_fraction_screen_width;
+	int rectangle_height_spacing = p.screen_height / number_menu_items;
+	int rectangle_x = p.screen_width / border_fraction_screen_width;
+	int rectangle_y_base = p.screen_height / border_fraction_screen_height;
 
-		for (int i = 0; i < STATE_SELECTED_COUNT; i++) {
-			const char *labels[] = {"Board height", "Board width",
-						"Snake speed"};
-			DrawRectangleLines(
-			    rectangle_x,
-			    i * rectangle_height_spacing + rectangle_y_base,
-			    rectangle_width, rectangle_height, GRAY);
-			if (info.state_select == i)
-				DrawRectangle(rectangle_x + 5,
-					      i * rectangle_height_spacing +
-						  rectangle_y_base + 5,
-					      rectangle_width - 10,
-					      rectangle_height - 10, GREEN);
-			DrawText(labels[i], rectangle_x + 5,
-				 i * rectangle_height_spacing +
-				     rectangle_y_base,
-				 rectangle_height - 5, BLUE);
-		}
-		break;
-	case STATE_CONFIGURE_NAME:
-		char title_name[] = "Enter your name:";
-		DrawText(title_name,
-			 p.screen_width / 2 -
-			     MeasureText(title_name, p.font_size_big) / 2,
-			 p.screen_height / 4, p.font_size_big, BLACK);
-		Rectangle textBox = {p.screen_width / 2.0f - 100,
-				     p.screen_height / 4.f + 50, 225, 50};
-		DrawRectangleRec(textBox, LIGHTGRAY);
-		DrawText(info.name, (int)textBox.x + 5, (int)textBox.y + 8, 40,
-			 MAROON);
-		break;
-	case STATE_CONFIGURE_WIDTH:
-		grid_draw(info.width, info.height, p.start_x, p.start_y,
-			  p.board_wall_thickness, p.delta, LIGHTGRAY);
-		char title_width[] = "Set board width:";
-		DrawText(title_width,
-			 p.screen_width / 2 -
-			     MeasureText(title_width, p.font_size_big) / 2,
-			 p.screen_height / 4, p.font_size_big, BLACK);
-		char width_number_string[5];
-		char width_string[] = " tiles wide";
-		sprintf(width_number_string, "%d", info.width);
-		int const width_number_string_len =
-		    MeasureText(width_number_string, p.font_size_big);
-		int const width_string_len =
-		    MeasureText(width_string, p.font_size_big);
-		DrawText(width_number_string,
-			 p.screen_width / 2 -
-			     (width_number_string_len + width_string_len) / 2,
-			 40 + p.screen_height / 4, p.font_size_big, BLUE);
-		DrawText(width_string,
-			 p.screen_width / 2 -
-			     (width_number_string_len + width_string_len) / 2 +
-			     width_number_string_len,
-			 40 + p.screen_height / 4, p.font_size_big, MAROON);
-		break;
-	case STATE_CONFIGURE_HEIGHT:
-		grid_draw(info.width, info.height, p.start_x, p.start_y,
-			  p.board_wall_thickness, p.delta, LIGHTGRAY);
-		char title_height[] = "Set board height:";
-		DrawText(title_height,
-			 p.screen_width / 2 -
-			     MeasureText(title_height, p.font_size_big) / 2,
-			 p.screen_height / 4, p.font_size_big, BLACK);
-		char height_number_string[5];
-		char height_string[] = " tiles high";
-		sprintf(height_number_string, "%d", info.height);
-		int const height_number_string_len =
-		    MeasureText(height_number_string, p.font_size_big);
-		int const height_string_len =
-		    MeasureText(height_string, p.font_size_big);
-		DrawText(height_number_string,
-			 p.screen_width / 2 -
-			     (height_number_string_len + height_string_len) / 2,
-			 40 + p.screen_height / 4, p.font_size_big, BLUE);
-		DrawText(height_string,
-			 p.screen_width / 2 -
-			     (height_number_string_len + height_string_len) /
-				 2 +
-			     height_number_string_len,
-			 40 + p.screen_height / 4, p.font_size_big, MAROON);
-		break;
-	case STATE_CONFIGURE_SNAKE_SPEED:
-		// static int i = 0;
-
-		// static int last_tick = 0;
-		// int now = millis();
-		// if (now - last_tick >= 1000.0F / freq) {
-		//	last_tick = now;
-		//	if (board_check_edge(demo)) {
-		//		i++;
-		//	} else {
-		//	}
-		//  snake_head_direction_set_next(demo->s,
-		//			      directions[i % 4]);
-		// snake_head_direction_set(demo->s);
-		// snake_update_square_position(demo->s);
-		// board_update(demo);
-		//}
-		board_draw(info.demo, 0, false);
-		char title_speed[] = "Set snake speed:";
-		DrawText(title_speed,
-			 p.screen_width / 2 -
-			     MeasureText(title_speed, p.font_size_big) / 2,
-			 p.screen_height / 4, p.font_size_big, BLACK);
-		char speed_number_string[5];
-		char speed_string[] = " ticks/second (Hz)";
-		sprintf(speed_number_string, "%.2f", info.freq);
-		int const speed_number_string_len =
-		    MeasureText(speed_number_string, p.font_size_big);
-		int const speed_string_len =
-		    MeasureText(speed_string, p.font_size_big);
-		DrawText(speed_number_string,
-			 p.screen_width / 2 -
-			     (speed_number_string_len + speed_string_len) / 2,
-			 40 + p.screen_height / 4, p.font_size_big, BLUE);
-		DrawText(speed_string,
-			 p.screen_width / 2 -
-			     (speed_number_string_len + speed_string_len) / 2 +
-			     speed_number_string_len,
-			 40 + p.screen_height / 4, p.font_size_big, MAROON);
-		break;
+	for (int i = 0; i < number_menu_items; i++) {
+		const char *labels[] = {"Board height", "Board width",
+					"Snake speed"};
+		DrawRectangleLines(rectangle_x,
+				   i * rectangle_height_spacing +
+				       rectangle_y_base,
+				   rectangle_width, rectangle_height, GRAY);
+		if (info.state_select == i)
+			DrawRectangle(
+			    rectangle_x + 5,
+			    i * rectangle_height_spacing + rectangle_y_base + 5,
+			    rectangle_width - 10, rectangle_height - 10, GREEN);
+		DrawText(labels[i], rectangle_x + 5,
+			 i * rectangle_height_spacing + rectangle_y_base,
+			 rectangle_height - 5, BLACK);
+		DrawText(labels[i],
+			 rectangle_x + rectangle_width -
+			     MeasureText(labels[i], rectangle_height - 5) - 5,
+			 i * rectangle_height_spacing + rectangle_y_base,
+			 rectangle_height - 5, BLUE);
 	}
+	char play_button[] = "Play";
+	int button_width = MeasureText(play_button, p.font_size_big);
+	DrawRectangleLines(p.screen_width - rectangle_x - button_width - 20,
+			   p.screen_height - p.font_size_big - 100,
+			   button_width + 20, rectangle_height, GRAY);
+	if (info.state_select == STATE_CONFIGURE_SELECTED_PLAY)
+		DrawRectangle(
+		    p.screen_width - rectangle_x - button_width - 20 + 5,
+		    p.screen_height - p.font_size_big - 100 + 5,
+		    button_width + 20 - 10, rectangle_height - 10, GREEN);
+	DrawText(play_button, p.screen_width - rectangle_x - button_width - 10,
+		 p.screen_height - p.font_size_big - 100, p.font_size_big,
+		 BLACK);
+}
+void display_name_conf(DisplayConfigureInfo const info) {
+	set_start_coords_grid(info.width, info.height);
+	ClearBackground(RAYWHITE);
+	char title_name[] = "Enter your name:";
+	DrawText(title_name,
+		 p.screen_width / 2 -
+		     MeasureText(title_name, p.font_size_big) / 2,
+		 p.screen_height / 4, p.font_size_big, BLACK);
+	Rectangle textBox = {p.screen_width / 2.0f - 100,
+			     p.screen_height / 4.f + 50, 225, 50};
+	DrawRectangleRec(textBox, LIGHTGRAY);
+	DrawText(info.name, (int)textBox.x + 5, (int)textBox.y + 8, 40, MAROON);
+}
+
+void display_width_conf(DisplayConfigureInfo const info) {
+	ClearBackground(RAYWHITE);
+	display_menu_conf(info);
+	DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(),
+		      Fade(BLACK, 0.4f));
+	set_start_coords_grid(info.width, info.height);
+	grid_draw(info.width, info.height, p.start_x, p.start_y,
+		  p.board_wall_thickness, p.delta, LIGHTGRAY);
+	char title_width[] = "Set board width:";
+	DrawText(title_width,
+		 p.screen_width / 2 -
+		     MeasureText(title_width, p.font_size_big) / 2,
+		 p.screen_height / 4, p.font_size_big, BLACK);
+	char width_number_string[5];
+	char width_string[] = " tiles wide";
+	sprintf(width_number_string, "%d", info.width);
+	int const width_number_string_len =
+	    MeasureText(width_number_string, p.font_size_big);
+	int const width_string_len = MeasureText(width_string, p.font_size_big);
+	DrawText(width_number_string,
+		 p.screen_width / 2 -
+		     (width_number_string_len + width_string_len) / 2,
+		 40 + p.screen_height / 4, p.font_size_big, BLUE);
+	DrawText(width_string,
+		 p.screen_width / 2 -
+		     (width_number_string_len + width_string_len) / 2 +
+		     width_number_string_len,
+		 40 + p.screen_height / 4, p.font_size_big, MAROON);
+}
+
+void display_height_conf(DisplayConfigureInfo const info) {
+	ClearBackground(RAYWHITE);
+	display_menu_conf(info);
+	DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(),
+		      Fade(BLACK, 0.4f));
+	set_start_coords_grid(info.width, info.height);
+	grid_draw(info.width, info.height, p.start_x, p.start_y,
+		  p.board_wall_thickness, p.delta, LIGHTGRAY);
+	char title_height[] = "Set board height:";
+	DrawText(title_height,
+		 p.screen_width / 2 -
+		     MeasureText(title_height, p.font_size_big) / 2,
+		 p.screen_height / 4, p.font_size_big, BLACK);
+	char height_number_string[5];
+	char height_string[] = " tiles high";
+	sprintf(height_number_string, "%d", info.height);
+	int const height_number_string_len =
+	    MeasureText(height_number_string, p.font_size_big);
+	int const height_string_len =
+	    MeasureText(height_string, p.font_size_big);
+	DrawText(height_number_string,
+		 p.screen_width / 2 -
+		     (height_number_string_len + height_string_len) / 2,
+		 40 + p.screen_height / 4, p.font_size_big, BLUE);
+	DrawText(height_string,
+		 p.screen_width / 2 -
+		     (height_number_string_len + height_string_len) / 2 +
+		     height_number_string_len,
+		 40 + p.screen_height / 4, p.font_size_big, MAROON);
+}
+
+void display_snake_speed_conf(DisplayConfigureInfo const info) {
+	// static int i = 0;
+
+	// static int last_tick = 0;
+	// int now = millis();
+	// if (now - last_tick >= 1000.0F / freq) {
+	//	last_tick = now;
+	//	if (board_check_edge(demo)) {
+	//		i++;
+	//	} else {
+	//	}
+	//  snake_head_direction_set_next(demo->s,
+	//			      directions[i % 4]);
+	// snake_head_direction_set(demo->s);
+	// snake_update_square_position(demo->s);
+	// board_update(demo);
+	//}
+	// board_draw(info.demo, 0, false);
+	ClearBackground(RAYWHITE);
+	display_menu_conf(info);
+	DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(),
+		      Fade(BLACK, 0.4f));
+	char title_speed[] = "Set snake speed:";
+	DrawText(title_speed,
+		 p.screen_width / 2 -
+		     MeasureText(title_speed, p.font_size_big) / 2,
+		 p.screen_height / 4, p.font_size_big, BLACK);
+	char speed_number_string[5];
+	char speed_string[] = " ticks/second (Hz)";
+	sprintf(speed_number_string, "%.2f", info.freq);
+	int const speed_number_string_len =
+	    MeasureText(speed_number_string, p.font_size_big);
+	int const speed_string_len = MeasureText(speed_string, p.font_size_big);
+	DrawText(speed_number_string,
+		 p.screen_width / 2 -
+		     (speed_number_string_len + speed_string_len) / 2,
+		 40 + p.screen_height / 4, p.font_size_big, BLUE);
+	DrawText(speed_string,
+		 p.screen_width / 2 -
+		     (speed_number_string_len + speed_string_len) / 2 +
+		     speed_number_string_len,
+		 40 + p.screen_height / 4, p.font_size_big, MAROON);
 }
 
 void board_draw_collision(Board const *const b, int const board_x,
 			  int const board_y) {
 	draw_square(&p, board_x, board_y, RED);
 }
-void window_get_size() {}
 
 void window_periodic_start() { BeginDrawing(); }
 void window_periodic_end() {

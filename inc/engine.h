@@ -9,13 +9,19 @@ typedef struct DrawingParameters DrawingParameters;
 
 typedef struct {
 	Board *demo;
-	GameConfigureState state_conf;
 	GameConfigureSelectedState state_select;
 	float freq;
 	int width;
 	int height;
 	char *name;
 } DisplayConfigureInfo;
+
+typedef void (*ConfDisplayFunc)(DisplayConfigureInfo const info);
+void display_menu_conf(DisplayConfigureInfo const info);
+void display_name_conf(DisplayConfigureInfo const info);
+void display_width_conf(DisplayConfigureInfo const info);
+void display_height_conf(DisplayConfigureInfo const info);
+void display_snake_speed_conf(DisplayConfigureInfo const info);
 
 void board_draw(Board const *b, int const score, bool show_score);
 void board_draw_collision(Board const *const b, int const board_x,
