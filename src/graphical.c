@@ -172,9 +172,11 @@ void display_menu_conf(DisplayConfigureInfo const info) {
 	int rectangle_height = p.screen_height / 20;
 	int rectangle_width = (border_fraction_screen_width - 2) *
 			      p.screen_width / border_fraction_screen_width;
-	int rectangle_height_spacing = p.screen_height / number_menu_items;
+	int rectangle_height_spacing =
+	    p.screen_height / (number_menu_items + 1);
 	int rectangle_x = p.screen_width / border_fraction_screen_width;
 	int rectangle_y_base = p.screen_height / border_fraction_screen_height;
+	int rectangle_fill_offset = 5;
 
 	for (int i = 0; i < number_menu_items; i++) {
 		const char *labels[] = {"Board height", "Board width",
@@ -185,31 +187,44 @@ void display_menu_conf(DisplayConfigureInfo const info) {
 				   rectangle_width, rectangle_height, GRAY);
 		if (info.state_select == i)
 			DrawRectangle(
-			    rectangle_x + 5,
-			    i * rectangle_height_spacing + rectangle_y_base + 5,
-			    rectangle_width - 10, rectangle_height - 10, GREEN);
-		DrawText(labels[i], rectangle_x + 5,
+			    rectangle_x + rectangle_fill_offset,
+			    i * rectangle_height_spacing + rectangle_y_base +
+				rectangle_fill_offset,
+			    rectangle_width - 2 * rectangle_fill_offset,
+			    rectangle_height - 2 * rectangle_fill_offset,
+			    GREEN);
+		DrawText(labels[i], rectangle_x + rectangle_fill_offset,
 			 i * rectangle_height_spacing + rectangle_y_base,
-			 rectangle_height - 5, BLACK);
+			 rectangle_height - rectangle_fill_offset, BLACK);
 		DrawText(labels[i],
 			 rectangle_x + rectangle_width -
-			     MeasureText(labels[i], rectangle_height - 5) - 5,
+			     MeasureText(labels[i], rectangle_height -
+							rectangle_fill_offset) -
+			     rectangle_fill_offset,
 			 i * rectangle_height_spacing + rectangle_y_base,
-			 rectangle_height - 5, BLUE);
+			 rectangle_height - rectangle_fill_offset, BLUE);
 	}
 	char play_button[] = "Play";
-	int button_width = MeasureText(play_button, p.font_size_big);
-	DrawRectangleLines(p.screen_width - rectangle_x - button_width - 20,
-			   p.screen_height - p.font_size_big - 100,
-			   button_width + 20, rectangle_height, GRAY);
+	int button_width =
+	    MeasureText(play_button, rectangle_height - rectangle_fill_offset);
+	DrawRectangleLines(
+	    p.screen_width - rectangle_x - button_width -
+		2 * rectangle_fill_offset,
+	    number_menu_items * rectangle_height_spacing + rectangle_y_base,
+	    button_width + rectangle_fill_offset * 2, rectangle_height, GRAY);
 	if (info.state_select == STATE_CONFIGURE_SELECTED_PLAY)
-		DrawRectangle(
-		    p.screen_width - rectangle_x - button_width - 20 + 5,
-		    p.screen_height - p.font_size_big - 100 + 5,
-		    button_width + 20 - 10, rectangle_height - 10, GREEN);
-	DrawText(play_button, p.screen_width - rectangle_x - button_width - 10,
-		 p.screen_height - p.font_size_big - 100, p.font_size_big,
-		 BLACK);
+		DrawRectangle(p.screen_width - rectangle_x - button_width -
+				  rectangle_fill_offset,
+			      number_menu_items * rectangle_height_spacing +
+				  rectangle_y_base + rectangle_fill_offset,
+			      button_width,
+			      rectangle_height - rectangle_fill_offset * 2,
+			      GREEN);
+	DrawText(
+	    play_button,
+	    p.screen_width - rectangle_x - button_width - rectangle_fill_offset,
+	    number_menu_items * rectangle_height_spacing + rectangle_y_base,
+	    rectangle_height - rectangle_fill_offset, BLACK);
 }
 void display_name_conf(DisplayConfigureInfo const info) {
 	set_start_coords_grid(info.width, info.height);
