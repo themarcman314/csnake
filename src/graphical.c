@@ -5,6 +5,8 @@
 #include "raylib.h"
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 bool is_azerty = false;
 
@@ -169,6 +171,7 @@ void display_menu_conf(DisplayConfigureInfo const info) {
 	ClearBackground(RAYWHITE);
 	int const border_fraction_screen_width = 15;
 	int const border_fraction_screen_height = 15;
+	int const rectangle_thickness_lines = 2;
 	int rectangle_height = p.screen_height / 20;
 	int rectangle_width = (border_fraction_screen_width - 2) *
 			      p.screen_width / border_fraction_screen_width;
@@ -181,10 +184,10 @@ void display_menu_conf(DisplayConfigureInfo const info) {
 	for (int i = 0; i < number_menu_items; i++) {
 		const char *labels[] = {"Board height", "Board width",
 					"Snake speed"};
-		DrawRectangleLines(rectangle_x,
-				   i * rectangle_height_spacing +
-				       rectangle_y_base,
-				   rectangle_width, rectangle_height, GRAY);
+		Rectangle r = {rectangle_x,
+			       i * rectangle_height_spacing + rectangle_y_base,
+			       rectangle_width, rectangle_height};
+		DrawRectangleLinesEx(r, rectangle_thickness_lines, GRAY);
 		if (info.state_select == i)
 			DrawRectangle(
 			    rectangle_x + rectangle_fill_offset,
@@ -207,11 +210,12 @@ void display_menu_conf(DisplayConfigureInfo const info) {
 	char play_button[] = "Play";
 	int button_width =
 	    MeasureText(play_button, rectangle_height - rectangle_fill_offset);
-	DrawRectangleLines(
+	Rectangle r = {
 	    p.screen_width - rectangle_x - button_width -
 		2 * rectangle_fill_offset,
 	    number_menu_items * rectangle_height_spacing + rectangle_y_base,
-	    button_width + rectangle_fill_offset * 2, rectangle_height, GRAY);
+	    button_width + rectangle_fill_offset * 2, rectangle_height};
+	DrawRectangleLinesEx(r, rectangle_thickness_lines, GRAY);
 	if (info.state_select == STATE_CONFIGURE_SELECTED_PLAY)
 		DrawRectangle(p.screen_width - rectangle_x - button_width -
 				  rectangle_fill_offset,
@@ -343,6 +347,46 @@ void display_snake_speed_conf(DisplayConfigureInfo const info) {
 		     (speed_number_string_len + speed_string_len) / 2 +
 		     speed_number_string_len,
 		 40 + p.screen_height / 4, p.font_size_big, MAROON);
+}
+
+void display_high_score() {
+	ClearBackground(RAYWHITE);
+	static FILE *f = NULL;
+	char title[] = "Highscores";
+	int const center_x_title =
+	    (p.screen_width - MeasureText(title, p.font_size_big)) / 2;
+	DrawText(title, center_x_title, 0.1 * p.screen_height, p.font_size_big,
+		 BLACK);
+	if (f == NULL)
+		f = fopen("./highscores", "r");
+	if (f != NULL) {
+		int const interval = 0.1 * p.screen_height;
+		int const line_size = 100;
+		char line[100] = "";
+		while (fgets(line, line_size, f) != NULL) {
+			char *end_line = line;
+			while (*end_line != ',')
+				end_line++;
+			char name[20] = "";
+			memcpy(name, line, end_line - line);
+			const int score = atoi((char *)(end_line + 1));
+			// int const center_x_line =
+			//     (p.screen_width - MeasureText(line,
+			//     p.font_size_small)) / 2;
+			char score_str[10] = "";
+			sprintf(score_str, "%d", score);
+			int const margin = p.screen_width / 8;
+			DrawText(name,
+				 margin - MeasureText(name, p.font_size_small),
+				 0.1 * p.screen_height + 30, p.font_size_small,
+				 BLACK);
+			DrawText(score_str,
+				 p.screen_width - margin -
+				     MeasureText(score_str, p.font_size_small),
+				 0.1 * p.screen_height + 30, p.font_size_small,
+				 BLACK);
+		}
+	}
 }
 
 void board_draw_collision(Board const *const b, int const board_x,

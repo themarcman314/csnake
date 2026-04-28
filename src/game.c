@@ -6,6 +6,8 @@
 #include "input.h"
 #include "raylib.h"
 #include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 typedef enum {
@@ -14,6 +16,7 @@ typedef enum {
 	STATE_GAME_CONFIGURE_INPUT_SETTINGS,
 	STATE_GAME_RUN,
 	STATE_GAME_END,
+	STATE_GAME_HIGH_SCORE,
 	STATE_GAME_EXIT
 } GameState;
 
@@ -49,6 +52,8 @@ void game_init(Game *const g);
 GameState game_end(Game *const g);
 GameState game_run(Game *const g);
 GameState game_configure(Game *const g);
+GameState game_high_score(Game *g);
+void game_restart(Game *g);
 void navigate_menu(GameConfigureSelectedState *state, int const direction);
 
 void update_name_conf(Game *g, DisplayConfigureInfo *i);
@@ -187,12 +192,12 @@ void game_init(Game *g) {
 GameState game_end(Game *const g) {
 	display_end(g->b, g->score, g->death_timestamp);
 	if (g->in.in_key == KEY_R || g->in.in_key == KEY_ENTER) {
-		g->score = 0;
-		snake_init(g->b);
-		food_init(g->b);
+		game_restart(g);
 		return STATE_GAME_RUN;
 	} else if (g->in.in_key == KEY_C) {
 		return STATE_GAME_CONFIGURE;
+	} else if (g->in.in_key == KEY_H) {
+		return STATE_GAME_HIGH_SCORE;
 	}
 	return STATE_GAME_END;
 }
@@ -286,6 +291,21 @@ void navigate_menu(GameConfigureSelectedState *state, int const direction) {
 	*state = (*state + direction + 4) % 4;
 }
 
+GameState game_high_score(Game *g) {
+	display_high_score();
+	if (g->in.in_key == KEY_R) {
+		game_restart(g);
+		return STATE_GAME_RUN;
+	}
+	return STATE_GAME_HIGH_SCORE;
+}
+
+void game_restart(Game *g) {
+	g->score = 0;
+	snake_init(g->b);
+	food_init(g->b);
+}
+
 void game_fsm_run(void) {
 	Game g = {.b = NULL};
 	game_init(&g);
@@ -308,6 +328,9 @@ void game_fsm_run(void) {
 			break;
 		case STATE_GAME_END:
 			g.state = game_end(&g);
+			break;
+		case STATE_GAME_HIGH_SCORE:
+			g.state = game_high_score(&g);
 			break;
 		case STATE_GAME_CONFIGURE:
 			g.state = game_configure(&g);
