@@ -30,6 +30,8 @@ DrawingParameters p = {.draw_fps = true,
 		       .font_size_big = 35,
 		       .font_size_small = 20};
 
+void get_screen_measurements();
+
 void set_keyboard_type() {
 	if (*GetKeyName(KEY_A) == 'q') {
 		is_azerty = true;
@@ -155,8 +157,6 @@ void display_end(Board const *b, int const score, int game_over_timestamp) {
 }
 
 void set_start_coords_grid(int grid_width, int grid_height) {
-	p.screen_width = GetScreenWidth();
-	p.screen_height = GetScreenHeight();
 	p.start_x =
 	    (p.screen_width - (p.board_wall_thickness + p.delta * grid_width)) /
 	    2;
@@ -166,7 +166,7 @@ void set_start_coords_grid(int grid_width, int grid_height) {
 }
 
 void display_menu_conf(DisplayConfigureInfo const info) {
-	set_start_coords_grid(info.width, info.height);
+	get_screen_measurements();
 	int const number_menu_items = 3;
 	ClearBackground(RAYWHITE);
 	int const border_fraction_screen_width = 15;
@@ -231,7 +231,7 @@ void display_menu_conf(DisplayConfigureInfo const info) {
 	    rectangle_height - rectangle_fill_offset, BLACK);
 }
 void display_name_conf(DisplayConfigureInfo const info) {
-	set_start_coords_grid(info.width, info.height);
+	get_screen_measurements();
 	ClearBackground(RAYWHITE);
 	char title_name[] = "Enter your name:";
 	DrawText(title_name,
@@ -349,44 +349,39 @@ void display_snake_speed_conf(DisplayConfigureInfo const info) {
 		 40 + p.screen_height / 4, p.font_size_big, MAROON);
 }
 
-void display_high_score() {
+void display_high_score(HighScoreEntry *h, int const num_entries) {
+	get_screen_measurements();
 	ClearBackground(RAYWHITE);
-	static FILE *f = NULL;
 	char title[] = "Highscores";
 	int const center_x_title =
 	    (p.screen_width - MeasureText(title, p.font_size_big)) / 2;
 	DrawText(title, center_x_title, 0.1 * p.screen_height, p.font_size_big,
 		 BLACK);
-	if (f == NULL)
-		f = fopen("./highscores", "r");
-	if (f != NULL) {
+	if (h) {
 		int const interval = 0.1 * p.screen_height;
-		int const line_size = 100;
-		char line[100] = "";
-		while (fgets(line, line_size, f) != NULL) {
-			char *end_line = line;
-			while (*end_line != ',')
-				end_line++;
-			char name[20] = "";
-			memcpy(name, line, end_line - line);
-			const int score = atoi((char *)(end_line + 1));
-			// int const center_x_line =
-			//     (p.screen_width - MeasureText(line,
-			//     p.font_size_small)) / 2;
+		for (int i = 0; i < num_entries; i++) {
 			char score_str[10] = "";
-			sprintf(score_str, "%d", score);
+			sprintf(score_str, "%d", h[i].score);
 			int const margin = p.screen_width / 8;
-			DrawText(name,
-				 margin - MeasureText(name, p.font_size_small),
-				 0.1 * p.screen_height + 30, p.font_size_small,
-				 BLACK);
+			int const y_text =
+			    0.1 * p.screen_height + p.font_size_big + 30 * i;
+			if (y_text > p.screen_height)
+				break;
+			DrawText(h[i].name,
+				 margin -
+				     MeasureText(h[i].name, p.font_size_small),
+				 y_text, p.font_size_small, BLACK);
 			DrawText(score_str,
 				 p.screen_width - margin -
 				     MeasureText(score_str, p.font_size_small),
-				 0.1 * p.screen_height + 30, p.font_size_small,
-				 BLACK);
+				 y_text, p.font_size_small, BLACK);
 		}
 	}
+}
+
+void get_screen_measurements() {
+	p.screen_width = GetScreenWidth();
+	p.screen_height = GetScreenHeight();
 }
 
 void board_draw_collision(Board const *const b, int const board_x,

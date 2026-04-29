@@ -10,4 +10,9 @@ typedef enum {
 	STATE_CONFIGURE_SELECTED_NONE,
 } GameConfigureSelectedState;
 
+typedef struct {
+	char name[50];
+	int score;
+} HighScoreEntry;
+
 #endif

@@ -8,6 +8,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 typedef enum {
@@ -39,6 +40,7 @@ typedef struct {
 typedef struct {
 	GameState state;
 	int score;
+	HighScoreEntry *high_scores;
 	int tick_speed;
 	Board *b;
 	int death_timestamp;
@@ -55,6 +57,9 @@ GameState game_configure(Game *const g);
 GameState game_high_score(Game *g);
 void game_restart(Game *g);
 void navigate_menu(GameConfigureSelectedState *state, int const direction);
+int count_lines_file(FILE *f);
+void parse_high_score_entries(FILE *f, HighScoreEntry *h,
+			      int const entry_count);
 
 void update_name_conf(Game *g, DisplayConfigureInfo *i);
 void update_menu_conf(Game *g, DisplayConfigureInfo *i);
@@ -292,7 +297,23 @@ void navigate_menu(GameConfigureSelectedState *state, int const direction) {
 }
 
 GameState game_high_score(Game *g) {
-	display_high_score();
+	static int num_lines = 0;
+	if (g->high_scores == NULL) {
+		FILE *f = fopen("./highscores", "r");
+		if (f) {
+			num_lines = count_lines_file(f);
+			g->high_scores =
+			    malloc(sizeof(HighScoreEntry) * num_lines);
+			if (g->high_scores) {
+				parse_high_score_entries(f, g->high_scores,
+							 num_lines);
+			}
+			fclose(f);
+		} else {
+			display_high_score(NULL, 0);
+		}
+	}
+	display_high_score(g->high_scores, num_lines);
 	if (g->in.in_key == KEY_R) {
 		game_restart(g);
 		return STATE_GAME_RUN;
@@ -304,6 +325,35 @@ void game_restart(Game *g) {
 	g->score = 0;
 	snake_init(g->b);
 	food_init(g->b);
+}
+
+void parse_high_score_entries(FILE *f, HighScoreEntry *h,
+			      int const entry_count) {
+	for (int i = 0; i < entry_count; i++)
+		memset(h[i].name, 0, sizeof(h->name));
+	int const line_size = 100;
+	char line[line_size];
+	for (int i = 0; i < entry_count; i++) {
+		fgets(line, line_size, f);
+		char *end_line = line;
+		while (*end_line != ',')
+			end_line++;
+		char name[20] = "";
+		memcpy(h[i].name, line, end_line - line);
+		h[i].score = atoi((char *)(end_line + 1));
+	}
+}
+
+int count_lines_file(FILE *f) {
+	fseek(f, 0, SEEK_SET); // move to start of file
+	char c;
+	int num_lines = 0;
+	while ((c = fgetc(f)) != EOF) {
+		if (c == '\n')
+			num_lines++;
+	}
+	fseek(f, 0, SEEK_SET); // move to start of file
+	return num_lines;
 }
 
 void game_fsm_run(void) {
@@ -340,6 +390,10 @@ void game_fsm_run(void) {
 				food_destroy(&g.b->f);
 				snake_kill(&g.b->s);
 				board_destroy(&g.b);
+			}
+			if (g.high_scores != NULL) {
+				free(g.high_scores);
+				g.high_scores = NULL;
 			}
 			return;
 

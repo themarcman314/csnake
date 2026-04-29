@@ -88,7 +88,7 @@ fail_board:
 }
 
 void snake_kill(Snake **p_s) {
-	if (!p_s || !*p_s)
+	if (!p_s && !*p_s)
 		return;
 	Snake *s = *p_s;
 	LogDebug("Killing snake");
@@ -102,13 +102,13 @@ void snake_kill(Snake **p_s) {
 	*p_s = NULL;
 }
 void food_destroy(Food **f) {
-	if (f || *f) {
+	if (f && *f) {
 		free(*f);
 		*f = NULL;
 	}
 }
 void board_destroy(Board **p_b) {
-	if (p_b || *p_b) {
+	if (p_b && *p_b) {
 		LogDebug("Destroying Board");
 		Board *b = *p_b;
 		free(b->squares);

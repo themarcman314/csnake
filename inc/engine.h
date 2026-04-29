@@ -32,7 +32,7 @@ void engine_init();
 void display_end(Board const *b, int const score, int game_over_timestamp);
 void display_welcome();
 void display_configure(DisplayConfigureInfo const info);
-void display_high_score();
+void display_high_score(HighScoreEntry *h, int const num_entries);
 
 void window_get_size();
 
