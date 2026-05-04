@@ -230,14 +230,14 @@ GameState game_run(Game *g) {
 			food_spawn(g->b);
 		}
 		board_update(g->b);
+		if (board_check_all_collisions(g->b)) {
+			PauseSound(g->effects[2]);
+			PlaySound(*(g->effects + 1));
+			ResumeSound(g->effects[2]);
+			g->death_timestamp = millis();
+			return STATE_GAME_END;
+		}
 	}
-	if (board_check_all_collisions(g->b)) {
-		PauseSound(g->effects[2]);
-		PlaySound(*(g->effects + 1));
-		ResumeSound(g->effects[2]);
-		g->death_timestamp = millis();
-		return STATE_GAME_END;
-	};
 	// should be called every itteration since
 	board_draw(g->b, g->score, true);
 	return STATE_GAME_RUN;
