@@ -61,6 +61,7 @@ int count_lines_file(FILE *f);
 void parse_high_score_entries(FILE *f, HighScoreEntry *h,
 			      int const entry_count);
 void save_score(char const *name, unsigned const score);
+void sort_highscore_entries(HighScoreEntry *h, int const num_entries);
 
 void update_name_conf(Game *g, DisplayConfigureInfo *i);
 void update_menu_conf(Game *g, DisplayConfigureInfo *i);
@@ -313,6 +314,8 @@ GameState game_high_score(Game *g) {
 			if (g->high_scores) {
 				parse_high_score_entries(f, g->high_scores,
 							 num_lines);
+				sort_highscore_entries(g->high_scores,
+						       num_lines);
 			}
 			fclose(f);
 		} else {
@@ -327,11 +330,30 @@ GameState game_high_score(Game *g) {
 	return STATE_GAME_HIGH_SCORE;
 }
 
+void sort_highscore_entries(HighScoreEntry *h, int const num_entries) {
+	HighScoreEntry temp;
+	bool sorted = true;
+	do {
+		sorted = true;
+		for (int i = 0; i < num_entries - 1; i++) {
+			HighScoreEntry *current = h + i;
+			HighScoreEntry *next = current + 1;
+			if (current->score < next->score) {
+				sorted = false;
+				memcpy(&temp, current, sizeof(HighScoreEntry));
+				memcpy(current, next, sizeof(HighScoreEntry));
+				memcpy(next, &temp, sizeof(HighScoreEntry));
+			}
+		}
+	} while (!sorted);
+}
+
 void save_score(char const *name, unsigned const score) {
 	FILE *f = fopen(HIGH_SCORE_FILE_PATH, "r+");
 	if (f) {
 		fseek(f, 0, SEEK_END);
-		fprintf(f, "%s,%d\n", name, score);
+		if (strlen(name) > 0)
+			fprintf(f, "%s,%d\n", name, score);
 		fclose(f);
 	}
 }
