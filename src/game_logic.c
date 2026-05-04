@@ -46,6 +46,7 @@ struct HeadDirQueue {
 
 struct Snake {
 	SnakeSegment *head;
+	SnakeSegment previous_tail;
 	int length;
 	HeadDirQueue queue;
 	Direction head_dir_current;
@@ -270,69 +271,13 @@ void snake_head_direction_set(Snake *s) {
 	}
 }
 
-/*
- * Given that there are only 3 possible tiles where
- * the latest snake segment can be added,
- * I choose to add it to the opposite direction of the snake body.
- * If n-1 is NORTH of n, then n+1 will go SOUTH.
- * Similarily if n-1 is WEST of n, then n+1 will go EAST
- */
-void snake_segment_find_new_coords(Snake const *s, int *x_new, int *y_new) {
-	// assert(0 && "not implemented");
-	if (s->head->child == NULL) {
-		switch (s->head_dir_current) {
-		case SNAKE_UP:
-			*x_new = s->head->x;
-			*y_new = s->head->y + 1;
-			break;
-		case SNAKE_DOWN:
-			*x_new = s->head->x;
-			*y_new = s->head->y - 1;
-			break;
-		case SNAKE_LEFT:
-			*x_new = s->head->x + 1;
-			*y_new = s->head->y;
-			break;
-		case SNAKE_RIGHT:
-			*x_new = s->head->x - 1;
-			*y_new = s->head->y;
-			break;
-		default:
-			break;
-		}
-	} else {
-		SnakeSegment *current = s->head;
-		while (current->child->child != NULL) {
-			current = current->child;
-		}
-		int x_diff = current->x - current->child->x;
-		int y_diff = current->y - current->child->y;
-		if (y_diff == 1) {
-			*x_new = current->child->x;
-			*y_new = current->child->y + 1;
-		} else if (y_diff == -1) {
-			*x_new = current->child->x;
-			*y_new = current->child->y - 1;
-		} else if (x_diff == 1) {
-			*x_new = current->child->x - 1;
-			*y_new = current->child->y;
-		} else if (x_diff == -1) {
-			*x_new = current->child->x + 1;
-			*y_new = current->child->y;
-		}
-	}
-	LogDebug("new coords:\nx= %d\ny= %d", *x_new, *y_new);
-}
-
 void snake_segment_add(Snake *s) {
 	SnakeSegment *current = s->head;
-	int x, y = 0;
-	// assert(s->head->child == NULL);
 	while (current->child != NULL) {
 		current = current->child;
 	}
-	snake_segment_find_new_coords(s, &x, &y);
-	current->child = snake_segment_create(x, y);
+	current->child =
+	    snake_segment_create(s->previous_tail.x, s->previous_tail.y);
 	s->length++;
 }
 
@@ -348,6 +293,9 @@ void snake_update_square_position(Snake *s) {
 		LogDebug("before update");
 		snake_print(s);
 	}
+	s->previous_tail.x = x[s->length - 1];
+	s->previous_tail.y = y[s->length - 1];
+
 	switch (s->head_dir_current) {
 	case SNAKE_UP:
 		s->head->y--;

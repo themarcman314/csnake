@@ -46,7 +46,9 @@ typedef struct {
 	int death_timestamp;
 	Input in;
 	char player_name[20];
-	Sound effects[5];
+	Sound sound_eat;
+	Sound sound_background_music;
+	Sound sound_death;
 } Game;
 
 GameState game_welcome(Input in);
@@ -189,11 +191,11 @@ void game_init(Game *g) {
 	g->state = STATE_GAME_WELCOME;
 	g->score = 0;
 	InitAudioDevice();
-	g->effects[0] = LoadSound("sounds/munch.mp3");
-	g->effects[1] = LoadSound("sounds/death.mp3");
-	g->effects[2] = LoadSound("sounds/knox-dior.mp3");
-	SetSoundVolume(g->effects[2], 0.5);
-	PlaySound(g->effects[2]);
+	g->sound_eat = LoadSound("sounds/munch.mp3");
+	g->sound_death = LoadSound("sounds/death.mp3");
+	g->sound_background_music = LoadSound("sounds/knox-dior.mp3");
+	SetSoundVolume(g->sound_background_music, 0.5);
+	PlaySound(g->sound_background_music);
 }
 
 GameState game_end(Game *const g) {
@@ -222,18 +224,18 @@ GameState game_run(Game *g) {
 		snake_head_direction_set(g->b->s);
 		snake_update_square_position(g->b->s);
 		if (snake_ate_food(g->b->s, g->b->f)) {
-			PauseSound(g->effects[2]);
-			PlaySound(*g->effects);
-			ResumeSound(g->effects[2]);
+			PauseSound(g->sound_background_music);
+			PlaySound(g->sound_eat);
+			ResumeSound(g->sound_background_music);
 			g->score++;
 			snake_segment_add(g->b->s);
 			food_spawn(g->b);
 		}
 		board_update(g->b);
 		if (board_check_all_collisions(g->b)) {
-			PauseSound(g->effects[2]);
-			PlaySound(*(g->effects + 1));
-			ResumeSound(g->effects[2]);
+			PauseSound(g->sound_background_music);
+			PlaySound(g->sound_death);
+			ResumeSound(g->sound_background_music);
 			g->death_timestamp = millis();
 			return STATE_GAME_END;
 		}
@@ -397,8 +399,8 @@ void game_fsm_run(void) {
 	Game g = {.b = NULL};
 	game_init(&g);
 	while (g.state != STATE_GAME_EXIT) {
-		if (!IsSoundPlaying(g.effects[2]))
-			PlaySound(g.effects[2]);
+		if (!IsSoundPlaying(g.sound_background_music))
+			PlaySound(g.sound_background_music);
 		BeginDrawing();
 		g.in.in_key = GetKeyPressed();
 		if (WindowShouldClose())
