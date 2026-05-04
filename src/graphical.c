@@ -389,7 +389,6 @@ void board_draw_collision(Board const *const b, int const board_x,
 	draw_square(&p, board_x, board_y, RED);
 }
 
-void window_periodic_start() { BeginDrawing(); }
 void window_periodic_end() {
 	if (p.draw_fps)
 		DrawFPS(10, 10);

@@ -39,7 +39,7 @@ typedef struct {
 
 typedef struct {
 	GameState state;
-	int score;
+	unsigned score;
 	HighScoreEntry *high_scores;
 	int tick_speed;
 	Board *b;
@@ -60,6 +60,7 @@ void navigate_menu(GameConfigureSelectedState *state, int const direction);
 int count_lines_file(FILE *f);
 void parse_high_score_entries(FILE *f, HighScoreEntry *h,
 			      int const entry_count);
+void save_score(char const *name, unsigned const score);
 
 void update_name_conf(Game *g, DisplayConfigureInfo *i);
 void update_menu_conf(Game *g, DisplayConfigureInfo *i);
@@ -195,7 +196,12 @@ void game_init(Game *g) {
 }
 
 GameState game_end(Game *const g) {
+	static bool saved = false;
 	display_end(g->b, g->score, g->death_timestamp);
+	if (!saved) {
+		saved = true;
+		save_score(g->player_name, g->score);
+	}
 	if (g->in.in_key == KEY_R || g->in.in_key == KEY_ENTER) {
 		game_restart(g);
 		return STATE_GAME_RUN;
@@ -299,7 +305,7 @@ void navigate_menu(GameConfigureSelectedState *state, int const direction) {
 GameState game_high_score(Game *g) {
 	static int num_lines = 0;
 	if (g->high_scores == NULL) {
-		FILE *f = fopen("./highscores", "r");
+		FILE *f = fopen(HIGH_SCORE_FILE_PATH, "r");
 		if (f) {
 			num_lines = count_lines_file(f);
 			g->high_scores =
@@ -319,6 +325,15 @@ GameState game_high_score(Game *g) {
 		return STATE_GAME_RUN;
 	}
 	return STATE_GAME_HIGH_SCORE;
+}
+
+void save_score(char const *name, unsigned const score) {
+	FILE *f = fopen(HIGH_SCORE_FILE_PATH, "r+");
+	if (f) {
+		fseek(f, 0, SEEK_END);
+		fprintf(f, "%s,%d\n", name, score);
+		fclose(f);
+	}
 }
 
 void game_restart(Game *g) {
@@ -363,7 +378,6 @@ void game_fsm_run(void) {
 		if (!IsSoundPlaying(g.effects[2]))
 			PlaySound(g.effects[2]);
 		BeginDrawing();
-		window_periodic_start();
 		g.in.in_key = GetKeyPressed();
 		if (WindowShouldClose())
 			g.state = STATE_GAME_EXIT;
