@@ -1,46 +1,53 @@
+BUILDDIR_NATIVE=build/native
+BUILDDIR_WEB=build/web
+
 CC=gcc
-FLAGS=-I$(INCLUDEDIR) -std=gnu99 -g
+FLAGS=-I$(INCLUDEDIR) -std=gnu99
 LFLAGS=-lm -lGL -lm -lpthread -ldl -lrt -lX11
-BUILDDIR=build
+LIB=./libs/libraylib.a
+TARGET=csnake
+
+WEB_CC=emcc
+WEB_FLAGS = $(FLAGS)
+WEB_FLAGS += -DPLATFORM_WEB
+WEB_LFLAGS = --shell-file src/shell.html -s USE_GLFW=3 -s ASYNCIFY
+WEB_LIB=./libs/libraylib_web.a
+TARGET_WEB=csnake.html
+
 SOURCEDIR=src
 INCLUDEDIR=inc
-SOURCES=$(filter-out $(SOURCEDIR)/graphical.c $(SOURCEDIR)/term.c, $(wildcard $(SOURCEDIR)/*.c))
-OBJ=$(patsubst $(SOURCEDIR)/%.c, $(BUILDDIR)/%.o, $(SOURCES))
-LIB=./libs/libraylib.a
+OBJ_NATIVE=$(patsubst $(SOURCEDIR)/%.c, $(BUILDDIR_NATIVE)/%.o, $(SOURCES))
+OBJ_WEB=$(patsubst $(SOURCEDIR)/%.c, $(BUILDDIR_WEB)/%.o, $(SOURCES))
 
-all: $(BUILDDIR) $(BUILDDIR)/csnake_graphical
+SOURCES=$(wildcard $(SOURCEDIR)/*.c)
 
-windows: CC=x86_64-w64-mingw32-gcc
-windows: $(BUILDDIR) $(BUILDDIR)/csnake.exe
+all: $(BUILDDIR_NATIVE) $(BUILDDIR_NATIVE)/$(TARGET)
 
-$(BUILDDIR):
-	mkdir build
+web: $(BUILDDIR_WEB) $(BUILDDIR_WEB)/$(TARGET_WEB)
 
-$(BUILDDIR)/csnake: $(OBJ)
-	$(CC) $^ -o $@ $(LFLAGS) 
+$(BUILDDIR_NATIVE) $(BUILDDIR_WEB):
+	mkdir -p $@
 
-graphical: FLAGS += -D GRAPHICAL
-graphical: $(BUILDDIR) $(BUILDDIR)/csnake_graphical
+$(BUILDDIR_NATIVE)/$(TARGET): $(OBJ_NATIVE)
+	$(CC) $^ -o $@ $(LIB) $(LFLAGS)
 
-$(BUILDDIR)/csnake_graphical: $(OBJ) $(BUILDDIR)/graphical.o $(LIB)
-	$(CC) $^ -o $@ $(LFLAGS)
+$(BUILDDIR_WEB)/$(TARGET_WEB): $(OBJ_WEB)
+	$(WEB_CC) $^ -o $@ $(WEB_LIB) $(WEB_LFLAGS)
 
-$(BUILDDIR)/csnake.exe: $(OBJ)
-	$(CC) $^ -o $@
+$(OBJ_NATIVE): $(BUILDDIR_NATIVE)/%.o: $(SOURCEDIR)/%.c
+	$(CC) -c $(WEB_FLAGS) $< -o $@
 
-$(OBJ): $(BUILDDIR)/%.o: $(SOURCEDIR)/%.c
-	$(CC) -c $(FLAGS) $< -o $@
+$(OBJ_WEB): $(BUILDDIR_WEB)/%.o: $(SOURCEDIR)/%.c
+	$(WEB_CC) -c $(WEB_FLAGS) $< -o $@
 
-$(BUILDDIR)/graphical.o: $(SOURCEDIR)/graphical.c
-	$(CC) -c $(FLAGS) $< -o $@
+run: $(BUILDDIR_NATIVE)/$(TARGET)
+	$(BUILDDIR_NATIVE)/$(TARGET)
 
-
-run: FLAGS += -D GRAPHICAL
-run: $(BUILDDIR)/csnake_graphical
-	$(BUILDDIR)/csnake_graphical
+runweb: $(BUILDDIR_WEB)/$(TARGET_WEB)
+	python -m http.server 8000 & firefox localhost:8000/$^
 
 clean:
-	rm $(BUILDDIR)/*
+	rm -rf build
 
 uml: docs
 	plantuml docs/state_machine.uml
