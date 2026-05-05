@@ -37,7 +37,7 @@ typedef struct {
 	GameConfigureState next_state;
 } GameConfigureStateTransition;
 
-typedef struct {
+struct Game {
 	GameState state;
 	unsigned score;
 	HighScoreEntry *high_scores;
@@ -49,7 +49,7 @@ typedef struct {
 	Sound sound_eat;
 	Sound sound_background_music;
 	Sound sound_death;
-} Game;
+};
 
 GameState game_welcome(Input in);
 void game_init(Game *const g);
@@ -185,6 +185,7 @@ void update_snake_speed_conf(Game *g, DisplayConfigureInfo *i) {
 }
 
 void game_init(Game *g) {
+	memset(g, 0, sizeof(Game));
 	engine_init();
 	debug_init();
 	g->tick_speed = 1000.0 / TICK_FREQUENCY;
@@ -395,50 +396,59 @@ int count_lines_file(FILE *f) {
 	return num_lines;
 }
 
-void game_fsm_run(void) {
-	Game g = {.b = NULL};
-	game_init(&g);
-	while (g.state != STATE_GAME_EXIT) {
-		if (!IsSoundPlaying(g.sound_background_music))
-			PlaySound(g.sound_background_music);
-		BeginDrawing();
-		g.in.in_key = GetKeyPressed();
-		if (WindowShouldClose())
-			g.state = STATE_GAME_EXIT;
-
-		switch (g.state) {
-		case STATE_GAME_WELCOME:
-			g.state = game_welcome(g.in);
-			break;
-		case STATE_GAME_RUN:
-			snake_head_direction_set_next(g.b->s, g.in);
-			g.state = game_run(&g);
-			break;
-		case STATE_GAME_END:
-			g.state = game_end(&g);
-			break;
-		case STATE_GAME_HIGH_SCORE:
-			g.state = game_high_score(&g);
-			break;
-		case STATE_GAME_CONFIGURE:
-			g.state = game_configure(&g);
-			break;
-		case STATE_GAME_EXIT:
-			if (g.b) {
-				food_destroy(&g.b->f);
-				snake_kill(&g.b->s);
-				board_destroy(&g.b);
-			}
-			if (g.high_scores != NULL) {
-				free(g.high_scores);
-				g.high_scores = NULL;
-			}
-			return;
-
-		default:
-			g.state = STATE_GAME_EXIT;
-			break;
-		}
-		window_periodic_end();
+void game_fsm_run(Game *g) {
+	while (!WindowShouldClose()) {
+		UpdateDrawFrame(g);
 	}
+}
+Game *game_create() {
+	Game *g = malloc(sizeof(Game));
+	game_init(g);
+
+	return g;
+}
+
+void game_clean(Game *g) {
+	if (g->b) {
+		food_destroy(&g->b->f);
+		snake_kill(&g->b->s);
+		board_destroy(&g->b);
+	}
+	if (g->high_scores != NULL) {
+		free(g->high_scores);
+		g->high_scores = NULL;
+	}
+}
+
+void UpdateDrawFrame(Game *g) {
+	if (!IsSoundPlaying(g->sound_background_music))
+		PlaySound(g->sound_background_music);
+	BeginDrawing();
+	g->in.in_key = GetKeyPressed();
+
+	switch (g->state) {
+	case STATE_GAME_WELCOME:
+		g->state = game_welcome(g->in);
+		break;
+	case STATE_GAME_RUN:
+		snake_head_direction_set_next(g->b->s, g->in);
+		g->state = game_run(g);
+		break;
+	case STATE_GAME_END:
+		g->state = game_end(g);
+		break;
+	case STATE_GAME_HIGH_SCORE:
+		g->state = game_high_score(g);
+		break;
+	case STATE_GAME_CONFIGURE:
+		g->state = game_configure(g);
+		break;
+	case STATE_GAME_EXIT:
+		return;
+
+	default:
+		g->state = STATE_GAME_EXIT;
+		break;
+	}
+	window_periodic_end();
 }

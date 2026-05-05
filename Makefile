@@ -10,7 +10,7 @@ TARGET=csnake
 WEB_CC=emcc
 WEB_FLAGS = $(FLAGS)
 WEB_FLAGS += -DPLATFORM_WEB
-WEB_LFLAGS = --shell-file src/shell.html -s USE_GLFW=3 -s ASYNCIFY
+WEB_LFLAGS = --shell-file src/shell.html -s USE_GLFW=3 -s ASYNCIFY  -sSTACK_SIZE=100000 --preload-file sounds  -sALLOW_MEMORY_GROWTH
 WEB_LIB=./libs/libraylib_web.a
 TARGET_WEB=csnake.html
 
@@ -35,7 +35,7 @@ $(BUILDDIR_WEB)/$(TARGET_WEB): $(OBJ_WEB)
 	$(WEB_CC) $^ -o $@ $(WEB_LIB) $(WEB_LFLAGS)
 
 $(OBJ_NATIVE): $(BUILDDIR_NATIVE)/%.o: $(SOURCEDIR)/%.c
-	$(CC) -c $(WEB_FLAGS) $< -o $@
+	$(CC) -c $(FLAGS) $< -o $@
 
 $(OBJ_WEB): $(BUILDDIR_WEB)/%.o: $(SOURCEDIR)/%.c
 	$(WEB_CC) -c $(WEB_FLAGS) $< -o $@

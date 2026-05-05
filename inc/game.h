@@ -1,6 +1,5 @@
 #ifndef GAME
 #define GAME
-void game_fsm_run(void);
 
 typedef enum {
 	STATE_CONFIGURE_SELECTED_WIDTH,
@@ -14,5 +13,12 @@ typedef struct {
 	char name[50];
 	int score;
 } HighScoreEntry;
+
+typedef struct Game Game;
+
+Game *game_create();
+void game_fsm_run(Game *g);
+void game_clean(Game *g);
+void UpdateDrawFrame(Game *g);
 
 #endif

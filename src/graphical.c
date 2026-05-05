@@ -33,6 +33,7 @@ DrawingParameters p = {.draw_fps = true,
 void get_screen_measurements();
 
 void set_keyboard_type() {
+#ifndef PLATFORM_WEB
 	if (*GetKeyName(KEY_A) == 'q') {
 		is_azerty = true;
 		// if (is_azerty) {
@@ -42,6 +43,7 @@ void set_keyboard_type() {
 		//		 500, font_size, GREEN);
 		// }
 	}
+#endif
 }
 
 void engine_init() {
