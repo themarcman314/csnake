@@ -82,6 +82,14 @@ GameConfigureStateTransition conf_transitions[] = {
      STATE_CONFIGURE_APPLY},
     {STATE_CONFIGURE_NAME, STATE_CONFIGURE_SELECTED_NONE, KEY_ENTER,
      STATE_CONFIGURE_MENU},
+    {STATE_CONFIGURE_MENU, STATE_CONFIGURE_SELECTED_PLAY, KEY_B,
+     STATE_CONFIGURE_NAME},
+    {STATE_CONFIGURE_MENU, STATE_CONFIGURE_SELECTED_WIDTH, KEY_B,
+     STATE_CONFIGURE_NAME},
+    {STATE_CONFIGURE_MENU, STATE_CONFIGURE_SELECTED_HEIGHT, KEY_B,
+     STATE_CONFIGURE_NAME},
+    {STATE_CONFIGURE_MENU, STATE_CONFIGURE_SELECTED_SNAKE_SPEED, KEY_B,
+     STATE_CONFIGURE_NAME},
     {STATE_CONFIGURE_WIDTH, STATE_CONFIGURE_SELECTED_NONE, KEY_ENTER,
      STATE_CONFIGURE_MENU},
     {STATE_CONFIGURE_HEIGHT, STATE_CONFIGURE_SELECTED_NONE, KEY_ENTER,
@@ -223,7 +231,8 @@ GameState game_run(Game *g) {
 	if (now - last_tick >= g->tick_speed) {
 		last_tick = now;
 		snake_head_direction_set(g->b->s);
-		snake_update_square_position(g->b->s);
+		snake_update_square_position(g->b->s, g->b->width,
+					     g->b->height);
 		if (snake_ate_food(g->b->s, g->b->f)) {
 			PauseSound(g->sound_background_music);
 			PlaySound(g->sound_eat);

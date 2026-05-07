@@ -2,6 +2,7 @@
 
 #define BOARD_HEIGHT 10
 #define BOARD_WIDTH 10
+#define BOARD_WRAPPING
 // #define BOARD_WALL_COLOR TERM_BHBLK
 #define SNAKE_HEAD_CHAR '@'
 #define SNAKE_BODY_CHAR 'o'
