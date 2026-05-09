@@ -183,8 +183,14 @@ void display_menu_conf(DisplayConfigureInfo const info) {
 	int rectangle_y_base = p.screen_height / border_fraction_screen_height;
 	int rectangle_fill_offset = 5;
 
+	char value[3][20];
+	memset(value, 0, sizeof(value));
+	sprintf(value[0], "%d", info.width);
+	sprintf(value[1], "%d", info.height);
+	sprintf(value[2], "%.2f", info.freq);
+
 	for (int i = 0; i < number_menu_items; i++) {
-		const char *labels[] = {"Board height", "Board width",
+		const char *labels[] = {"Board width", "Board height",
 					"Snake speed"};
 		Rectangle r = {rectangle_x,
 			       i * rectangle_height_spacing + rectangle_y_base,
@@ -201,10 +207,11 @@ void display_menu_conf(DisplayConfigureInfo const info) {
 		DrawText(labels[i], rectangle_x + rectangle_fill_offset,
 			 i * rectangle_height_spacing + rectangle_y_base,
 			 rectangle_height - rectangle_fill_offset, BLACK);
-		DrawText(labels[i],
+
+		DrawText(value[i],
 			 rectangle_x + rectangle_width -
-			     MeasureText(labels[i], rectangle_height -
-							rectangle_fill_offset) -
+			     MeasureText(value[i], rectangle_height -
+						       rectangle_fill_offset) -
 			     rectangle_fill_offset,
 			 i * rectangle_height_spacing + rectangle_y_base,
 			 rectangle_height - rectangle_fill_offset, BLUE);

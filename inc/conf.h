@@ -10,7 +10,7 @@
 #define TICK_FREQUENCY 8.0 // tiles per second
 #define FOOD_CHAR '*'
 
-#define HIGH_SCORE_FILE_PATH "./highscores"
+#define HIGH_SCORE_FILE_PATH "./highscores.csv"
 // #define FOOD_COLOR TERM_YEL
 // #define CONF_KEY_UP 'w'
 // #define CONF_KEY_DOWN 's'

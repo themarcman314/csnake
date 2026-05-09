@@ -10,6 +10,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#ifdef PLATFORM_WEB
+#include <emscripten.h>
+#endif
 
 typedef enum {
 	STATE_GAME_WELCOME,
@@ -299,6 +302,7 @@ GameState game_configure(Game *g) {
 		conf_display_funcs[state_conf](info);
 	}
 	if (state_conf == STATE_CONFIGURE_APPLY) {
+		initialized = false;
 		g->tick_speed = 1000.0F / info.freq;
 		g->b = board_create(info.width, info.height);
 		return STATE_GAME_RUN;
@@ -367,6 +371,11 @@ void save_score(char const *name, unsigned const score) {
 		if (strlen(name) > 0)
 			fprintf(f, "%s,%d\n", name, score);
 		fclose(f);
+		// CRITICAL: Sync memory state to IndexedDB
+		// EM_ASM(FS.syncfs(
+		//    false, function(err) {
+		//	    console.log('Finished syncing to IndexedDB');
+		//    }););
 	}
 }
 
