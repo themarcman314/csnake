@@ -125,8 +125,10 @@ void display_welcome() {
 }
 
 void display_end(Board const *b, int const score, int game_over_timestamp) {
+	ClearBackground(RAYWHITE);
 	int x, y;
 	snake_get_head_position(b->s, &x, &y);
+	board_draw(b, score, true);
 	board_draw_collision(b, x, y);
 	int now = millis();
 	if (now - game_over_timestamp < 1000) {
@@ -139,8 +141,7 @@ void display_end(Board const *b, int const score, int game_over_timestamp) {
 	char high_score_text[] = "press 'h' to view high scores";
 	char score_text[20];
 	sprintf(score_text, "score: %d", score);
-	ClearBackground(RAYWHITE);
-	board_draw(b, score, false);
+	// board_draw(b, score, false);
 	DrawText(text,
 		 screen_width / 2 - MeasureText(text, p.font_size_big) / 2,
 		 screen_height / 4, p.font_size_big, RED);
