@@ -41,7 +41,7 @@ $(OBJ_NATIVE): $(BUILDDIR_NATIVE)/%.o: $(SOURCEDIR)/%.c
 $(OBJ_WEB): $(BUILDDIR_WEB)/%.o: $(SOURCEDIR)/%.c
 	$(WEB_CC) -c $(WEB_FLAGS) $< -o $@
 
-run: $(BUILDDIR_NATIVE)/$(TARGET)
+run: all
 	$(BUILDDIR_NATIVE)/$(TARGET)
 
 runweb: $(BUILDDIR_WEB)/$(TARGET_WEB)
