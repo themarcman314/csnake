@@ -6,13 +6,14 @@
 #include "input.h"
 #include "raylib.h"
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#ifdef PLATFORM_WEB
-#include <emscripten.h>
-#endif
+// #ifdef PLATFORM_WEB
+// #include <emscripten.h>
+// #enmif
 
 typedef enum {
 	STATE_GAME_WELCOME,
@@ -55,10 +56,10 @@ struct Game {
 };
 
 GameState game_welcome(Input in);
-void game_init(Game *const g);
-GameState game_end(Game *const g);
-GameState game_run(Game *const g);
-GameState game_configure(Game *const g);
+void game_init(Game *g);
+GameState game_end(Game *g);
+GameState game_run(Game *g);
+GameState game_configure(Game *g);
 GameState game_high_score(Game *g);
 void game_restart(Game *g);
 void navigate_menu(GameConfigureSelectedState *state, int const direction);
@@ -210,7 +211,7 @@ void game_init(Game *g) {
 	PlaySound(g->sound_background_music);
 }
 
-GameState game_end(Game *const g) {
+GameState game_end(Game *g) {
 	static bool saved = false;
 	display_end(g->b, g->score, g->death_timestamp);
 	if (!saved) {
@@ -250,6 +251,7 @@ GameState game_run(Game *g) {
 			PlaySound(g->sound_death);
 			ResumeSound(g->sound_background_music);
 			g->death_timestamp = millis();
+			board_draw(g->b, g->score, true);
 			return STATE_GAME_END;
 		}
 	}
@@ -365,18 +367,33 @@ void sort_highscore_entries(HighScoreEntry *h, int const num_entries) {
 }
 
 void save_score(char const *name, unsigned const score) {
-	FILE *f = fopen(HIGH_SCORE_FILE_PATH, "r+");
+#ifdef PLATFORM_WEB
+	// EM_ASM(FS.mkdir('/persistent'); FS.mount(IDBFS, {}, '/persistent');
+	//        // load existing data into virtual folder
+	//        FS.syncfs(
+	//	   true, function(err) {
+	//		   // 3. Now we can safely append
+	//		   FILE *fp = fopen(HIGH_SCORE_FILE_PATH, "a");
+	//		   if (fp) {
+	//			   fprintf(fp, "Another line added!\n");
+	//			   fclose(fp);
+	//			   printf("Appended to file in memory.\n");
+
+	//			   // 4. Trigger the save back to permanent
+	//			   // storage Note: You must call this or the
+	//			   // append is lost on refresh!
+	//			   save_to_disk();
+	//		   }
+	//	   }););
+#else
+	FILE *f = fopen(HIGH_SCORE_FILE_PATH, "a");
 	if (f) {
-		fseek(f, 0, SEEK_END);
+		// fseek(f, 0, SEEK_END);
 		if (strlen(name) > 0)
 			fprintf(f, "%s,%d\n", name, score);
 		fclose(f);
-		// CRITICAL: Sync memory state to IndexedDB
-		// EM_ASM(FS.syncfs(
-		//    false, function(err) {
-		//	    console.log('Finished syncing to IndexedDB');
-		//    }););
 	}
+#endif
 }
 
 void game_restart(Game *g) {

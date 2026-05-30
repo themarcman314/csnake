@@ -1,6 +1,7 @@
 #ifdef _WIN32
 #error "This program does not support windows :("
 #else
+#include <stdint.h>
 #include <time.h>
 #endif
 

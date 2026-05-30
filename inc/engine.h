@@ -4,6 +4,7 @@
 #include "game.h"
 #include "raylib.h"
 #include "timer.h"
+#include <stdint.h>
 
 typedef struct DrawingParameters DrawingParameters;
 
@@ -23,7 +24,7 @@ void display_width_conf(DisplayConfigureInfo const info);
 void display_height_conf(DisplayConfigureInfo const info);
 void display_snake_speed_conf(DisplayConfigureInfo const info);
 
-void board_draw(Board const *b, int const score, bool show_score);
+void board_draw(Board const *b, int score, bool show_score);
 void board_draw_collision(Board const *const b, int const board_x,
 			  int const board_y);
 bool board_check_collisions(Board const *b);

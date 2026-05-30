@@ -4,6 +4,7 @@
 #include "game.h"
 #include "raylib.h"
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -74,7 +75,7 @@ void grid_draw(int const board_size_x, int const board_size_y,
 	}
 }
 
-void board_draw(Board const *b, int const score, bool show_score) {
+void board_draw(Board const *b, int score, bool show_score) {
 	ClearBackground(RAYWHITE);
 
 	set_start_coords_grid(b->width, b->height);
@@ -132,6 +133,7 @@ void display_end(Board const *b, int const score, int game_over_timestamp) {
 	board_draw_collision(b, x, y);
 	int now = millis();
 	if (now - game_over_timestamp < 1000) {
+		DrawText(".", -10, -10, 1, WHITE);
 		return;
 	}
 	int const screen_width = GetScreenWidth();

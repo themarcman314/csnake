@@ -10,9 +10,10 @@ TARGET=csnake
 WEB_CC=emcc
 WEB_FLAGS = $(FLAGS)
 WEB_FLAGS += -DPLATFORM_WEB
-WEB_LFLAGS = --shell-file src/shell.html -s USE_GLFW=3 -s ASYNCIFY  -sSTACK_SIZE=100000 --preload-file sounds --preload-file highscores.csv -sALLOW_MEMORY_GROWTH
+WEB_LFLAGS = --shell-file src/shell.html -s USE_GLFW=3 -s ASYNCIFY  -sSTACK_SIZE=100000 --preload-file sounds --preload-file persistent -sALLOW_MEMORY_GROWTH  #FIXME remove memory growth ?
 WEB_LIB=./libs/libraylib_web.a
 TARGET_WEB=csnake.html
+PORT = 8000
 
 SOURCEDIR=src
 INCLUDEDIR=inc
@@ -44,7 +45,9 @@ run: $(BUILDDIR_NATIVE)/$(TARGET)
 	$(BUILDDIR_NATIVE)/$(TARGET)
 
 runweb: $(BUILDDIR_WEB)/$(TARGET_WEB)
-	python -m http.server 8000 & firefox localhost:8000/$^
+	@echo "Starting server at http://localhost:$(PORT)"
+	@sleep 5 && firefox --new-window http://localhost:$(PORT)/$(TARGET_WEB) &
+	python -m http.server $(PORT) -d $(BUILDDIR_WEB)
 
 clean:
 	rm -rf build
