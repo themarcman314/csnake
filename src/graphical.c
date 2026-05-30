@@ -6,7 +6,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 bool is_azerty = false;
@@ -49,7 +48,7 @@ void set_keyboard_type() {
 
 void engine_init() {
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
-	InitWindow(50, 50, "my hello world window");
+	InitWindow(800, 450, "my hello world window");
 	SetTargetFPS(60);
 	int const screenWidth = GetMonitorWidth(GetCurrentMonitor());
 	int const screenHeight = GetMonitorHeight(GetCurrentMonitor());
@@ -119,10 +118,21 @@ void display_welcome() {
 
 	int const width = GetScreenWidth();
 	int const height = GetScreenHeight();
+	int const title_height = height / 4;
 	char title[] = "csnake";
-	int const font_size = 35;
-	DrawText(title, width / 2 - MeasureText(title, font_size) / 2,
-		 height / 4, font_size, GREEN);
+	int const font_size = p.font_size_big;
+	DrawText(title, width / 2 - MeasureText(title, p.font_size_big) / 2,
+		 title_height, p.font_size_big, GREEN);
+	char press_key[] = "press any key to start...";
+	DrawText(press_key,
+		 width / 2 - MeasureText(press_key, p.font_size_small) / 2,
+		 height - 14 * p.font_size_big, p.font_size_small, BLACK);
+	char music_credit_yt_link[] =
+	    "Song credit goes to: youtube.com/@knox_limited";
+	DrawText(music_credit_yt_link,
+		 width / 2 -
+		     MeasureText(music_credit_yt_link, p.font_size_small) / 2,
+		 height - p.font_size_big, p.font_size_small, BLACK);
 }
 
 void display_end(Board const *b, int const score, int game_over_timestamp) {
@@ -152,13 +162,13 @@ void display_end(Board const *b, int const score, int game_over_timestamp) {
 		     MeasureText(score_text, p.font_size_big) / 2,
 		 screen_height / 4 + 50, p.font_size_big, MAROON);
 	DrawText(restart_text,
-		 screen_width / 4 -
+		 screen_width / 2 -
 		     MeasureText(restart_text, p.font_size_small) / 2,
 		 3 * screen_height / 4, p.font_size_small, BLACK);
-	DrawText(high_score_text,
-		 3 * screen_width / 4 -
-		     MeasureText(high_score_text, p.font_size_small) / 2,
-		 3 * screen_height / 4, p.font_size_small, BLACK);
+	// DrawText(high_score_text,
+	//	 3 * screen_width / 4 -
+	//	     MeasureText(high_score_text, p.font_size_small) / 2,
+	//	 3 * screen_height / 4, p.font_size_small, BLACK);
 }
 
 void set_start_coords_grid(int grid_width, int grid_height) {
@@ -253,7 +263,8 @@ void display_name_conf(DisplayConfigureInfo const info) {
 	Rectangle textBox = {p.screen_width / 2.0f - 100,
 			     p.screen_height / 4.f + 50, 225, 50};
 	DrawRectangleRec(textBox, LIGHTGRAY);
-	DrawText(info.name, (int)textBox.x + 5, (int)textBox.y + 8, 40, MAROON);
+	DrawText(info.name, (int)textBox.x + 5, (int)textBox.y + 8,
+		 p.font_size_big, MAROON);
 }
 
 void display_width_conf(DisplayConfigureInfo const info) {
@@ -361,7 +372,7 @@ void display_snake_speed_conf(DisplayConfigureInfo const info) {
 		 40 + p.screen_height / 4, p.font_size_big, MAROON);
 }
 
-void display_high_score(HighScoreEntry *h, int const num_entries) {
+void display_high_score(HighScoreEntry const *h, int const num_entries) {
 	get_screen_measurements();
 	ClearBackground(RAYWHITE);
 	char title[] = "Highscores";
@@ -405,4 +416,13 @@ void window_periodic_end() {
 	if (p.draw_fps)
 		DrawFPS(10, 10);
 	EndDrawing();
+}
+
+bool is_display_name_box_overflown(char *name) {
+	// 225, 50
+	int text_width = MeasureText(name, p.font_size_big);
+	if (text_width < 225) {
+		return false;
+	}
+	return true;
 }

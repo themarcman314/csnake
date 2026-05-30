@@ -146,7 +146,7 @@ void update_name_conf(Game *g, DisplayConfigureInfo *i) {
 	static int letterCount = 0;
 	int char_pressed = GetCharPressed();
 
-	if (IsKeyPressed(KEY_BACKSPACE)) {
+	if (IsKeyPressed(KEY_BACKSPACE) || IsKeyPressedRepeat(KEY_BACKSPACE)) {
 		letterCount--;
 		if (letterCount < 0)
 			letterCount = 0;
@@ -155,11 +155,17 @@ void update_name_conf(Game *g, DisplayConfigureInfo *i) {
 	if (char_pressed > 0) {
 		// NOTE: Only allow keys in range [32..125]
 		if ((char_pressed >= 32) && (char_pressed <= 125) &&
-		    (letterCount < 20)) {
+		    (letterCount < sizeof(g->player_name))) {
 			g->player_name[letterCount] = (char)char_pressed;
 			g->player_name[letterCount + 1] =
 			    '\0'; // Add null terminator at the
 				  // end of the string
+			if (is_display_name_box_overflown(g->player_name)) {
+				if (letterCount < 0)
+					letterCount = 0;
+				g->player_name[letterCount] = '\0';
+				return;
+			}
 			letterCount++;
 		}
 	}
@@ -310,11 +316,6 @@ GameState game_configure(Game *g) {
 		return STATE_GAME_RUN;
 	}
 	return STATE_GAME_CONFIGURE;
-	//	info.state_conf = STATE_CONFIGURE_NAME;
-	//	food_destroy(&info.demo->f);
-	//	snake_kill(&info.demo->s);
-	//	board_destroy(&info.demo);
-	//	break;
 }
 
 void navigate_menu(GameConfigureSelectedState *state, int const direction) {
@@ -473,6 +474,8 @@ void UpdateDrawFrame(Game *g) {
 		g->state = game_end(g);
 		break;
 	case STATE_GAME_HIGH_SCORE:
+		g->state = STATE_GAME_END;
+		break;
 		g->state = game_high_score(g);
 		break;
 	case STATE_GAME_CONFIGURE:

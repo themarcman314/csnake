@@ -23,6 +23,7 @@ void display_name_conf(DisplayConfigureInfo const info);
 void display_width_conf(DisplayConfigureInfo const info);
 void display_height_conf(DisplayConfigureInfo const info);
 void display_snake_speed_conf(DisplayConfigureInfo const info);
+bool is_display_name_box_overflown(char *name);
 
 void board_draw(Board const *b, int score, bool show_score);
 void board_draw_collision(Board const *const b, int const board_x,
@@ -33,7 +34,7 @@ void engine_init();
 void display_end(Board const *b, int const score, int game_over_timestamp);
 void display_welcome();
 void display_configure(DisplayConfigureInfo const info);
-void display_high_score(HighScoreEntry *h, int const num_entries);
+void display_high_score(HighScoreEntry const *h, int const num_entries);
 
 void window_get_size();
 
