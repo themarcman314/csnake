@@ -44,7 +44,7 @@ $(OBJ_WEB): $(BUILDDIR_WEB)/%.o: $(SOURCEDIR)/%.c
 run: all
 	$(BUILDDIR_NATIVE)/$(TARGET)
 
-runweb: $(BUILDDIR_WEB)/$(TARGET_WEB)
+runweb: web
 	@echo "Starting server at http://localhost:$(PORT)"
 	@sleep 5 && firefox --new-window http://localhost:$(PORT)/$(TARGET_WEB) &
 	python -m http.server $(PORT) -d $(BUILDDIR_WEB)

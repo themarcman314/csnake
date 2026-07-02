@@ -8,6 +8,10 @@
 #include <stdio.h>
 #include <string.h>
 
+#define BACKGROUND_COLOR CLITERAL(Color){31, 31, 31, 255}
+#define TEXT_COLOR WHITE
+#define GRID_COLOR DARKGRAY
+
 bool is_azerty = false;
 
 struct DrawingParameters {
@@ -48,7 +52,8 @@ void set_keyboard_type() {
 
 void engine_init() {
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
-	InitWindow(800, 450, "my hello world window");
+	// SetConfigFlags(FLAG_FULLSCREEN_MODE);
+	InitWindow(800, 450, "csnake");
 	SetTargetFPS(60);
 	int const screenWidth = GetMonitorWidth(GetCurrentMonitor());
 	int const screenHeight = GetMonitorHeight(GetCurrentMonitor());
@@ -75,12 +80,12 @@ void grid_draw(int const board_size_x, int const board_size_y,
 }
 
 void board_draw(Board const *b, int score, bool show_score) {
-	ClearBackground(RAYWHITE);
+	ClearBackground(BACKGROUND_COLOR);
 
 	set_start_coords_grid(b->width, b->height);
 
 	grid_draw(b->width, b->height, p.start_x, p.start_y,
-		  p.board_wall_thickness, p.delta, LIGHTGRAY);
+		  p.board_wall_thickness, p.delta, GRID_COLOR);
 
 	for (int y = 0; y < b->height; y++) {
 		for (int x = 0; x < b->width; x++) {
@@ -113,7 +118,7 @@ void draw_square(DrawingParameters const *p, int const x, int const y,
 }
 
 void display_welcome() {
-	ClearBackground(RAYWHITE);
+	ClearBackground(BACKGROUND_COLOR);
 	set_keyboard_type();
 
 	int const width = GetScreenWidth();
@@ -126,17 +131,17 @@ void display_welcome() {
 	char press_key[] = "press any key to start...";
 	DrawText(press_key,
 		 width / 2 - MeasureText(press_key, p.font_size_small) / 2,
-		 height - 14 * p.font_size_big, p.font_size_small, BLACK);
+		 height - 14 * p.font_size_big, p.font_size_small, TEXT_COLOR);
 	char music_credit_yt_link[] =
 	    "Song credit goes to: youtube.com/@knox_limited";
 	DrawText(music_credit_yt_link,
 		 width / 2 -
 		     MeasureText(music_credit_yt_link, p.font_size_small) / 2,
-		 height - p.font_size_big, p.font_size_small, BLACK);
+		 height - p.font_size_big, p.font_size_small, TEXT_COLOR);
 }
 
 void display_end(Board const *b, int const score, int game_over_timestamp) {
-	ClearBackground(RAYWHITE);
+	ClearBackground(BACKGROUND_COLOR);
 	int x, y;
 	snake_get_head_position(b->s, &x, &y);
 	board_draw(b, score, true);
@@ -164,7 +169,7 @@ void display_end(Board const *b, int const score, int game_over_timestamp) {
 	DrawText(restart_text,
 		 screen_width / 2 -
 		     MeasureText(restart_text, p.font_size_small) / 2,
-		 3 * screen_height / 4, p.font_size_small, BLACK);
+		 3 * screen_height / 4, p.font_size_small, TEXT_COLOR);
 	// DrawText(high_score_text,
 	//	 3 * screen_width / 4 -
 	//	     MeasureText(high_score_text, p.font_size_small) / 2,
@@ -183,7 +188,7 @@ void set_start_coords_grid(int grid_width, int grid_height) {
 void display_menu_conf(DisplayConfigureInfo const info) {
 	get_screen_measurements();
 	int const number_menu_items = 3;
-	ClearBackground(RAYWHITE);
+	ClearBackground(BACKGROUND_COLOR);
 	int const border_fraction_screen_width = 15;
 	int const border_fraction_screen_height = 15;
 	int const rectangle_thickness_lines = 2;
@@ -196,7 +201,7 @@ void display_menu_conf(DisplayConfigureInfo const info) {
 	int rectangle_y_base = p.screen_height / border_fraction_screen_height;
 	int rectangle_fill_offset = 5;
 
-	char value[3][20];
+	char value[4][20];
 	memset(value, 0, sizeof(value));
 	sprintf(value[0], "%d", info.width);
 	sprintf(value[1], "%d", info.height);
@@ -219,7 +224,7 @@ void display_menu_conf(DisplayConfigureInfo const info) {
 			    GREEN);
 		DrawText(labels[i], rectangle_x + rectangle_fill_offset,
 			 i * rectangle_height_spacing + rectangle_y_base,
-			 rectangle_height - rectangle_fill_offset, BLACK);
+			 rectangle_height - rectangle_fill_offset, TEXT_COLOR);
 
 		DrawText(value[i],
 			 rectangle_x + rectangle_width -
@@ -250,16 +255,16 @@ void display_menu_conf(DisplayConfigureInfo const info) {
 	    play_button,
 	    p.screen_width - rectangle_x - button_width - rectangle_fill_offset,
 	    number_menu_items * rectangle_height_spacing + rectangle_y_base,
-	    rectangle_height - rectangle_fill_offset, BLACK);
+	    rectangle_height - rectangle_fill_offset, TEXT_COLOR);
 }
 void display_name_conf(DisplayConfigureInfo const info) {
 	get_screen_measurements();
-	ClearBackground(RAYWHITE);
+	ClearBackground(BACKGROUND_COLOR);
 	char title_name[] = "Enter your name:";
 	DrawText(title_name,
 		 p.screen_width / 2 -
 		     MeasureText(title_name, p.font_size_big) / 2,
-		 p.screen_height / 4, p.font_size_big, BLACK);
+		 p.screen_height / 4, p.font_size_big, TEXT_COLOR);
 	Rectangle textBox = {p.screen_width / 2.0f - 100,
 			     p.screen_height / 4.f + 50, 225, 50};
 	DrawRectangleRec(textBox, LIGHTGRAY);
@@ -268,18 +273,18 @@ void display_name_conf(DisplayConfigureInfo const info) {
 }
 
 void display_width_conf(DisplayConfigureInfo const info) {
-	ClearBackground(RAYWHITE);
+	ClearBackground(BACKGROUND_COLOR);
 	display_menu_conf(info);
 	DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(),
 		      Fade(BLACK, 0.4f));
 	set_start_coords_grid(info.width, info.height);
 	grid_draw(info.width, info.height, p.start_x, p.start_y,
-		  p.board_wall_thickness, p.delta, LIGHTGRAY);
+		  p.board_wall_thickness, p.delta, GRID_COLOR);
 	char title_width[] = "Set board width:";
 	DrawText(title_width,
 		 p.screen_width / 2 -
 		     MeasureText(title_width, p.font_size_big) / 2,
-		 p.screen_height / 4, p.font_size_big, BLACK);
+		 p.screen_height / 4, p.font_size_big, WHITE);
 	char width_number_string[5];
 	char width_string[] = " tiles wide";
 	sprintf(width_number_string, "%d", info.width);
@@ -298,18 +303,18 @@ void display_width_conf(DisplayConfigureInfo const info) {
 }
 
 void display_height_conf(DisplayConfigureInfo const info) {
-	ClearBackground(RAYWHITE);
+	ClearBackground(BACKGROUND_COLOR);
 	display_menu_conf(info);
 	DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(),
 		      Fade(BLACK, 0.4f));
 	set_start_coords_grid(info.width, info.height);
 	grid_draw(info.width, info.height, p.start_x, p.start_y,
-		  p.board_wall_thickness, p.delta, LIGHTGRAY);
+		  p.board_wall_thickness, p.delta, GRID_COLOR);
 	char title_height[] = "Set board height:";
 	DrawText(title_height,
 		 p.screen_width / 2 -
 		     MeasureText(title_height, p.font_size_big) / 2,
-		 p.screen_height / 4, p.font_size_big, BLACK);
+		 p.screen_height / 4, p.font_size_big, TEXT_COLOR);
 	char height_number_string[5];
 	char height_string[] = " tiles high";
 	sprintf(height_number_string, "%d", info.height);
@@ -346,7 +351,7 @@ void display_snake_speed_conf(DisplayConfigureInfo const info) {
 	// board_update(demo);
 	//}
 	// board_draw(info.demo, 0, false);
-	ClearBackground(RAYWHITE);
+	ClearBackground(BACKGROUND_COLOR);
 	display_menu_conf(info);
 	DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(),
 		      Fade(BLACK, 0.4f));
@@ -354,7 +359,7 @@ void display_snake_speed_conf(DisplayConfigureInfo const info) {
 	DrawText(title_speed,
 		 p.screen_width / 2 -
 		     MeasureText(title_speed, p.font_size_big) / 2,
-		 p.screen_height / 4, p.font_size_big, BLACK);
+		 p.screen_height / 4, p.font_size_big, TEXT_COLOR);
 	char speed_number_string[5];
 	char speed_string[] = " ticks/second (Hz)";
 	sprintf(speed_number_string, "%.2f", info.freq);
@@ -374,12 +379,12 @@ void display_snake_speed_conf(DisplayConfigureInfo const info) {
 
 void display_high_score(HighScoreEntry const *h, int const num_entries) {
 	get_screen_measurements();
-	ClearBackground(RAYWHITE);
+	ClearBackground(BACKGROUND_COLOR);
 	char title[] = "Highscores";
 	int const center_x_title =
 	    (p.screen_width - MeasureText(title, p.font_size_big)) / 2;
 	DrawText(title, center_x_title, 0.1 * p.screen_height, p.font_size_big,
-		 BLACK);
+		 TEXT_COLOR);
 	if (h) {
 		int const interval = 0.1 * p.screen_height;
 		for (int i = 0; i < num_entries; i++) {
@@ -393,11 +398,11 @@ void display_high_score(HighScoreEntry const *h, int const num_entries) {
 			DrawText(h[i].name,
 				 margin -
 				     MeasureText(h[i].name, p.font_size_small),
-				 y_text, p.font_size_small, BLACK);
+				 y_text, p.font_size_small, TEXT_COLOR);
 			DrawText(score_str,
 				 p.screen_width - margin -
 				     MeasureText(score_str, p.font_size_small),
-				 y_text, p.font_size_small, BLACK);
+				 y_text, p.font_size_small, TEXT_COLOR);
 		}
 	}
 }

@@ -214,7 +214,6 @@ void game_init(Game *g) {
 	g->sound_death = LoadSound("sounds/death.mp3");
 	g->sound_background_music = LoadSound("sounds/knox-dior.mp3");
 	SetSoundVolume(g->sound_background_music, 0.5);
-	PlaySound(g->sound_background_music);
 }
 
 GameState game_end(Game *g) {
@@ -457,10 +456,10 @@ void game_clean(Game *g) {
 }
 
 void UpdateDrawFrame(Game *g) {
-	if (!IsSoundPlaying(g->sound_background_music))
-		PlaySound(g->sound_background_music);
 	BeginDrawing();
 	g->in.in_key = GetKeyPressed();
+	if (!IsSoundPlaying(g->sound_background_music))
+		PlaySound(g->sound_background_music);
 
 	switch (g->state) {
 	case STATE_GAME_WELCOME:
