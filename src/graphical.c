@@ -19,7 +19,6 @@ struct DrawingParameters {
 	int screen_width;
 	int screen_height;
 	int const delta;
-	int const board_border_size;
 	int const board_wall_thickness;
 	int start_x;
 	int start_y;
@@ -29,7 +28,6 @@ struct DrawingParameters {
 
 DrawingParameters p = {.draw_fps = true,
 		       .delta = 25,
-		       .board_border_size = 20,
 		       .board_wall_thickness = 5,
 		       .font_size_big = 35,
 		       .font_size_small = 20};
@@ -131,7 +129,8 @@ void display_welcome() {
 	char press_key[] = "press any key to start...";
 	DrawText(press_key,
 		 width / 2 - MeasureText(press_key, p.font_size_small) / 2,
-		 height - 14 * p.font_size_big, p.font_size_small, TEXT_COLOR);
+		 title_height + 2 * p.font_size_big, p.font_size_small,
+		 TEXT_COLOR);
 	char music_credit_yt_link[] =
 	    "Song credit goes to: youtube.com/@knox_limited";
 	DrawText(music_credit_yt_link,
