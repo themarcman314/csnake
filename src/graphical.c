@@ -209,10 +209,11 @@ void display_menu_conf(DisplayConfigureInfo const info) {
 	for (int i = 0; i < number_menu_items; i++) {
 		const char *labels[] = {"Board width", "Board height",
 					"Snake speed"};
-		Rectangle r = {rectangle_x,
-			       i * rectangle_height_spacing + rectangle_y_base,
-			       rectangle_width, rectangle_height};
-		DrawRectangleLinesEx(r, rectangle_thickness_lines, GRAY);
+		// Rectangle r = {rectangle_x,
+		//	       i * rectangle_height_spacing + rectangle_y_base,
+		//	       rectangle_width, rectangle_height};
+		DrawRectangleLinesEx(info.elements[i].bounds,
+				     rectangle_thickness_lines, GRAY);
 		if (info.state_select == i)
 			DrawRectangle(
 			    rectangle_x + rectangle_fill_offset,

@@ -9,12 +9,19 @@
 typedef struct DrawingParameters DrawingParameters;
 
 typedef struct {
+	Rectangle bounds;
+} UIElement;
+
+typedef struct {
 	Board *demo;
 	GameConfigureSelectedState state_select;
 	float freq;
 	int width;
 	int height;
 	char *name;
+	UIElement elements[10]; // up to 10 ui elements
+	int element_count;
+	Vector2 last_mouse_pos;
 } DisplayConfigureInfo;
 
 typedef void (*ConfDisplayFunc)(DisplayConfigureInfo const info);

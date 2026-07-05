@@ -125,15 +125,57 @@ static const ConfDisplayFunc conf_display_funcs[] = {
 };
 
 void update_menu_conf(Game *g, DisplayConfigureInfo *i) {
-	switch (g->in.in_key) {
-	case KEY_J:
-	case KEY_DOWN:
-		navigate_menu(&i->state_select, +1);
-		break;
-	case KEY_K:
-	case KEY_UP:
-		navigate_menu(&i->state_select, -1);
-		break;
+	i->element_count = 3;
+
+	int screen_height = GetScreenHeight();
+	int screen_width = GetScreenWidth();
+
+	int const border_fraction_screen_width = 15;
+	int const border_fraction_screen_height = 15;
+	int rectangle_height = screen_height / 20;
+	int rectangle_width = (border_fraction_screen_width - 2) *
+			      screen_width / border_fraction_screen_width;
+	int rectangle_y_base = screen_height / border_fraction_screen_height;
+	int rectangle_height_spacing = screen_height / (i->element_count + 1);
+	int rectangle_x = screen_width / border_fraction_screen_width;
+
+	Vector2 current_mouse_pos = GetMousePosition();
+	bool mouse_moved = (current_mouse_pos.x != i->last_mouse_pos.x ||
+			    current_mouse_pos.y != i->last_mouse_pos.y);
+
+	// Save current position for the next frame
+	i->last_mouse_pos = current_mouse_pos;
+
+	// assign rectangle boxes
+	for (int idx = 0; idx < i->element_count; idx++) {
+		i->elements[idx].bounds.x = rectangle_x;
+		i->elements[idx].bounds.y =
+		    idx * rectangle_height_spacing + rectangle_y_base;
+		i->elements[idx].bounds.width = rectangle_width;
+		i->elements[idx].bounds.height = rectangle_height;
+	}
+
+	if (mouse_moved) {
+		i->state_select = STATE_CONFIGURE_SELECTED_NONE;
+		for (int idx = 0; idx < i->element_count; idx++) {
+			bool is_mouse_over = CheckCollisionPointRec(
+			    current_mouse_pos, i->elements[idx].bounds);
+			if (is_mouse_over)
+				i->state_select = idx;
+		}
+	}
+
+	else {
+		switch (g->in.in_key) {
+		case KEY_J:
+		case KEY_DOWN:
+			navigate_menu(&i->state_select, +1);
+			break;
+		case KEY_K:
+		case KEY_UP:
+			navigate_menu(&i->state_select, -1);
+			break;
+		}
 	}
 }
 
@@ -366,26 +408,9 @@ void sort_highscore_entries(HighScoreEntry *h, int const num_entries) {
 	} while (!sorted);
 }
 
+// FIXME: implement version with sockets for web version
+//  highscores should be saved on vps not on client machine lol
 void save_score(char const *name, unsigned const score) {
-#ifdef PLATFORM_WEB
-	// EM_ASM(FS.mkdir('/persistent'); FS.mount(IDBFS, {}, '/persistent');
-	//        // load existing data into virtual folder
-	//        FS.syncfs(
-	//	   true, function(err) {
-	//		   // 3. Now we can safely append
-	//		   FILE *fp = fopen(HIGH_SCORE_FILE_PATH, "a");
-	//		   if (fp) {
-	//			   fprintf(fp, "Another line added!\n");
-	//			   fclose(fp);
-	//			   printf("Appended to file in memory.\n");
-
-	//			   // 4. Trigger the save back to permanent
-	//			   // storage Note: You must call this or the
-	//			   // append is lost on refresh!
-	//			   save_to_disk();
-	//		   }
-	//	   }););
-#else
 	FILE *f = fopen(HIGH_SCORE_FILE_PATH, "a");
 	if (f) {
 		// fseek(f, 0, SEEK_END);
@@ -393,7 +418,6 @@ void save_score(char const *name, unsigned const score) {
 			fprintf(f, "%s,%d\n", name, score);
 		fclose(f);
 	}
-#endif
 }
 
 void game_restart(Game *g) {
