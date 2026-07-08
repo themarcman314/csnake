@@ -282,7 +282,7 @@ void snake_segment_add(Snake *s) {
 }
 
 void snake_update_square_position(Snake *s, int const b_width,
-				  int const b_height) {
+				  int const b_height, bool wrapping_enabled) {
 	SnakeSegment *current = s->head;
 	int x[s->length];
 	int y[s->length];
@@ -300,31 +300,23 @@ void snake_update_square_position(Snake *s, int const b_width,
 	switch (s->head_dir_current) {
 	case SNAKE_UP:
 		s->head->y--;
-#ifdef BOARD_WRAPPING
-		if (s->head->y == -1)
+		if (wrapping_enabled && s->head->y == -1)
 			s->head->y = b_height - 1;
-#endif
 		break;
 	case SNAKE_DOWN:
 		s->head->y++;
-#ifdef BOARD_WRAPPING
-		if (s->head->y == b_height)
+		if (wrapping_enabled && s->head->y == b_height)
 			s->head->y = 0;
-#endif
 		break;
 	case SNAKE_LEFT:
 		s->head->x--;
-#ifdef BOARD_WRAPPING
-		if (s->head->x == -1)
+		if (wrapping_enabled && s->head->x == -1)
 			s->head->x = b_width - 1;
-#endif
 		break;
 	case SNAKE_RIGHT:
 		s->head->x++;
-#ifdef BOARD_WRAPPING
-		if (s->head->x == b_width)
+		if (wrapping_enabled && s->head->x == b_width)
 			s->head->x = 0;
-#endif
 		break;
 	case SNAKE_NONE:
 		break;
@@ -359,9 +351,8 @@ void food_spawn(Board *b) {
 }
 
 bool board_check_all_collisions(Board const *b) {
-#ifndef BOARD_WRAPPING
-	return board_check_collisions(b);
-#endif
+	if (board_check_collisions(b) == true)
+		return true;
 	return snake_check_collisions(b->s);
 }
 
@@ -389,7 +380,6 @@ bool board_check_collisions(Board const *b) {
 	} else {
 		return false;
 	}
-	LogDebug("checked board collisions");
 }
 
 bool board_check_edge(Board const *b) {

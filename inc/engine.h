@@ -18,6 +18,7 @@ typedef struct {
 	float freq;
 	int width;
 	int height;
+	bool board_wrapping;
 	char *name;
 	UIElement elements[10]; // up to 10 ui elements
 	int element_count;

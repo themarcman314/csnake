@@ -31,7 +31,7 @@ void snake_init(Board *b);
 void snake_kill(Snake **p_s);
 void snake_get_head_position(Snake const *s, int *x, int *y);
 void snake_update_square_position(Snake *s, int const b_width,
-				  int const b_height);
+				  int const b_height, bool wrapping);
 void snake_head_direction_set_next(Snake *const s, Input const key);
 void snake_head_direction_set(Snake *s);
 

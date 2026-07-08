@@ -31,6 +31,7 @@ typedef enum {
 	STATE_CONFIGURE_WIDTH,
 	STATE_CONFIGURE_HEIGHT,
 	STATE_CONFIGURE_SNAKE_SPEED,
+	STATE_CONFIGURE_WRAPPING,
 	STATE_CONFIGURE_APPLY,
 } GameConfigureState;
 
@@ -43,6 +44,7 @@ typedef struct {
 
 struct Game {
 	GameState state;
+	bool wrapping;
 	unsigned score;
 	HighScoreEntry *high_scores;
 	int tick_speed;
@@ -71,6 +73,7 @@ void sort_highscore_entries(HighScoreEntry *h, int const num_entries);
 
 void update_name_conf(Game *g, DisplayConfigureInfo *i);
 void update_menu_conf(Game *g, DisplayConfigureInfo *i);
+void update_wrapping_conf(Game *g, DisplayConfigureInfo *i);
 void update_width_conf(Game *g, DisplayConfigureInfo *i);
 void update_height_conf(Game *g, DisplayConfigureInfo *i);
 void update_snake_speed_conf(Game *g, DisplayConfigureInfo *i);
@@ -78,6 +81,10 @@ void update_snake_speed_conf(Game *g, DisplayConfigureInfo *i);
 GameConfigureStateTransition conf_transitions[] = {
     {STATE_CONFIGURE_MENU, STATE_CONFIGURE_SELECTED_WIDTH, KEY_ENTER,
      STATE_CONFIGURE_WIDTH},
+    {STATE_CONFIGURE_MENU, STATE_CONFIGURE_SELECTED_WRAPPING, KEY_ENTER,
+     STATE_CONFIGURE_WRAPPING},
+    {STATE_CONFIGURE_WRAPPING, STATE_CONFIGURE_SELECTED_NONE, KEY_NULL,
+     STATE_CONFIGURE_MENU},
     {STATE_CONFIGURE_MENU, STATE_CONFIGURE_SELECTED_HEIGHT, KEY_ENTER,
      STATE_CONFIGURE_HEIGHT},
     {STATE_CONFIGURE_MENU, STATE_CONFIGURE_SELECTED_SNAKE_SPEED, KEY_ENTER,
@@ -113,6 +120,7 @@ static const GameConfigureFunc conf_logic_funcs[] = {
     [STATE_CONFIGURE_MENU] = update_menu_conf,
     [STATE_CONFIGURE_WIDTH] = update_width_conf,
     [STATE_CONFIGURE_HEIGHT] = update_height_conf,
+    [STATE_CONFIGURE_WRAPPING] = update_wrapping_conf,
     [STATE_CONFIGURE_SNAKE_SPEED] = update_snake_speed_conf,
     //[STATE_CONFIGURE_APPLY] = conf_update_,
 };
@@ -121,11 +129,16 @@ static const ConfDisplayFunc conf_display_funcs[] = {
     [STATE_CONFIGURE_MENU] = display_menu_conf,
     [STATE_CONFIGURE_WIDTH] = display_width_conf,
     [STATE_CONFIGURE_HEIGHT] = display_height_conf,
+    [STATE_CONFIGURE_WRAPPING] = display_menu_conf,
     [STATE_CONFIGURE_SNAKE_SPEED] = display_snake_speed_conf,
 };
 
+void update_wrapping_conf(Game *g, DisplayConfigureInfo *i) {
+	g->wrapping = !g->wrapping;
+	i->board_wrapping = g->wrapping;
+}
 void update_menu_conf(Game *g, DisplayConfigureInfo *i) {
-	i->element_count = 3;
+	i->element_count = 4;
 
 	int screen_height = GetScreenHeight();
 	int screen_width = GetScreenWidth();
@@ -169,6 +182,7 @@ void update_menu_conf(Game *g, DisplayConfigureInfo *i) {
 	i->elements[i->element_count].bounds.width =
 	    button_width + rectangle_fill_offset * 2;
 	i->elements[i->element_count].bounds.height = rectangle_height;
+	// printf("assigned play box\n");
 
 	if (mouse_moved) {
 		i->state_select = STATE_CONFIGURE_SELECTED_NONE;
@@ -227,6 +241,7 @@ void update_name_conf(Game *g, DisplayConfigureInfo *i) {
 		}
 	}
 }
+
 void update_width_conf(Game *g, DisplayConfigureInfo *i) {
 	if (g->in.in_key == KEY_EQUAL || IsKeyPressedRepeat(KEY_EQUAL)) {
 		i->width++;
@@ -266,6 +281,7 @@ void game_init(Game *g) {
 	g->tick_speed = 1000.0 / TICK_FREQUENCY;
 	g->state = STATE_GAME_WELCOME;
 	g->score = 0;
+	g->wrapping = true;
 	InitAudioDevice();
 	g->sound_eat = LoadSound("sounds/munch.mp3");
 	g->sound_death = LoadSound("sounds/death.mp3");
@@ -297,8 +313,8 @@ GameState game_run(Game *g) {
 	if (now - last_tick >= g->tick_speed) {
 		last_tick = now;
 		snake_head_direction_set(g->b->s);
-		snake_update_square_position(g->b->s, g->b->width,
-					     g->b->height);
+		snake_update_square_position(g->b->s, g->b->width, g->b->height,
+					     g->wrapping);
 		if (snake_ate_food(g->b->s, g->b->f)) {
 			PauseSound(g->sound_background_music);
 			PlaySound(g->sound_eat);
@@ -336,7 +352,7 @@ GameState game_configure(Game *g) {
 	if (!initialized) {
 		state_conf = STATE_CONFIGURE_NAME;
 		info.demo = NULL;
-		info.state_select = STATE_CONFIGURE_SELECTED_PLAY;
+		info.state_select = STATE_CONFIGURE_SELECTED_WIDTH;
 		info.freq = TICK_FREQUENCY;
 		info.width = BOARD_WIDTH;
 		info.height = BOARD_HEIGHT;
@@ -351,9 +367,11 @@ GameState game_configure(Game *g) {
 		GameConfigureStateTransition *t = &conf_transitions[i];
 		bool state_match = (state_conf == t->current_state);
 
+		// if left mouse click, count as KEY_ENTER
 		if (g->in.in_key == KEY_NULL &&
 		    IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
 			g->in.in_key = KEY_ENTER;
+
 		bool key_match = (g->in.in_key == t->input_key);
 		bool sel_match =
 		    (t->selected_item == STATE_CONFIGURE_SELECTED_NONE ||
@@ -379,7 +397,7 @@ GameState game_configure(Game *g) {
 }
 
 void navigate_menu(GameConfigureSelectedState *state, int const direction) {
-	*state = (*state + direction + 4) % 4;
+	*state = (*state + direction + 5) % 5;
 }
 
 GameState game_high_score(Game *g) {

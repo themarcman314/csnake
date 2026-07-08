@@ -160,11 +160,11 @@ void display_end(Board const *b, int const score, int game_over_timestamp) {
 	// board_draw(b, score, false);
 	DrawText(text,
 		 screen_width / 2 - MeasureText(text, p.font_size_big) / 2,
-		 screen_height / 4, p.font_size_big, RED);
+		 screen_height / 5, p.font_size_big, RED);
 	DrawText(score_text,
 		 screen_width / 2 -
 		     MeasureText(score_text, p.font_size_big) / 2,
-		 screen_height / 4 + 50, p.font_size_big, MAROON);
+		 screen_height / 5 + 50, p.font_size_big, MAROON);
 	DrawText(restart_text,
 		 screen_width / 2 -
 		     MeasureText(restart_text, p.font_size_small) / 2,
@@ -186,7 +186,6 @@ void set_start_coords_grid(int grid_width, int grid_height) {
 
 void display_menu_conf(DisplayConfigureInfo const info) {
 	get_screen_measurements();
-	// int const number_menu_items = 3;
 	ClearBackground(BACKGROUND_COLOR);
 	int const border_fraction_screen_width = 15;
 	int const border_fraction_screen_height = 15;
@@ -205,10 +204,11 @@ void display_menu_conf(DisplayConfigureInfo const info) {
 	sprintf(value[0], "%d", info.width);
 	sprintf(value[1], "%d", info.height);
 	sprintf(value[2], "%.2f", info.freq);
+	sprintf(value[3], "%s", info.board_wrapping ? "enabled" : "disabled");
 
 	for (int i = 0; i < info.element_count; i++) {
 		const char *labels[] = {"Board width", "Board height",
-					"Snake speed"};
+					"Snake speed", "Board wrapping"};
 		// Rectangle r = {rectangle_x,
 		//	       i * rectangle_height_spacing + rectangle_y_base,
 		//	       rectangle_width, rectangle_height};
@@ -276,7 +276,7 @@ void display_width_conf(DisplayConfigureInfo const info) {
 	ClearBackground(BACKGROUND_COLOR);
 	display_menu_conf(info);
 	DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(),
-		      Fade(BLACK, 0.4f));
+		      Fade(BLACK, 0.7f));
 	set_start_coords_grid(info.width, info.height);
 	grid_draw(info.width, info.height, p.start_x, p.start_y,
 		  p.board_wall_thickness, p.delta, GRID_COLOR);
@@ -306,7 +306,7 @@ void display_height_conf(DisplayConfigureInfo const info) {
 	ClearBackground(BACKGROUND_COLOR);
 	display_menu_conf(info);
 	DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(),
-		      Fade(BLACK, 0.4f));
+		      Fade(BLACK, 0.7f));
 	set_start_coords_grid(info.width, info.height);
 	grid_draw(info.width, info.height, p.start_x, p.start_y,
 		  p.board_wall_thickness, p.delta, GRID_COLOR);
@@ -354,7 +354,7 @@ void display_snake_speed_conf(DisplayConfigureInfo const info) {
 	ClearBackground(BACKGROUND_COLOR);
 	display_menu_conf(info);
 	DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(),
-		      Fade(BLACK, 0.4f));
+		      Fade(BLACK, 0.7f));
 	char title_speed[] = "Set snake speed:";
 	DrawText(title_speed,
 		 p.screen_width / 2 -
