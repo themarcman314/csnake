@@ -155,9 +155,24 @@ void update_menu_conf(Game *g, DisplayConfigureInfo *i) {
 		i->elements[idx].bounds.height = rectangle_height;
 	}
 
+	int const rectangle_thickness_lines = 2;
+	int rectangle_fill_offset = 5;
+	char play_button[] = "Play";
+	int button_width =
+	    MeasureText(play_button, rectangle_height - rectangle_fill_offset);
+	// DrawRectangleLinesEx(r, rectangle_thickness_lines, GRAY);
+	i->elements[i->element_count].bounds.x = screen_width - rectangle_x -
+						 button_width -
+						 2 * rectangle_fill_offset;
+	i->elements[i->element_count].bounds.y =
+	    i->element_count * rectangle_height_spacing + rectangle_y_base;
+	i->elements[i->element_count].bounds.width =
+	    button_width + rectangle_fill_offset * 2;
+	i->elements[i->element_count].bounds.height = rectangle_height;
+
 	if (mouse_moved) {
 		i->state_select = STATE_CONFIGURE_SELECTED_NONE;
-		for (int idx = 0; idx < i->element_count; idx++) {
+		for (int idx = 0; idx <= i->element_count; idx++) {
 			bool is_mouse_over = CheckCollisionPointRec(
 			    current_mouse_pos, i->elements[idx].bounds);
 			if (is_mouse_over)
@@ -321,7 +336,7 @@ GameState game_configure(Game *g) {
 	if (!initialized) {
 		state_conf = STATE_CONFIGURE_NAME;
 		info.demo = NULL;
-		info.state_select = STATE_CONFIGURE_SELECTED_WIDTH;
+		info.state_select = STATE_CONFIGURE_SELECTED_PLAY;
 		info.freq = TICK_FREQUENCY;
 		info.width = BOARD_WIDTH;
 		info.height = BOARD_HEIGHT;
@@ -335,6 +350,10 @@ GameState game_configure(Game *g) {
 	for (GameConfigureState i = 0; i < num_of_conf_transitions; i++) {
 		GameConfigureStateTransition *t = &conf_transitions[i];
 		bool state_match = (state_conf == t->current_state);
+
+		if (g->in.in_key == KEY_NULL &&
+		    IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+			g->in.in_key = KEY_ENTER;
 		bool key_match = (g->in.in_key == t->input_key);
 		bool sel_match =
 		    (t->selected_item == STATE_CONFIGURE_SELECTED_NONE ||

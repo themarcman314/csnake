@@ -186,7 +186,7 @@ void set_start_coords_grid(int grid_width, int grid_height) {
 
 void display_menu_conf(DisplayConfigureInfo const info) {
 	get_screen_measurements();
-	int const number_menu_items = 3;
+	// int const number_menu_items = 3;
 	ClearBackground(BACKGROUND_COLOR);
 	int const border_fraction_screen_width = 15;
 	int const border_fraction_screen_height = 15;
@@ -195,7 +195,7 @@ void display_menu_conf(DisplayConfigureInfo const info) {
 	int rectangle_width = (border_fraction_screen_width - 2) *
 			      p.screen_width / border_fraction_screen_width;
 	int rectangle_height_spacing =
-	    p.screen_height / (number_menu_items + 1);
+	    p.screen_height / (info.element_count + 1);
 	int rectangle_x = p.screen_width / border_fraction_screen_width;
 	int rectangle_y_base = p.screen_height / border_fraction_screen_height;
 	int rectangle_fill_offset = 5;
@@ -206,7 +206,7 @@ void display_menu_conf(DisplayConfigureInfo const info) {
 	sprintf(value[1], "%d", info.height);
 	sprintf(value[2], "%.2f", info.freq);
 
-	for (int i = 0; i < number_menu_items; i++) {
+	for (int i = 0; i < info.element_count; i++) {
 		const char *labels[] = {"Board width", "Board height",
 					"Snake speed"};
 		// Rectangle r = {rectangle_x,
@@ -240,13 +240,13 @@ void display_menu_conf(DisplayConfigureInfo const info) {
 	Rectangle r = {
 	    p.screen_width - rectangle_x - button_width -
 		2 * rectangle_fill_offset,
-	    number_menu_items * rectangle_height_spacing + rectangle_y_base,
+	    info.element_count * rectangle_height_spacing + rectangle_y_base,
 	    button_width + rectangle_fill_offset * 2, rectangle_height};
 	DrawRectangleLinesEx(r, rectangle_thickness_lines, GRAY);
 	if (info.state_select == STATE_CONFIGURE_SELECTED_PLAY)
 		DrawRectangle(p.screen_width - rectangle_x - button_width -
 				  rectangle_fill_offset,
-			      number_menu_items * rectangle_height_spacing +
+			      info.element_count * rectangle_height_spacing +
 				  rectangle_y_base + rectangle_fill_offset,
 			      button_width,
 			      rectangle_height - rectangle_fill_offset * 2,
@@ -254,7 +254,7 @@ void display_menu_conf(DisplayConfigureInfo const info) {
 	DrawText(
 	    play_button,
 	    p.screen_width - rectangle_x - button_width - rectangle_fill_offset,
-	    number_menu_items * rectangle_height_spacing + rectangle_y_base,
+	    info.element_count * rectangle_height_spacing + rectangle_y_base,
 	    rectangle_height - rectangle_fill_offset, TEXT_COLOR);
 }
 void display_name_conf(DisplayConfigureInfo const info) {
