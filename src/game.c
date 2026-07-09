@@ -353,6 +353,7 @@ GameState game_configure(Game *g) {
 		info.width = BOARD_WIDTH;
 		info.height = BOARD_HEIGHT;
 		info.name = g->player_name;
+		info.board_wrapping = true;
 		initialized = true;
 	}
 
