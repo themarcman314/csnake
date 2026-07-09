@@ -11,9 +11,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-// #ifdef PLATFORM_WEB
-// #include <emscripten.h>
-// #enmif
 
 typedef enum {
 	STATE_GAME_WELCOME,
@@ -333,8 +330,7 @@ GameState game_run(Game *g) {
 			return STATE_GAME_END;
 		}
 	}
-	// should be called every itteration since
-	board_draw(g->b, g->score, true);
+	board_draw(g->b, g->score, false);
 	return STATE_GAME_RUN;
 }
 

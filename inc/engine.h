@@ -33,7 +33,7 @@ void display_height_conf(DisplayConfigureInfo const info);
 void display_snake_speed_conf(DisplayConfigureInfo const info);
 bool is_display_name_box_overflown(char *name);
 
-void board_draw(Board const *b, int score, bool show_score);
+void board_draw(Board const *b, int score, bool is_draw_game_over);
 void board_draw_collision(Board const *const b, int const board_x,
 			  int const board_y);
 bool board_check_collisions(Board const *b);

@@ -77,7 +77,7 @@ void grid_draw(int const board_size_x, int const board_size_y,
 	}
 }
 
-void board_draw(Board const *b, int score, bool show_score) {
+void board_draw(Board const *b, int score, bool is_draw_game_over) {
 	ClearBackground(BACKGROUND_COLOR);
 
 	set_start_coords_grid(b->width, b->height);
@@ -90,19 +90,19 @@ void board_draw(Board const *b, int score, bool show_score) {
 			const char c = board_get_square(b, x, y);
 			if (c == FOOD_CHAR) {
 				draw_square(&p, x, y, ORANGE);
-			} else if (c == SNAKE_HEAD_CHAR ||
-				   c == SNAKE_BODY_CHAR) {
+			} else if (c == SNAKE_BODY_CHAR ||
+				   (c == SNAKE_HEAD_CHAR && !is_draw_game_over))
 				draw_square(&p, x, y, GREEN);
+			if (!is_draw_game_over) {
+				char score_text[20] = "";
+				sprintf(score_text, "score: %d", score);
+				DrawText(score_text,
+					 p.screen_width - 50 -
+					     MeasureText(score_text,
+							 p.font_size_big),
+					 50, p.font_size_big, BLUE);
 			}
 		}
-	}
-	if (show_score) {
-		char score_text[20] = "";
-		sprintf(score_text, "score: %d", score);
-		DrawText(score_text,
-			 p.screen_width - 50 -
-			     MeasureText(score_text, p.font_size_big),
-			 50, p.font_size_big, BLUE);
 	}
 }
 
@@ -171,8 +171,10 @@ void display_end(Board const *b, int const score, int game_over_timestamp) {
 		 3 * screen_height / 4, p.font_size_small, TEXT_COLOR);
 	// DrawText(high_score_text,
 	//	 3 * screen_width / 4 -
-	//	     MeasureText(high_score_text, p.font_size_small) / 2,
-	//	 3 * screen_height / 4, p.font_size_small, BLACK);
+	//	     MeasureText(high_score_text,
+	// p.font_size_small) /
+	// 2, 	 3 * screen_height / 4, p.font_size_small,
+	// BLACK);
 }
 
 void set_start_coords_grid(int grid_width, int grid_height) {
@@ -210,8 +212,9 @@ void display_menu_conf(DisplayConfigureInfo const info) {
 		const char *labels[] = {"Board width", "Board height",
 					"Snake speed", "Board wrapping"};
 		// Rectangle r = {rectangle_x,
-		//	       i * rectangle_height_spacing + rectangle_y_base,
-		//	       rectangle_width, rectangle_height};
+		//	       i * rectangle_height_spacing +
+		// rectangle_y_base, 	       rectangle_width,
+		// rectangle_height};
 		DrawRectangleLinesEx(info.elements[i].bounds,
 				     rectangle_thickness_lines, GRAY);
 		if (info.state_select == i)
