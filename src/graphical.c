@@ -150,6 +150,8 @@ void display_end(Board const *b, int const score, int game_over_timestamp) {
 		DrawText(".", -10, -10, 1, WHITE);
 		return;
 	}
+	DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(),
+		      Fade(BLACK, 0.7f));
 	int const screen_width = GetScreenWidth();
 	int const screen_height = GetScreenHeight();
 	char text[] = "game over :(";
@@ -164,7 +166,7 @@ void display_end(Board const *b, int const score, int game_over_timestamp) {
 	DrawText(score_text,
 		 screen_width / 2 -
 		     MeasureText(score_text, p.font_size_big) / 2,
-		 screen_height / 5 + 50, p.font_size_big, MAROON);
+		 screen_height / 5 + 50, p.font_size_big, BLUE);
 	DrawText(restart_text,
 		 screen_width / 2 -
 		     MeasureText(restart_text, p.font_size_small) / 2,

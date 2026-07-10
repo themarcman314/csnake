@@ -10,7 +10,7 @@ TARGET=csnake
 WEB_CC=emcc
 WEB_FLAGS = $(FLAGS)
 WEB_FLAGS += -DPLATFORM_WEB
-WEB_LFLAGS = --shell-file src/shell.html -s USE_GLFW=3 -s ASYNCIFY  -sSTACK_SIZE=100000 --preload-file sounds --preload-file persistent -sINITIAL_MEMORY=67108864   #FIXME remove memory growth ?
+WEB_LFLAGS = --shell-file src/shell.html -s USE_GLFW=3 -s ASYNCIFY -s STACK_SIZE=1MB --preload-file sounds --preload-file persistent -sINITIAL_MEMORY=67108864   #FIXME remove memory growth ?
 WEB_LIB=./libs/libraylib_web.a
 TARGET_WEB=csnake.html
 PORT = 8000
