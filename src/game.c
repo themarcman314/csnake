@@ -515,6 +515,7 @@ void game_clean(Game *g) {
 
 void UpdateDrawFrame(Game *g) {
 	BeginDrawing();
+	get_screen_measurements();
 	g->in.in_key = GetKeyPressed();
 	if (!IsSoundPlaying(g->sound_background_music))
 		PlaySound(g->sound_background_music);

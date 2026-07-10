@@ -32,8 +32,6 @@ DrawingParameters p = {.draw_fps = true,
 		       .font_size_big = 35,
 		       .font_size_small = 20};
 
-void get_screen_measurements();
-
 void set_keyboard_type() {
 #ifndef PLATFORM_WEB
 	if (*GetKeyName(KEY_A) == 'q') {
@@ -189,7 +187,6 @@ void set_start_coords_grid(int grid_width, int grid_height) {
 }
 
 void display_menu_conf(DisplayConfigureInfo const info) {
-	get_screen_measurements();
 	ClearBackground(BACKGROUND_COLOR);
 	int const border_fraction_screen_width = 15;
 	int const border_fraction_screen_height = 15;
@@ -263,7 +260,6 @@ void display_menu_conf(DisplayConfigureInfo const info) {
 	    rectangle_height - rectangle_fill_offset, TEXT_COLOR);
 }
 void display_name_conf(DisplayConfigureInfo const info) {
-	get_screen_measurements();
 	ClearBackground(BACKGROUND_COLOR);
 	char title_name[] = "Enter your name:";
 	DrawText(title_name,
@@ -383,7 +379,6 @@ void display_snake_speed_conf(DisplayConfigureInfo const info) {
 }
 
 void display_high_score(HighScoreEntry const *h, int const num_entries) {
-	get_screen_measurements();
 	ClearBackground(BACKGROUND_COLOR);
 	char title[] = "Highscores";
 	int const center_x_title =

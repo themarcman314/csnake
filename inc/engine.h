@@ -25,6 +25,7 @@ typedef struct {
 	Vector2 last_mouse_pos;
 } DisplayConfigureInfo;
 
+void get_screen_measurements();
 typedef void (*ConfDisplayFunc)(DisplayConfigureInfo const info);
 void display_menu_conf(DisplayConfigureInfo const info);
 void display_name_conf(DisplayConfigureInfo const info);
@@ -43,8 +44,6 @@ void display_end(Board const *b, int const score, int game_over_timestamp);
 void display_welcome();
 void display_configure(DisplayConfigureInfo const info);
 void display_high_score(HighScoreEntry const *h, int const num_entries);
-
-void window_get_size();
 
 void window_periodic_start();
 void window_periodic_end();
