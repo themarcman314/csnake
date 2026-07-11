@@ -296,12 +296,37 @@ void display_width_conf(DisplayConfigureInfo const info) {
 	DrawText(width_number_string,
 		 p.screen_width / 2 -
 		     (width_number_string_len + width_string_len) / 2,
-		 40 + p.screen_height / 4, p.font_size_big, BLUE);
+		 p.font_size_big + p.screen_height / 4, p.font_size_big, BLUE);
 	DrawText(width_string,
 		 p.screen_width / 2 -
 		     (width_number_string_len + width_string_len) / 2 +
 		     width_number_string_len,
-		 40 + p.screen_height / 4, p.font_size_big, MAROON);
+		 p.font_size_big + p.screen_height / 4, p.font_size_big,
+		 MAROON);
+	int btn_width = 100, btn_height = 50;
+	int inner_spacing = 50;
+	UIElement decrease =
+	    CreateButton(p.screen_width / 2 - (btn_width + inner_spacing),
+			 p.screen_height / 4 + 2 * p.font_size_big, btn_width,
+			 btn_height, "-");
+	UIElement increase =
+	    CreateButton(p.screen_width / 2 + inner_spacing,
+			 p.screen_height / 4 + 2 * p.font_size_big, btn_width,
+			 btn_height, "+");
+	DrawRectangleLinesEx(decrease.bounds,
+			     decrease.rectangle_thickness_lines, GRAY);
+	DrawRectangleLinesEx(increase.bounds,
+			     increase.rectangle_thickness_lines, GRAY);
+
+	Vector2 current_mouse_pos = GetMousePosition();
+	decrease.is_hovered =
+	    CheckCollisionPointRec(current_mouse_pos, decrease.bounds);
+	increase.is_hovered =
+	    CheckCollisionPointRec(current_mouse_pos, increase.bounds);
+	if (decrease.is_hovered)
+		DrawRectangleRec(decrease.highlighted_portion, GREEN);
+	if (increase.is_hovered)
+		DrawRectangleRec(increase.highlighted_portion, GREEN);
 }
 
 void display_height_conf(DisplayConfigureInfo const info) {

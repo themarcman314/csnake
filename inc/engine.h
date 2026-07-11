@@ -10,6 +10,10 @@ typedef struct DrawingParameters DrawingParameters;
 
 typedef struct {
 	Rectangle bounds;
+	float rectangle_thickness_lines;
+	Rectangle highlighted_portion;
+	bool is_hovered;
+	char text[20];
 } UIElement;
 
 typedef struct {
@@ -54,6 +58,8 @@ void window_periodic_end();
 void set_keyboard_type();
 
 void draw_square(DrawingParameters const *p, int const x, int const y, Color c);
+
+UIElement CreateButton(float x, float y, float width, float height, char *text);
 
 void set_start_coords_grid(int grid_width, int grid_height);
 

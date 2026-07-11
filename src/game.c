@@ -495,6 +495,19 @@ void save_score(char const *name, unsigned const score) {
 	}
 }
 
+UIElement CreateButton(float x, float y, float width, float height,
+		       char *text) {
+	UIElement btn = {0};
+	int fill_offset = 5;
+	btn.bounds = (Rectangle){x, y, width, height};
+	btn.highlighted_portion =
+	    (Rectangle){x + fill_offset, y + fill_offset,
+			width - 2 * fill_offset, height - 2 * fill_offset};
+	memcpy(btn.text, text, sizeof(btn.text));
+	btn.rectangle_thickness_lines = 2.0f;
+	return btn;
+}
+
 void game_restart(Game *g) {
 	g->score = 0;
 	snake_init(g->b);
