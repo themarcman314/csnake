@@ -6,6 +6,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #define BACKGROUND_COLOR CLITERAL(Color){31, 31, 31, 255}
@@ -48,7 +49,6 @@ void set_keyboard_type() {
 
 void engine_init() {
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
-	// SetConfigFlags(FLAG_FULLSCREEN_MODE);
 	InitWindow(800, 450, "csnake");
 	SetTargetFPS(60);
 	int const screenWidth = GetMonitorWidth(GetCurrentMonitor());
@@ -75,7 +75,8 @@ void grid_draw(int const board_size_x, int const board_size_y,
 	}
 }
 
-void board_draw(Board const *b, int score, bool is_draw_game_over) {
+void board_draw(Board const *b, int score, bool is_draw_game_over,
+		bool show_score) {
 	ClearBackground(BACKGROUND_COLOR);
 
 	set_start_coords_grid(b->width, b->height);
@@ -91,7 +92,7 @@ void board_draw(Board const *b, int score, bool is_draw_game_over) {
 			} else if (c == SNAKE_BODY_CHAR ||
 				   (c == SNAKE_HEAD_CHAR && !is_draw_game_over))
 				draw_square(&p, x, y, GREEN);
-			if (!is_draw_game_over) {
+			if (show_score) {
 				char score_text[20] = "";
 				sprintf(score_text, "score: %d", score);
 				DrawText(score_text,
@@ -141,7 +142,7 @@ void display_end(Board const *b, int const score, int game_over_timestamp) {
 	ClearBackground(BACKGROUND_COLOR);
 	int x, y;
 	snake_get_head_position(b->s, &x, &y);
-	board_draw(b, score, true);
+	board_draw(b, score, true, false);
 	board_draw_collision(b, x, y);
 	int now = millis();
 	if (now - game_over_timestamp < 1000) {
@@ -334,28 +335,19 @@ void display_height_conf(DisplayConfigureInfo const info) {
 		 40 + p.screen_height / 4, p.font_size_big, MAROON);
 }
 
+void display_wrapping_conf(DisplayConfigureInfo const info) {
+	display_menu_conf(info);
+	DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(),
+		      Fade(BLACK, 0.7f));
+	board_draw(info.demo, 0, false, false);
+}
 void display_snake_speed_conf(DisplayConfigureInfo const info) {
-	// static int i = 0;
 
-	// static int last_tick = 0;
-	// int now = millis();
-	// if (now - last_tick >= 1000.0F / freq) {
-	//	last_tick = now;
-	//	if (board_check_edge(demo)) {
-	//		i++;
-	//	} else {
-	//	}
-	//  snake_head_direction_set_next(demo->s,
-	//			      directions[i % 4]);
-	// snake_head_direction_set(demo->s);
-	// snake_update_square_position(demo->s);
-	// board_update(demo);
-	//}
-	// board_draw(info.demo, 0, false);
 	ClearBackground(BACKGROUND_COLOR);
 	display_menu_conf(info);
 	DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(),
 		      Fade(BLACK, 0.7f));
+	board_draw(info.demo, 0, false, false);
 	char title_speed[] = "Set snake speed:";
 	DrawText(title_speed,
 		 p.screen_width / 2 -

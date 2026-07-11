@@ -382,13 +382,27 @@ bool board_check_collisions(Board const *b) {
 	}
 }
 
-bool board_check_edge(Board const *b) {
-	if (b->s->head->x <= 0 || b->s->head->x >= b->width - 1 ||
-	    b->s->head->y <= 0 || b->s->head->y >= b->height - 1) {
+bool snake_check_board_imminent_collision(Board const *b) {
+	if ((b->s->head->x == 0 && b->s->head_dir_current == SNAKE_LEFT) ||
+	    (b->s->head->x == (b->width - 1) &&
+	     b->s->head_dir_current == SNAKE_RIGHT) ||
+	    (b->s->head->y == 0 && b->s->head_dir_current == SNAKE_UP) ||
+	    (b->s->head->y == (b->height - 1) &&
+	     b->s->head_dir_current == SNAKE_DOWN)) {
 		return true;
 	} else {
 		return false;
 	}
+}
+
+void snake_right_direction_to_current(Snake *s) {
+	const int right_lut[] = {
+	    [SNAKE_UP] = SNAKE_RIGHT,
+	    [SNAKE_DOWN] = SNAKE_LEFT,
+	    [SNAKE_LEFT] = SNAKE_UP,
+	    [SNAKE_RIGHT] = SNAKE_DOWN,
+	};
+	s->head_dir_current = right_lut[s->head_dir_current];
 }
 
 bool snake_ate_food(Snake *s, Food *f) {

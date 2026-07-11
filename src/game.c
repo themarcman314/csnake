@@ -75,12 +75,14 @@ void update_width_conf(Game *g, DisplayConfigureInfo *i);
 void update_height_conf(Game *g, DisplayConfigureInfo *i);
 void update_snake_speed_conf(Game *g, DisplayConfigureInfo *i);
 
+void snake_demo(DisplayConfigureInfo info);
+
 GameConfigureStateTransition conf_transitions[] = {
     {STATE_CONFIGURE_MENU, STATE_CONFIGURE_SELECTED_WIDTH, KEY_ENTER,
      STATE_CONFIGURE_WIDTH},
     {STATE_CONFIGURE_MENU, STATE_CONFIGURE_SELECTED_WRAPPING, KEY_ENTER,
      STATE_CONFIGURE_WRAPPING},
-    {STATE_CONFIGURE_WRAPPING, STATE_CONFIGURE_SELECTED_NONE, KEY_NULL,
+    {STATE_CONFIGURE_WRAPPING, STATE_CONFIGURE_SELECTED_NONE, KEY_ENTER,
      STATE_CONFIGURE_MENU},
     {STATE_CONFIGURE_MENU, STATE_CONFIGURE_SELECTED_HEIGHT, KEY_ENTER,
      STATE_CONFIGURE_HEIGHT},
@@ -126,8 +128,8 @@ static const ConfDisplayFunc conf_display_funcs[] = {
     [STATE_CONFIGURE_MENU] = display_menu_conf,
     [STATE_CONFIGURE_WIDTH] = display_width_conf,
     [STATE_CONFIGURE_HEIGHT] = display_height_conf,
-    [STATE_CONFIGURE_WRAPPING] = display_menu_conf,
     [STATE_CONFIGURE_SNAKE_SPEED] = display_snake_speed_conf,
+    [STATE_CONFIGURE_WRAPPING] = display_wrapping_conf,
 };
 
 void update_wrapping_conf(Game *g, DisplayConfigureInfo *i) {
@@ -257,7 +259,6 @@ void update_height_conf(Game *g, DisplayConfigureInfo *i) {
 			return;
 		i->height--;
 	}
-	i->demo = board_create(i->width, i->height);
 }
 
 void update_snake_speed_conf(Game *g, DisplayConfigureInfo *i) {
@@ -326,17 +327,17 @@ GameState game_run(Game *g) {
 			PlaySound(g->sound_death);
 			ResumeSound(g->sound_background_music);
 			g->death_timestamp = millis();
-			board_draw(g->b, g->score, true);
+			board_draw(g->b, g->score, true, true);
 			return STATE_GAME_END;
 		}
 	}
-	board_draw(g->b, g->score, false);
+	board_draw(g->b, g->score, false, true);
 	return STATE_GAME_RUN;
 }
 
 GameState game_welcome(Input in) {
 	display_welcome();
-	if (in.in_key != KEY_NULL)
+	if (in.in_key != KEY_NULL || IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
 		return STATE_GAME_CONFIGURE;
 	return STATE_GAME_WELCOME;
 }
@@ -347,7 +348,6 @@ GameState game_configure(Game *g) {
 	static bool initialized = false;
 	if (!initialized) {
 		state_conf = STATE_CONFIGURE_NAME;
-		info.demo = NULL;
 		info.state_select = STATE_CONFIGURE_SELECTED_WIDTH;
 		info.freq = TICK_FREQUENCY;
 		info.width = BOARD_WIDTH;
@@ -355,7 +355,10 @@ GameState game_configure(Game *g) {
 		info.name = g->player_name;
 		info.board_wrapping = true;
 		initialized = true;
+		info.demo = board_create(info.width, info.height);
 	}
+
+	snake_demo(info);
 
 	int const num_of_conf_transitions =
 	    sizeof(conf_transitions) / sizeof(GameConfigureStateTransition);
@@ -391,6 +394,44 @@ GameState game_configure(Game *g) {
 		return STATE_GAME_RUN;
 	}
 	return STATE_GAME_CONFIGURE;
+}
+
+void snake_demo(DisplayConfigureInfo info) {
+	static int last_tick = 0;
+	static int last_tick_input = 0;
+	static Input in = {KEY_RIGHT};
+	int now = millis();
+	if (now - last_tick >= 1000.0F / info.freq) {
+		last_tick = now;
+		if (now - last_tick_input >= 200.0F) {
+			last_tick_input = now;
+			in.in_key =
+			    (rand() % (4 + 1)) + KEY_RIGHT; // random input
+		}
+
+		snake_head_direction_set_next(info.demo->s, in);
+		snake_head_direction_set(info.demo->s);
+		if (info.board_wrapping == false) {
+			while (snake_check_board_imminent_collision(
+			    info.demo)) { // make sure we don't collide
+					  // with edge
+				snake_right_direction_to_current(info.demo->s);
+			}
+		}
+		snake_update_square_position(info.demo->s, info.demo->width,
+					     info.demo->height,
+					     info.board_wrapping);
+		if (snake_ate_food(info.demo->s, info.demo->f)) {
+			snake_segment_add(info.demo->s);
+			food_spawn(info.demo);
+		}
+		if (board_check_all_collisions(info.demo)) {
+			// restart demo
+			snake_init(info.demo);
+			food_init(info.demo);
+		}
+		board_update(info.demo);
+	}
 }
 
 void navigate_menu(GameConfigureSelectedState *state, int const direction) {
