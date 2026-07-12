@@ -378,6 +378,13 @@ GameState game_configure(Game *g) {
 		     info.state_select == t->selected_item);
 		if (state_match && key_match && sel_match) {
 			state_conf = t->next_state;
+
+			if (!info.demo || info.demo->width != info.width ||
+			    info.demo->height != info.height) {
+				board_destroy(&info.demo);
+				info.demo =
+				    board_create(info.width, info.height);
+			}
 			break;
 		}
 	}
