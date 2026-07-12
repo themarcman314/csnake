@@ -75,7 +75,7 @@ void update_width_conf(Game *g, DisplayConfigureInfo *i);
 void update_height_conf(Game *g, DisplayConfigureInfo *i);
 void update_snake_speed_conf(Game *g, DisplayConfigureInfo *i);
 
-void snake_demo(DisplayConfigureInfo info);
+void snake_demo(Board *demo_b, float freq, bool board_wrapping);
 
 GameConfigureStateTransition conf_transitions[] = {
     {STATE_CONFIGURE_MENU, STATE_CONFIGURE_SELECTED_WIDTH, KEY_ENTER,
@@ -133,8 +133,8 @@ static const ConfDisplayFunc conf_display_funcs[] = {
 };
 
 void update_wrapping_conf(Game *g, DisplayConfigureInfo *i) {
-	g->wrapping = !g->wrapping;
-	i->board_wrapping = g->wrapping;
+	// g->wrapping = !g->wrapping;
+	// i->board_wrapping = g->wrapping;
 }
 void update_menu_conf(Game *g, DisplayConfigureInfo *i) {
 	i->element_count = 4;
@@ -353,12 +353,12 @@ GameState game_configure(Game *g) {
 		info.width = BOARD_WIDTH;
 		info.height = BOARD_HEIGHT;
 		info.name = g->player_name;
-		info.board_wrapping = true;
+		info.board_wrapping = false;
 		initialized = true;
 		info.demo = board_create(info.width, info.height);
 	}
 
-	snake_demo(info);
+	snake_demo(info.demo, info.freq, info.board_wrapping);
 
 	int const num_of_conf_transitions =
 	    sizeof(conf_transitions) / sizeof(GameConfigureStateTransition);
@@ -394,44 +394,6 @@ GameState game_configure(Game *g) {
 		return STATE_GAME_RUN;
 	}
 	return STATE_GAME_CONFIGURE;
-}
-
-void snake_demo(DisplayConfigureInfo info) {
-	static int last_tick = 0;
-	static int last_tick_input = 0;
-	static Input in = {KEY_RIGHT};
-	int now = millis();
-	if (now - last_tick >= 1000.0F / info.freq) {
-		last_tick = now;
-		if (now - last_tick_input >= 200.0F) {
-			last_tick_input = now;
-			in.in_key =
-			    (rand() % (4 + 1)) + KEY_RIGHT; // random input
-		}
-
-		snake_head_direction_set_next(info.demo->s, in);
-		snake_head_direction_set(info.demo->s);
-		if (info.board_wrapping == false) {
-			while (snake_check_board_imminent_collision(
-			    info.demo)) { // make sure we don't collide
-					  // with edge
-				snake_right_direction_to_current(info.demo->s);
-			}
-		}
-		snake_update_square_position(info.demo->s, info.demo->width,
-					     info.demo->height,
-					     info.board_wrapping);
-		if (snake_ate_food(info.demo->s, info.demo->f)) {
-			snake_segment_add(info.demo->s);
-			food_spawn(info.demo);
-		}
-		if (board_check_all_collisions(info.demo)) {
-			// restart demo
-			snake_init(info.demo);
-			food_init(info.demo);
-		}
-		board_update(info.demo);
-	}
 }
 
 void navigate_menu(GameConfigureSelectedState *state, int const direction) {
@@ -495,8 +457,8 @@ void save_score(char const *name, unsigned const score) {
 	}
 }
 
-UIElement CreateButton(float x, float y, float width, float height,
-		       char *text) {
+UIElement CreateButton(float x, float y, float width, float height, char *text,
+		       int text_offset_x, int text_offset_y) {
 	UIElement btn = {0};
 	int fill_offset = 5;
 	btn.bounds = (Rectangle){x, y, width, height};
@@ -505,6 +467,8 @@ UIElement CreateButton(float x, float y, float width, float height,
 			width - 2 * fill_offset, height - 2 * fill_offset};
 	memcpy(btn.text, text, sizeof(btn.text));
 	btn.rectangle_thickness_lines = 2.0f;
+	btn.text_offset_x = text_offset_x;
+	btn.text_offset_y = text_offset_y;
 	return btn;
 }
 

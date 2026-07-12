@@ -2,6 +2,7 @@
 #include "conf.h"
 #include "debug.h"
 #include "input.h"
+#include "timer.h"
 #include <assert.h>
 #include <raylib.h>
 #include <stdbool.h>
@@ -62,6 +63,8 @@ static bool snake_head_direction_is_opposite(Direction const a,
 					     Direction const b);
 Direction snake_head_direction_translate_from_input(Input const key,
 						    Direction const current);
+bool snake_check_board_imminent_collision(Board const *b, Direction dir);
+void snake_head_direction_set_immediate(Snake *s, Direction dir);
 
 Board *board_create(int const width, int const height) {
 	Board *b = malloc(sizeof(Board));
@@ -271,6 +274,11 @@ void snake_head_direction_set(Snake *s) {
 	}
 }
 
+// use only for demo
+void snake_head_direction_set_immediate(Snake *s, Direction dir) {
+	s->head_dir_current = dir;
+}
+
 void snake_segment_add(Snake *s) {
 	SnakeSegment *current = s->head;
 	while (current->child != NULL) {
@@ -382,13 +390,11 @@ bool board_check_collisions(Board const *b) {
 	}
 }
 
-bool snake_check_board_imminent_collision(Board const *b) {
-	if ((b->s->head->x == 0 && b->s->head_dir_current == SNAKE_LEFT) ||
-	    (b->s->head->x == (b->width - 1) &&
-	     b->s->head_dir_current == SNAKE_RIGHT) ||
-	    (b->s->head->y == 0 && b->s->head_dir_current == SNAKE_UP) ||
-	    (b->s->head->y == (b->height - 1) &&
-	     b->s->head_dir_current == SNAKE_DOWN)) {
+bool snake_check_board_imminent_collision(Board const *b, Direction dir) {
+	if ((b->s->head->x == 0 && dir == SNAKE_LEFT) ||
+	    (b->s->head->x == (b->width - 1) && dir == SNAKE_RIGHT) ||
+	    (b->s->head->y == 0 && dir == SNAKE_UP) ||
+	    (b->s->head->y == (b->height - 1) && dir == SNAKE_DOWN)) {
 		return true;
 	} else {
 		return false;
@@ -432,5 +438,45 @@ void snake_print(Snake const *s) {
 	while (current != NULL) {
 		LogDebug("x: %d y: %d", current->x, current->y);
 		current = current->child;
+	}
+}
+
+void snake_demo(Board *demo_b, float freq, bool board_wrapping) {
+	static int last_tick = 0;
+	static int last_tick_input = 0;
+	static Direction candidate = {SNAKE_UP};
+	int now = millis();
+
+	if (now - last_tick_input >= 200.0F) {
+		last_tick_input = now;
+		candidate = (rand() % 4) + 1; // 1 to 4
+	}
+	if (now - last_tick >= 1000.0F / freq) {
+		last_tick = now;
+
+		if (board_wrapping == false) {
+			while (snake_check_board_imminent_collision(
+				   demo_b, candidate) ||
+			       snake_head_direction_is_opposite(
+				   demo_b->s->head_dir_current,
+				   candidate)) { // make sure we don't collide
+				candidate = (rand() % 4) + 1; // 1 to 4
+			}
+		}
+
+		snake_head_direction_set_immediate(demo_b->s, candidate);
+
+		snake_update_square_position(demo_b->s, demo_b->width,
+					     demo_b->height, board_wrapping);
+		if (snake_ate_food(demo_b->s, demo_b->f)) {
+			snake_segment_add(demo_b->s);
+			food_spawn(demo_b);
+		}
+		if (board_check_all_collisions(demo_b)) {
+			// restart demo
+			snake_init(demo_b);
+			food_init(demo_b);
+		}
+		board_update(demo_b);
 	}
 }

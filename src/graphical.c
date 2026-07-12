@@ -303,16 +303,16 @@ void display_width_conf(DisplayConfigureInfo const info) {
 		     width_number_string_len,
 		 p.font_size_big + p.screen_height / 4, p.font_size_big,
 		 MAROON);
-	int btn_width = 100, btn_height = 50;
+	int btn_width = 50, btn_height = 50;
 	int inner_spacing = 50;
 	UIElement decrease =
 	    CreateButton(p.screen_width / 2 - (btn_width + inner_spacing),
 			 p.screen_height / 4 + 2 * p.font_size_big, btn_width,
-			 btn_height, "-");
+			 btn_height, "-", 15, 5);
 	UIElement increase =
 	    CreateButton(p.screen_width / 2 + inner_spacing,
 			 p.screen_height / 4 + 2 * p.font_size_big, btn_width,
-			 btn_height, "+");
+			 btn_height, "+", 15, 5);
 	DrawRectangleLinesEx(decrease.bounds,
 			     decrease.rectangle_thickness_lines, GRAY);
 	DrawRectangleLinesEx(increase.bounds,
@@ -327,6 +327,12 @@ void display_width_conf(DisplayConfigureInfo const info) {
 		DrawRectangleRec(decrease.highlighted_portion, GREEN);
 	if (increase.is_hovered)
 		DrawRectangleRec(increase.highlighted_portion, GREEN);
+	DrawText(decrease.text, decrease.bounds.x + decrease.text_offset_x,
+		 decrease.bounds.y + decrease.text_offset_y, p.font_size_big,
+		 TEXT_COLOR);
+	DrawText(increase.text, increase.bounds.x + increase.text_offset_x,
+		 increase.bounds.y + increase.text_offset_y, p.font_size_big,
+		 TEXT_COLOR);
 }
 
 void display_height_conf(DisplayConfigureInfo const info) {

@@ -13,6 +13,8 @@ typedef struct {
 	float rectangle_thickness_lines;
 	Rectangle highlighted_portion;
 	bool is_hovered;
+	int text_offset_x;
+	int text_offset_y;
 	char text[20];
 } UIElement;
 
@@ -45,7 +47,6 @@ void board_draw(Board const *b, int score, bool is_draw_game_over,
 void board_draw_collision(Board const *const b, int const board_x,
 			  int const board_y);
 bool board_check_collisions(Board const *b);
-bool snake_check_board_imminent_collision(Board const *b);
 void engine_init();
 void display_end(Board const *b, int const score, int game_over_timestamp);
 void display_welcome();
@@ -59,7 +60,8 @@ void set_keyboard_type();
 
 void draw_square(DrawingParameters const *p, int const x, int const y, Color c);
 
-UIElement CreateButton(float x, float y, float width, float height, char *text);
+UIElement CreateButton(float x, float y, float width, float height, char *text,
+		       int text_offset_x, int text_offset_y);
 
 void set_start_coords_grid(int grid_width, int grid_height);
 
