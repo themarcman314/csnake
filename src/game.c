@@ -121,7 +121,6 @@ static const GameConfigureFunc conf_logic_funcs[] = {
     [STATE_CONFIGURE_HEIGHT] = update_height_conf,
     [STATE_CONFIGURE_WRAPPING] = update_wrapping_conf,
     [STATE_CONFIGURE_SNAKE_SPEED] = update_snake_speed_conf,
-    //[STATE_CONFIGURE_APPLY] = conf_update_,
 };
 static const ConfDisplayFunc conf_display_funcs[] = {
     [STATE_CONFIGURE_NAME] = display_name_conf,
@@ -172,7 +171,6 @@ void update_menu_conf(Game *g, DisplayConfigureInfo *i) {
 	char play_button[] = "Play";
 	int button_width =
 	    MeasureText(play_button, rectangle_height - rectangle_fill_offset);
-	// DrawRectangleLinesEx(r, rectangle_thickness_lines, GRAY);
 	i->elements[i->element_count].bounds.x = screen_width - rectangle_x -
 						 button_width -
 						 2 * rectangle_fill_offset;
@@ -263,12 +261,19 @@ void update_height_conf(Game *g, DisplayConfigureInfo *i) {
 
 void update_snake_speed_conf(Game *g, DisplayConfigureInfo *i) {
 	float const delta = 0.1; // +- 0.1 Hz
-	if (g->in.in_key == KEY_EQUAL || IsKeyPressedRepeat(KEY_EQUAL)) {
+	float const fast_delta = 0.5;
+	if (g->in.in_key == KEY_EQUAL) {
 		i->freq += delta;
-	} else if (g->in.in_key == KEY_MINUS || IsKeyPressedRepeat(KEY_MINUS)) {
+	} else if (IsKeyPressedRepeat(KEY_EQUAL)) {
+		i->freq += fast_delta;
+	} else if (g->in.in_key == KEY_MINUS) {
 		if (i->freq < 0.6f)
 			return;
 		i->freq -= delta;
+	} else if (IsKeyPressedRepeat(KEY_MINUS)) {
+		if (i->freq < 0.6f)
+			return;
+		i->freq -= fast_delta;
 	}
 }
 
