@@ -33,6 +33,8 @@ DrawingParameters p = {.draw_fps = true,
 		       .font_size_big = 35,
 		       .font_size_small = 20};
 
+void DrawUIElement(UIElement const *el);
+
 void set_keyboard_type() {
 #ifndef PLATFORM_WEB
 	if (*GetKeyName(KEY_A) == 'q') {
@@ -196,7 +198,7 @@ void display_menu_conf(DisplayConfigureInfo const info) {
 	int rectangle_width = (border_fraction_screen_width - 2) *
 			      p.screen_width / border_fraction_screen_width;
 	int rectangle_height_spacing =
-	    p.screen_height / (info.element_count + 1);
+	    p.screen_height / (info.menu_element_count + 1);
 	int rectangle_x = p.screen_width / border_fraction_screen_width;
 	int rectangle_y_base = p.screen_height / border_fraction_screen_height;
 	int rectangle_fill_offset = 5;
@@ -208,14 +210,14 @@ void display_menu_conf(DisplayConfigureInfo const info) {
 	sprintf(value[2], "%.2f", info.freq);
 	sprintf(value[3], "%s", info.board_wrapping ? "enabled" : "disabled");
 
-	for (int i = 0; i < info.element_count; i++) {
+	for (int i = 0; i < info.menu_element_count; i++) {
 		const char *labels[] = {"Board width", "Board height",
 					"Snake speed", "Board wrapping"};
 		// Rectangle r = {rectangle_x,
 		//	       i * rectangle_height_spacing +
 		// rectangle_y_base, 	       rectangle_width,
 		// rectangle_height};
-		DrawRectangleLinesEx(info.elements[i].bounds,
+		DrawRectangleLinesEx(info.menu_elements[i].bounds,
 				     rectangle_thickness_lines, GRAY);
 		if (info.state_select == i)
 			DrawRectangle(
@@ -240,25 +242,27 @@ void display_menu_conf(DisplayConfigureInfo const info) {
 	char play_button[] = "Play";
 	int button_width =
 	    MeasureText(play_button, rectangle_height - rectangle_fill_offset);
-	Rectangle r = {
-	    p.screen_width - rectangle_x - button_width -
-		2 * rectangle_fill_offset,
-	    info.element_count * rectangle_height_spacing + rectangle_y_base,
-	    button_width + rectangle_fill_offset * 2, rectangle_height};
+	Rectangle r = {p.screen_width - rectangle_x - button_width -
+			   2 * rectangle_fill_offset,
+		       info.menu_element_count * rectangle_height_spacing +
+			   rectangle_y_base,
+		       button_width + rectangle_fill_offset * 2,
+		       rectangle_height};
 	DrawRectangleLinesEx(r, rectangle_thickness_lines, GRAY);
 	if (info.state_select == STATE_CONFIGURE_SELECTED_PLAY)
-		DrawRectangle(p.screen_width - rectangle_x - button_width -
-				  rectangle_fill_offset,
-			      info.element_count * rectangle_height_spacing +
-				  rectangle_y_base + rectangle_fill_offset,
-			      button_width,
-			      rectangle_height - rectangle_fill_offset * 2,
-			      GREEN);
-	DrawText(
-	    play_button,
-	    p.screen_width - rectangle_x - button_width - rectangle_fill_offset,
-	    info.element_count * rectangle_height_spacing + rectangle_y_base,
-	    rectangle_height - rectangle_fill_offset, TEXT_COLOR);
+		DrawRectangle(
+		    p.screen_width - rectangle_x - button_width -
+			rectangle_fill_offset,
+		    info.menu_element_count * rectangle_height_spacing +
+			rectangle_y_base + rectangle_fill_offset,
+		    button_width, rectangle_height - rectangle_fill_offset * 2,
+		    GREEN);
+	DrawText(play_button,
+		 p.screen_width - rectangle_x - button_width -
+		     rectangle_fill_offset,
+		 info.menu_element_count * rectangle_height_spacing +
+		     rectangle_y_base,
+		 rectangle_height - rectangle_fill_offset, TEXT_COLOR);
 }
 void display_name_conf(DisplayConfigureInfo const info) {
 	ClearBackground(BACKGROUND_COLOR);
@@ -303,36 +307,47 @@ void display_width_conf(DisplayConfigureInfo const info) {
 		     width_number_string_len,
 		 p.font_size_big + p.screen_height / 4, p.font_size_big,
 		 MAROON);
-	int btn_width = 50, btn_height = 50;
-	int inner_spacing = 50;
-	UIElement decrease =
-	    CreateButton(p.screen_width / 2 - (btn_width + inner_spacing),
-			 p.screen_height / 4 + 2 * p.font_size_big, btn_width,
-			 btn_height, "-", 15, 5);
-	UIElement increase =
-	    CreateButton(p.screen_width / 2 + inner_spacing,
-			 p.screen_height / 4 + 2 * p.font_size_big, btn_width,
-			 btn_height, "+", 15, 5);
-	DrawRectangleLinesEx(decrease.bounds,
-			     decrease.rectangle_thickness_lines, GRAY);
-	DrawRectangleLinesEx(increase.bounds,
-			     increase.rectangle_thickness_lines, GRAY);
+	for (int i = 0; i < info.sub_element_count; i++) {
+		DrawUIElement(&info.sub_elements[i]);
+	}
 
-	Vector2 current_mouse_pos = GetMousePosition();
-	decrease.is_hovered =
-	    CheckCollisionPointRec(current_mouse_pos, decrease.bounds);
-	increase.is_hovered =
-	    CheckCollisionPointRec(current_mouse_pos, increase.bounds);
-	if (decrease.is_hovered)
-		DrawRectangleRec(decrease.highlighted_portion, GREEN);
-	if (increase.is_hovered)
-		DrawRectangleRec(increase.highlighted_portion, GREEN);
-	DrawText(decrease.text, decrease.bounds.x + decrease.text_offset_x,
-		 decrease.bounds.y + decrease.text_offset_y, p.font_size_big,
-		 TEXT_COLOR);
-	DrawText(increase.text, increase.bounds.x + increase.text_offset_x,
-		 increase.bounds.y + increase.text_offset_y, p.font_size_big,
-		 TEXT_COLOR);
+	// DrawRectangleLinesEx(decrease.bounds,
+	//		     decrease.rectangle_thickness_lines, GRAY);
+	// DrawRectangleLinesEx(increase.bounds,
+	//		     increase.rectangle_thickness_lines, GRAY);
+	// if (decrease.is_hovered)
+	//	DrawRectangleRec(decrease.highlighted_portion, GREEN);
+	// if (increase.is_hovered)
+	//	DrawRectangleRec(increase.highlighted_portion, GREEN);
+	// DrawText(decrease.text, decrease.text_x, decrease.text_y,
+	//	 p.font_size_big, TEXT_COLOR);
+	// DrawText(increase.text, increase.text_x, increase.text_y,
+	//	 p.font_size_big, TEXT_COLOR);
+}
+
+void DrawUIElement(UIElement const *el) {
+	Color btn_color = el->is_hovered ? LIGHTGRAY : GRAY;
+	Color text_color = el->is_hovered ? BLACK : DARKGRAY;
+
+	// 2. Draw the main button body
+	DrawRectangleRec(el->bounds, btn_color);
+
+	// 3. Draw the highlight border if hovered
+	if (el->is_hovered) {
+		Rectangle border = {el->bounds.x + 2, el->bounds.y + 2,
+				    el->bounds.width - 4,
+				    el->bounds.height - 4};
+		DrawRectangleLinesEx(border, el->outline_thickness, YELLOW);
+	}
+
+	// 4. Center and draw the text automatically
+	int font_size = 20;
+	int text_width = MeasureText(el->text, font_size);
+
+	int text_x = el->bounds.x + (el->bounds.width - text_width) / 2;
+	int text_y = el->bounds.y + (el->bounds.height - font_size) / 2;
+
+	DrawText(el->text, text_x, text_y, font_size, text_color);
 }
 
 void display_height_conf(DisplayConfigureInfo const info) {
@@ -364,6 +379,9 @@ void display_height_conf(DisplayConfigureInfo const info) {
 		     (height_number_string_len + height_string_len) / 2 +
 		     height_number_string_len,
 		 40 + p.screen_height / 4, p.font_size_big, MAROON);
+	for (int i = 0; i < info.sub_element_count; i++) {
+		DrawUIElement(&info.sub_elements[i]);
+	}
 }
 
 void display_wrapping_conf(DisplayConfigureInfo const info) {
@@ -399,6 +417,10 @@ void display_snake_speed_conf(DisplayConfigureInfo const info) {
 		     (speed_number_string_len + speed_string_len) / 2 +
 		     speed_number_string_len,
 		 40 + p.screen_height / 4, p.font_size_big, MAROON);
+
+	for (int i = 0; i < info.sub_element_count; i++) {
+		DrawUIElement(&info.sub_elements[i]);
+	}
 }
 
 void display_high_score(HighScoreEntry const *h, int const num_entries) {
@@ -453,4 +475,15 @@ bool is_display_name_box_overflown(char *name) {
 		return false;
 	}
 	return true;
+}
+
+UIElement CreateButton(float x, float y, float width, float height,
+		       char *text) {
+	UIElement btn = {0};
+	int fill_offset = 5;
+	btn.bounds = (Rectangle){x, y, width, height};
+	memcpy(btn.text, text, sizeof(btn.text));
+	btn.outline_thickness = 2.0f;
+	// center the text
+	return btn;
 }

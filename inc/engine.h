@@ -8,14 +8,20 @@
 
 typedef struct DrawingParameters DrawingParameters;
 
+typedef enum {
+	BTN_NONE,
+	BTN_DECREASE,
+	BTN_INCREASE,
+	BTN_ACCEPT,
+	BTN_CANCEL,
+} ElementID;
+
 typedef struct {
 	Rectangle bounds;
-	float rectangle_thickness_lines;
-	Rectangle highlighted_portion;
+	float outline_thickness;
 	bool is_hovered;
-	int text_offset_x;
-	int text_offset_y;
 	char text[20];
+	ElementID id;
 } UIElement;
 
 typedef struct {
@@ -26,8 +32,10 @@ typedef struct {
 	int height;
 	bool board_wrapping;
 	char *name;
-	UIElement elements[10]; // up to 10 ui elements
-	int element_count;
+	UIElement menu_elements[5];
+	UIElement sub_elements[5];
+	int menu_element_count;
+	int sub_element_count;
 	Vector2 last_mouse_pos;
 } DisplayConfigureInfo;
 
@@ -60,8 +68,7 @@ void set_keyboard_type();
 
 void draw_square(DrawingParameters const *p, int const x, int const y, Color c);
 
-UIElement CreateButton(float x, float y, float width, float height, char *text,
-		       int text_offset_x, int text_offset_y);
+UIElement CreateButton(float x, float y, float width, float height, char *text);
 
 void set_start_coords_grid(int grid_width, int grid_height);
 
