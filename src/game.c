@@ -142,6 +142,7 @@ GameState game_configure(Game *g) {
 		info.board_wrapping = false;
 		initialized = true;
 		info.demo = board_create(info.width, info.height);
+		init_menu_conf(&info);
 	}
 
 	snake_demo(info.demo, info.freq, info.board_wrapping);
@@ -176,6 +177,7 @@ GameState game_configure(Game *g) {
 		if (state_match && key_match && sel_match) {
 			state_conf = t->next_state;
 			switch (state_conf) {
+
 			case STATE_CONFIGURE_WIDTH:
 				init_width_conf(&info);
 				break;

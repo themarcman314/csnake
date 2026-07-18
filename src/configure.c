@@ -1,6 +1,7 @@
 #include "configure.h"
 #include "engine.h"
 #include "game.h"
+#include "raylib.h"
 #include <string.h>
 
 void navigate_menu(GameConfigureSelectedState *state, int const direction);
@@ -16,20 +17,9 @@ int update_wrapping_conf(Game *g, DisplayConfigureInfo *i) {
 }
 
 int update_menu_conf(Game *g, DisplayConfigureInfo *i) {
-	i->menu_element_count = 4;
 
 	int screen_height = GetScreenHeight();
 	int screen_width = GetScreenWidth();
-
-	int const border_fraction_screen_width = 15;
-	int const border_fraction_screen_height = 15;
-	int rectangle_height = screen_height / 20;
-	int rectangle_width = (border_fraction_screen_width - 2) *
-			      screen_width / border_fraction_screen_width;
-	int rectangle_y_base = screen_height / border_fraction_screen_height;
-	int rectangle_height_spacing =
-	    screen_height / (i->menu_element_count + 1);
-	int rectangle_x = screen_width / border_fraction_screen_width;
 
 	Vector2 current_mouse_pos = GetMousePosition();
 	bool mouse_moved = (current_mouse_pos.x != i->last_mouse_pos.x ||
@@ -37,30 +27,6 @@ int update_menu_conf(Game *g, DisplayConfigureInfo *i) {
 
 	// Save current position for the next frame
 	i->last_mouse_pos = current_mouse_pos;
-
-	// assign rectangle boxes
-	for (int idx = 0; idx < i->menu_element_count; idx++) {
-		i->menu_elements[idx].bounds.x = rectangle_x;
-		i->menu_elements[idx].bounds.y =
-		    idx * rectangle_height_spacing + rectangle_y_base;
-		i->menu_elements[idx].bounds.width = rectangle_width;
-		i->menu_elements[idx].bounds.height = rectangle_height;
-	}
-
-	int const rectangle_thickness_lines = 2;
-	int rectangle_fill_offset = 5;
-	char play_button[] = "Play";
-	int button_width =
-	    MeasureText(play_button, rectangle_height - rectangle_fill_offset);
-	i->menu_elements[i->menu_element_count].bounds.x =
-	    screen_width - rectangle_x - button_width -
-	    2 * rectangle_fill_offset;
-	i->menu_elements[i->menu_element_count].bounds.y =
-	    i->menu_element_count * rectangle_height_spacing + rectangle_y_base;
-	i->menu_elements[i->menu_element_count].bounds.width =
-	    button_width + rectangle_fill_offset * 2;
-	i->menu_elements[i->menu_element_count].bounds.height =
-	    rectangle_height;
 
 	if (mouse_moved) {
 		i->state_select = STATE_CONFIGURE_SELECTED_NONE;
@@ -237,18 +203,24 @@ void init_width_conf(DisplayConfigureInfo *i) {
 
 	// Button 0: Decrease Width
 	i->sub_elements[0].bounds = (Rectangle){100, 200, 50, 50};
-	strcpy(i->menu_elements[0].text, "-");
+	memset(i->sub_elements[0].text, 0, sizeof(i->menu_elements[0].text));
+	strcpy(i->sub_elements[0].text, "-");
 	i->sub_elements[0].id = BTN_DECREASE;
+	i->sub_elements[0].outline_thickness = 2.f;
 
 	// Button 1: Increase Width
 	i->sub_elements[1].bounds = (Rectangle){200, 200, 50, 50};
-	strcpy(i->menu_elements[0].text, "+");
+	memset(i->sub_elements[1].text, 0, sizeof(i->menu_elements[1].text));
+	strcpy(i->sub_elements[1].text, "+");
 	i->sub_elements[1].id = BTN_INCREASE;
+	i->sub_elements[1].outline_thickness = 2.f;
 
 	// Button 2: Accept
 	i->sub_elements[2].bounds = (Rectangle){100, 300, 150, 50};
-	strcpy(i->menu_elements[0].text, "OK");
+	memset(i->sub_elements[2].text, 0, sizeof(i->menu_elements[2].text));
+	strcpy(i->sub_elements[2].text, "OK");
 	i->sub_elements[2].id = BTN_ACCEPT;
+	i->sub_elements[2].outline_thickness = 2.f;
 }
 
 void init_height_conf(DisplayConfigureInfo *i) {
@@ -256,17 +228,17 @@ void init_height_conf(DisplayConfigureInfo *i) {
 
 	// Button 0: Decrease Width
 	i->sub_elements[0].bounds = (Rectangle){100, 200, 50, 50};
-	strcpy(i->menu_elements[0].text, "-");
+	strcpy(i->sub_elements[0].text, "-");
 	i->sub_elements[0].id = BTN_DECREASE;
 
 	// Button 1: Increase Width
 	i->sub_elements[1].bounds = (Rectangle){200, 200, 50, 50};
-	strcpy(i->menu_elements[0].text, "+");
+	strcpy(i->sub_elements[1].text, "+");
 	i->sub_elements[1].id = BTN_INCREASE;
 
 	// Button 2: Accept
 	i->sub_elements[2].bounds = (Rectangle){100, 300, 150, 50};
-	strcpy(i->menu_elements[0].text, "OK");
+	strcpy(i->sub_elements[2].text, "OK");
 	i->sub_elements[2].id = BTN_ACCEPT;
 }
 
@@ -275,16 +247,57 @@ void init_speed_conf(DisplayConfigureInfo *i) {
 
 	// Button 0: Decrease Width
 	i->sub_elements[0].bounds = (Rectangle){100, 200, 50, 50};
-	strcpy(i->menu_elements[0].text, "-");
+	strcpy(i->sub_elements[0].text, "-");
 	i->sub_elements[0].id = BTN_DECREASE;
 
 	// Button 1: Increase Width
 	i->sub_elements[1].bounds = (Rectangle){200, 200, 50, 50};
-	strcpy(i->menu_elements[0].text, "+");
+	strcpy(i->sub_elements[1].text, "+");
 	i->sub_elements[1].id = BTN_INCREASE;
 
 	// Button 2: Accept
 	i->sub_elements[2].bounds = (Rectangle){100, 300, 150, 50};
-	strcpy(i->menu_elements[0].text, "OK");
+	strcpy(i->sub_elements[2].text, "OK");
 	i->sub_elements[2].id = BTN_ACCEPT;
+}
+
+void init_menu_conf(DisplayConfigureInfo *i) {
+	i->menu_element_count = 4;
+	int screen_width = GetScreenWidth();
+	int screen_height = GetScreenHeight();
+
+	int const border_fraction_screen_width = 15;
+	int const border_fraction_screen_height = 15;
+	int rectangle_height = screen_height / 20;
+	int rectangle_fill_offset = 5;
+	int rectangle_width = (border_fraction_screen_width - 2) *
+			      screen_width / border_fraction_screen_width;
+	int rectangle_y_base = screen_height / border_fraction_screen_height;
+	int rectangle_height_spacing =
+	    screen_height / (i->menu_element_count + 1);
+	int rectangle_x = screen_width / border_fraction_screen_width;
+
+	// assign rectangle boxes
+	for (int idx = 0; idx < i->menu_element_count; idx++) {
+		i->menu_elements[idx].bounds.x =
+		    rectangle_x + rectangle_fill_offset;
+		i->menu_elements[idx].bounds.y =
+		    idx * rectangle_height_spacing + rectangle_y_base;
+		i->menu_elements[idx].bounds.width = rectangle_width;
+		i->menu_elements[idx].bounds.height = rectangle_height;
+	}
+
+	int const rectangle_thickness_lines = 2;
+	char play_button[] = "Play";
+	int button_width =
+	    MeasureText(play_button, rectangle_height - rectangle_fill_offset);
+	i->menu_elements[i->menu_element_count].bounds.x =
+	    screen_width - rectangle_x - button_width -
+	    2 * rectangle_fill_offset;
+	i->menu_elements[i->menu_element_count].bounds.y =
+	    i->menu_element_count * rectangle_height_spacing + rectangle_y_base;
+	i->menu_elements[i->menu_element_count].bounds.width =
+	    button_width + rectangle_fill_offset * 2;
+	i->menu_elements[i->menu_element_count].bounds.height =
+	    rectangle_height;
 }

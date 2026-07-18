@@ -191,7 +191,8 @@ void set_start_coords_grid(int grid_width, int grid_height) {
 
 void display_menu_conf(DisplayConfigureInfo const info) {
 	ClearBackground(BACKGROUND_COLOR);
-	int const border_fraction_screen_width = 15;
+	p.screen_width = GetScreenWidth();
+	int const border_fraction_screen_width = 5;
 	int const border_fraction_screen_height = 15;
 	int const rectangle_thickness_lines = 2;
 	int rectangle_height = p.screen_height / 20;
@@ -217,16 +218,16 @@ void display_menu_conf(DisplayConfigureInfo const info) {
 		//	       i * rectangle_height_spacing +
 		// rectangle_y_base, 	       rectangle_width,
 		// rectangle_height};
-		DrawRectangleLinesEx(info.menu_elements[i].bounds,
-				     rectangle_thickness_lines, GRAY);
 		if (info.state_select == i)
-			DrawRectangle(
-			    rectangle_x + rectangle_fill_offset,
-			    i * rectangle_height_spacing + rectangle_y_base +
-				rectangle_fill_offset,
-			    rectangle_width - 2 * rectangle_fill_offset,
-			    rectangle_height - 2 * rectangle_fill_offset,
-			    GREEN);
+			DrawRectangleLinesEx(info.menu_elements[i].bounds,
+					     rectangle_thickness_lines, GRAY);
+		// DrawRectangle(
+		//     rectangle_x + rectangle_fill_offset,
+		//     i * rectangle_height_spacing + rectangle_y_base +
+		//	rectangle_fill_offset,
+		//     rectangle_width - 2 * rectangle_fill_offset,
+		//     rectangle_height - 2 * rectangle_fill_offset,
+		//     GREEN);
 		DrawText(labels[i], rectangle_x + rectangle_fill_offset,
 			 i * rectangle_height_spacing + rectangle_y_base,
 			 rectangle_height - rectangle_fill_offset, TEXT_COLOR);
@@ -248,15 +249,15 @@ void display_menu_conf(DisplayConfigureInfo const info) {
 			   rectangle_y_base,
 		       button_width + rectangle_fill_offset * 2,
 		       rectangle_height};
-	DrawRectangleLinesEx(r, rectangle_thickness_lines, GRAY);
 	if (info.state_select == STATE_CONFIGURE_SELECTED_PLAY)
-		DrawRectangle(
-		    p.screen_width - rectangle_x - button_width -
-			rectangle_fill_offset,
-		    info.menu_element_count * rectangle_height_spacing +
-			rectangle_y_base + rectangle_fill_offset,
-		    button_width, rectangle_height - rectangle_fill_offset * 2,
-		    GREEN);
+		DrawRectangleLinesEx(r, rectangle_thickness_lines, GRAY);
+	// DrawRectangle(
+	//     p.screen_width - rectangle_x - button_width -
+	//	rectangle_fill_offset,
+	//     info.menu_element_count * rectangle_height_spacing +
+	//	rectangle_y_base + rectangle_fill_offset,
+	//     button_width, rectangle_height - rectangle_fill_offset * 2,
+	//     GREEN);
 	DrawText(play_button,
 		 p.screen_width - rectangle_x - button_width -
 		     rectangle_fill_offset,
@@ -264,6 +265,7 @@ void display_menu_conf(DisplayConfigureInfo const info) {
 		     rectangle_y_base,
 		 rectangle_height - rectangle_fill_offset, TEXT_COLOR);
 }
+
 void display_name_conf(DisplayConfigureInfo const info) {
 	ClearBackground(BACKGROUND_COLOR);
 	char title_name[] = "Enter your name:";
@@ -326,8 +328,8 @@ void display_width_conf(DisplayConfigureInfo const info) {
 }
 
 void DrawUIElement(UIElement const *el) {
-	Color btn_color = el->is_hovered ? LIGHTGRAY : GRAY;
-	Color text_color = el->is_hovered ? BLACK : DARKGRAY;
+	Color btn_color = BACKGROUND_COLOR;
+	Color text_color = el->is_hovered ? GREEN : WHITE;
 
 	// 2. Draw the main button body
 	DrawRectangleRec(el->bounds, btn_color);
@@ -341,9 +343,11 @@ void DrawUIElement(UIElement const *el) {
 	}
 
 	// 4. Center and draw the text automatically
-	int font_size = 20;
+	int font_size = 30;
 	int text_width = MeasureText(el->text, font_size);
+	char str[] = "test";
 
+	// memcpy((void *)el->text, str, sizeof(str));
 	int text_x = el->bounds.x + (el->bounds.width - text_width) / 2;
 	int text_y = el->bounds.y + (el->bounds.height - font_size) / 2;
 
