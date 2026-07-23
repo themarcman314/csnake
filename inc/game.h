@@ -37,6 +37,7 @@ typedef struct Game {
 	Sound sound_eat;
 	Sound sound_background_music;
 	Sound sound_death;
+	Sound sound_click;
 } Game;
 
 Game *game_create();

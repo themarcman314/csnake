@@ -30,6 +30,7 @@ int update_wrapping_conf(Game *g, DisplayConfigureInfo *info) {
 		// 2. Handle click logic
 		if (info->sub_elements[i].is_hovered &&
 		    IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+			PlaySound(g->sound_click);
 			if (info->sub_elements[i].id == BTN_TOGGLE) {
 				info->board_wrapping = !info->board_wrapping;
 			} else if (info->sub_elements[i].id == BTN_ACCEPT) {
@@ -61,6 +62,7 @@ int update_menu_conf(Game *g, DisplayConfigureInfo *i) {
 				i->menu_elements[idx].is_hovered = true;
 				i->state_select = idx;
 				if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+					PlaySound(g->sound_click);
 					return KEY_ENTER;
 				}
 			} else {
@@ -129,6 +131,7 @@ int update_width_conf(Game *g, DisplayConfigureInfo *info) {
 		// 2. Handle click logic
 		if (info->sub_elements[i].is_hovered &&
 		    IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+			PlaySound(g->sound_click);
 			if (info->sub_elements[i].id == BTN_DECREASE) {
 				info->width--;
 			} else if (info->sub_elements[i].id == BTN_INCREASE) {
@@ -165,6 +168,7 @@ int update_height_conf(Game *g, DisplayConfigureInfo *info) {
 		// 2. Handle click logic
 		if (info->sub_elements[i].is_hovered &&
 		    IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+			PlaySound(g->sound_click);
 			if (info->sub_elements[i].id == BTN_DECREASE) {
 				info->height--;
 			} else if (info->sub_elements[i].id == BTN_INCREASE) {
@@ -198,6 +202,7 @@ int update_snake_speed_conf(Game *g, DisplayConfigureInfo *info) {
 		// 2. Handle click logic
 		if (info->sub_elements[i].is_hovered &&
 		    IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+			PlaySound(g->sound_click);
 			if (info->sub_elements[i].id == BTN_DECREASE) {
 				if (!(info->freq < 0.6f))
 					info->freq -= delta;

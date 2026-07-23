@@ -69,6 +69,8 @@ void game_init(Game *g) {
 	g->sound_eat = LoadSound("sounds/munch.mp3");
 	g->sound_death = LoadSound("sounds/death.mp3");
 	g->sound_background_music = LoadSound("sounds/knox-dior.mp3");
+	g->sound_click = LoadSound("sounds/click.mp3");
+	SetSoundVolume(g->sound_click, 0.5);
 	SetSoundVolume(g->sound_background_music, 0.5);
 }
 
@@ -99,18 +101,14 @@ GameState game_run(Game *g) {
 		snake_update_square_position(g->b->s, g->b->width, g->b->height,
 					     g->wrapping);
 		if (snake_ate_food(g->b->s, g->b->f)) {
-			PauseSound(g->sound_background_music);
 			PlaySound(g->sound_eat);
-			ResumeSound(g->sound_background_music);
 			g->score++;
 			snake_segment_add(g->b->s);
 			food_spawn(g->b);
 		}
 		board_update(g->b);
 		if (board_check_all_collisions(g->b)) {
-			PauseSound(g->sound_background_music);
 			PlaySound(g->sound_death);
-			ResumeSound(g->sound_background_music);
 			g->death_timestamp = millis();
 			board_draw(g->b, g->score, true, true);
 			return STATE_GAME_END;
@@ -178,6 +176,7 @@ GameState game_configure(Game *g) {
 		else if ((state_match && key_match && sel_match)) {
 			state_conf = t->next_state;
 			init_conf(state_conf, &info);
+			PlaySound(g->sound_click);
 			if (!info.demo || info.demo->width != info.width ||
 			    info.demo->height != info.height) {
 				board_destroy(&info.demo);

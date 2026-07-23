@@ -59,7 +59,7 @@ void engine_init() {
 	int const win_border_size = 50;
 	int const window_width = screenWidth - win_border_size;
 	int const window_height = screenHeight - win_border_size;
-	SetWindowSize(window_width, window_height);
+	// SetWindowSize(window_width, window_height);
 	SetWindowPosition(win_border_size / 2, win_border_size / 2);
 }
 
