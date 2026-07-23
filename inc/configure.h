@@ -27,6 +27,7 @@ void init_height_conf(DisplayConfigureInfo *i);
 void init_speed_conf(DisplayConfigureInfo *i);
 void init_wrapping_conf(DisplayConfigureInfo *i);
 void init_menu_conf(DisplayConfigureInfo *i);
+void init_conf(GameConfigureState state_conf, DisplayConfigureInfo *info);
 
 int update_name_conf(Game *g, DisplayConfigureInfo *i);
 int update_menu_conf(Game *g, DisplayConfigureInfo *i);

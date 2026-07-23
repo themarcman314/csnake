@@ -65,7 +65,6 @@ void game_init(Game *g) {
 	g->tick_speed = 1000.0 / TICK_FREQUENCY;
 	g->state = STATE_GAME_WELCOME;
 	g->score = 0;
-	g->wrapping = true;
 	InitAudioDevice();
 	g->sound_eat = LoadSound("sounds/munch.mp3");
 	g->sound_death = LoadSound("sounds/death.mp3");
@@ -139,7 +138,7 @@ GameState game_configure(Game *g) {
 		info.width = BOARD_WIDTH;
 		info.height = BOARD_HEIGHT;
 		info.name = g->player_name;
-		info.board_wrapping = false;
+		info.board_wrapping = true;
 		initialized = true;
 		info.demo = board_create(info.width, info.height);
 		init_menu_conf(&info);
@@ -174,23 +173,11 @@ GameState game_configure(Game *g) {
 		bool sel_match =
 		    (t->selected_item == STATE_CONFIGURE_SELECTED_NONE ||
 		     info.state_select == t->selected_item);
-		if (state_match && key_match && sel_match) {
+		if (IsWindowResized())
+			init_conf(state_conf, &info);
+		else if ((state_match && key_match && sel_match)) {
 			state_conf = t->next_state;
-			switch (state_conf) {
-
-			case STATE_CONFIGURE_WIDTH:
-				init_width_conf(&info);
-				break;
-			case STATE_CONFIGURE_HEIGHT:
-				init_height_conf(&info);
-				break;
-			case STATE_CONFIGURE_SNAKE_SPEED:
-				init_speed_conf(&info);
-				break;
-			case STATE_CONFIGURE_WRAPPING:
-				init_wrapping_conf(&info);
-				break;
-			}
+			init_conf(state_conf, &info);
 			if (!info.demo || info.demo->width != info.width ||
 			    info.demo->height != info.height) {
 				board_destroy(&info.demo);

@@ -351,3 +351,22 @@ void init_menu_conf(DisplayConfigureInfo *i) {
 	i->menu_elements[i->menu_element_count].bounds.height =
 	    rectangle_height;
 }
+
+void init_conf(GameConfigureState state_conf, DisplayConfigureInfo *info) {
+	switch (state_conf) {
+	case STATE_CONFIGURE_MENU:
+		init_menu_conf(info);
+	case STATE_CONFIGURE_WIDTH:
+		init_width_conf(info);
+		break;
+	case STATE_CONFIGURE_HEIGHT:
+		init_height_conf(info);
+		break;
+	case STATE_CONFIGURE_SNAKE_SPEED:
+		init_speed_conf(info);
+		break;
+	case STATE_CONFIGURE_WRAPPING:
+		init_wrapping_conf(info);
+		break;
+	}
+}

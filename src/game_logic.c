@@ -462,7 +462,11 @@ void snake_demo(Board *demo_b, float freq, bool board_wrapping) {
 				   candidate)) { // make sure we don't collide
 				candidate = (rand() % 4) + 1; // 1 to 4
 			}
-		}
+		} else
+			while (snake_head_direction_is_opposite(
+			    demo_b->s->head_dir_current,
+			    candidate)) // make sure we don't collide
+				candidate = (rand() % 4) + 1; // 1 to 4
 
 		snake_head_direction_set_immediate(demo_b->s, candidate);
 
@@ -473,7 +477,8 @@ void snake_demo(Board *demo_b, float freq, bool board_wrapping) {
 			food_spawn(demo_b);
 		}
 		if (board_check_all_collisions(demo_b)) {
-			// restart demo
+			// restart
+			// demo
 			snake_init(demo_b);
 			food_init(demo_b);
 		}
