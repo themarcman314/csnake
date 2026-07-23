@@ -9,9 +9,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define BACKGROUND_COLOR CLITERAL(Color){31, 31, 31, 255}
-#define TEXT_COLOR WHITE
-#define GRID_COLOR DARKGRAY
+#define COLOR_BACKGROUND CLITERAL(Color){31, 31, 31, 255}
+#define COLOR_TEXT_BASE WHITE
+#define COLOR_TEXT_HIGHLIGHT GREEN
+#define COLOR_GRID DARKGRAY
+#define COLOR_BOX_BUTTON GRAY
 
 bool is_azerty = false;
 
@@ -33,7 +35,7 @@ DrawingParameters p = {.draw_fps = true,
 		       .font_size_big = 35,
 		       .font_size_small = 20};
 
-void DrawUIElement(UIElement const *el);
+void DrawUIElement(UIElement const *el, int font_size);
 
 void set_keyboard_type() {
 #ifndef PLATFORM_WEB
@@ -79,12 +81,12 @@ void grid_draw(int const board_size_x, int const board_size_y,
 
 void board_draw(Board const *b, int score, bool is_draw_game_over,
 		bool show_score) {
-	ClearBackground(BACKGROUND_COLOR);
+	ClearBackground(COLOR_BACKGROUND);
 
 	set_start_coords_grid(b->width, b->height);
 
 	grid_draw(b->width, b->height, p.start_x, p.start_y,
-		  p.board_wall_thickness, p.delta, GRID_COLOR);
+		  p.board_wall_thickness, p.delta, COLOR_GRID);
 
 	for (int y = 0; y < b->height; y++) {
 		for (int x = 0; x < b->width; x++) {
@@ -117,7 +119,7 @@ void draw_square(DrawingParameters const *p, int const x, int const y,
 }
 
 void display_welcome() {
-	ClearBackground(BACKGROUND_COLOR);
+	ClearBackground(COLOR_BACKGROUND);
 	set_keyboard_type();
 
 	int const width = GetScreenWidth();
@@ -131,17 +133,17 @@ void display_welcome() {
 	DrawText(press_key,
 		 width / 2 - MeasureText(press_key, p.font_size_small) / 2,
 		 title_height + 2 * p.font_size_big, p.font_size_small,
-		 TEXT_COLOR);
+		 COLOR_TEXT_BASE);
 	char music_credit_yt_link[] =
 	    "Song credit goes to: youtube.com/@knox_limited";
 	DrawText(music_credit_yt_link,
 		 width / 2 -
 		     MeasureText(music_credit_yt_link, p.font_size_small) / 2,
-		 height - p.font_size_big, p.font_size_small, TEXT_COLOR);
+		 height - p.font_size_big, p.font_size_small, COLOR_TEXT_BASE);
 }
 
 void display_end(Board const *b, int const score, int game_over_timestamp) {
-	ClearBackground(BACKGROUND_COLOR);
+	ClearBackground(COLOR_BACKGROUND);
 	int x, y;
 	snake_get_head_position(b->s, &x, &y);
 	board_draw(b, score, true, false);
@@ -171,7 +173,7 @@ void display_end(Board const *b, int const score, int game_over_timestamp) {
 	DrawText(restart_text,
 		 screen_width / 2 -
 		     MeasureText(restart_text, p.font_size_small) / 2,
-		 3 * screen_height / 4, p.font_size_small, TEXT_COLOR);
+		 3 * screen_height / 4, p.font_size_small, COLOR_TEXT_BASE);
 	// DrawText(high_score_text,
 	//	 3 * screen_width / 4 -
 	//	     MeasureText(high_score_text,
@@ -190,7 +192,8 @@ void set_start_coords_grid(int grid_width, int grid_height) {
 }
 
 void display_menu_conf(DisplayConfigureInfo const info) {
-	ClearBackground(BACKGROUND_COLOR);
+
+	ClearBackground(COLOR_BACKGROUND);
 	p.screen_width = GetScreenWidth();
 	int const border_fraction_screen_width = 5;
 	int const border_fraction_screen_height = 15;
@@ -202,7 +205,8 @@ void display_menu_conf(DisplayConfigureInfo const info) {
 	    p.screen_height / (info.menu_element_count + 1);
 	int rectangle_x = p.screen_width / border_fraction_screen_width;
 	int rectangle_y_base = p.screen_height / border_fraction_screen_height;
-	int rectangle_fill_offset = 5;
+	int text_x_offset = 5;
+	int text_y_offset = 5;
 
 	char value[4][20];
 	memset(value, 0, sizeof(value));
@@ -210,69 +214,71 @@ void display_menu_conf(DisplayConfigureInfo const info) {
 	sprintf(value[1], "%d", info.height);
 	sprintf(value[2], "%.2f", info.freq);
 	sprintf(value[3], "%s", info.board_wrapping ? "enabled" : "disabled");
-
+	Color text_color;
 	for (int i = 0; i < info.menu_element_count; i++) {
-		const char *labels[] = {"Board width", "Board height",
-					"Snake speed", "Board wrapping"};
-		// Rectangle r = {rectangle_x,
-		//	       i * rectangle_height_spacing +
-		// rectangle_y_base, 	       rectangle_width,
-		// rectangle_height};
-		if (info.state_select == i)
+		if (info.menu_elements[i].is_hovered) {
 			DrawRectangleLinesEx(info.menu_elements[i].bounds,
-					     rectangle_thickness_lines, GRAY);
-		// DrawRectangle(
-		//     rectangle_x + rectangle_fill_offset,
-		//     i * rectangle_height_spacing + rectangle_y_base +
-		//	rectangle_fill_offset,
-		//     rectangle_width - 2 * rectangle_fill_offset,
-		//     rectangle_height - 2 * rectangle_fill_offset,
-		//     GREEN);
-		DrawText(labels[i], rectangle_x + rectangle_fill_offset,
-			 i * rectangle_height_spacing + rectangle_y_base,
-			 rectangle_height - rectangle_fill_offset, TEXT_COLOR);
+					     rectangle_thickness_lines,
+					     COLOR_BOX_BUTTON);
+			text_color = COLOR_TEXT_HIGHLIGHT;
+		} else {
+			text_color = COLOR_TEXT_BASE;
+		}
+
+		int font_size_menu =
+		    info.menu_elements[i].bounds.height - text_y_offset;
+		DrawText(info.menu_elements[i].text,
+			 info.menu_elements[i].bounds.x + text_x_offset,
+			 info.menu_elements[i].bounds.y + text_y_offset,
+			 font_size_menu, text_color);
 
 		DrawText(value[i],
-			 rectangle_x + rectangle_width -
-			     MeasureText(value[i], rectangle_height -
-						       rectangle_fill_offset) -
-			     rectangle_fill_offset,
-			 i * rectangle_height_spacing + rectangle_y_base,
-			 rectangle_height - rectangle_fill_offset, BLUE);
+			 info.menu_elements[i].bounds.width +
+			     info.menu_elements[i].bounds.x -
+			     MeasureText(value[i],
+					 info.menu_elements[i].bounds.height -
+					     text_x_offset) -
+			     text_x_offset,
+			 info.menu_elements[i].bounds.y + text_y_offset,
+			 font_size_menu, BLUE);
 	}
-	char play_button[] = "Play";
-	int button_width =
-	    MeasureText(play_button, rectangle_height - rectangle_fill_offset);
-	Rectangle r = {p.screen_width - rectangle_x - button_width -
-			   2 * rectangle_fill_offset,
-		       info.menu_element_count * rectangle_height_spacing +
-			   rectangle_y_base,
-		       button_width + rectangle_fill_offset * 2,
-		       rectangle_height};
-	if (info.state_select == STATE_CONFIGURE_SELECTED_PLAY)
-		DrawRectangleLinesEx(r, rectangle_thickness_lines, GRAY);
-	// DrawRectangle(
-	//     p.screen_width - rectangle_x - button_width -
-	//	rectangle_fill_offset,
-	//     info.menu_element_count * rectangle_height_spacing +
-	//	rectangle_y_base + rectangle_fill_offset,
-	//     button_width, rectangle_height - rectangle_fill_offset * 2,
-	//     GREEN);
-	DrawText(play_button,
-		 p.screen_width - rectangle_x - button_width -
-		     rectangle_fill_offset,
-		 info.menu_element_count * rectangle_height_spacing +
-		     rectangle_y_base,
-		 rectangle_height - rectangle_fill_offset, TEXT_COLOR);
+	DrawUIElement(
+	    &info.menu_elements[info.menu_element_count],
+	    info.menu_elements[info.menu_element_count].bounds.height -
+		text_y_offset);
+	// int button_width =
+	//     MeasureText(info.menu_elements[info.menu_element_count].text,
+	//		rectangle_height - text_x_offset);
+	//  if (info.menu_elements[info.menu_element_count].is_hovered) {
+	//	text_color = COLOR_TEXT_HIGHLIGHT;
+	//	DrawRectangleLinesEx(
+	//	    info.menu_elements[info.menu_element_count].bounds,
+	//	    rectangle_thickness_lines, GRAY);
+	//  } else
+	//	text_color = COLOR_TEXT_BASE;
+	//  DrawText(
+	//      info.menu_elements[info.menu_element_count].text,
+	//      info.menu_elements[info.menu_element_count].bounds.width +
+	//	info.menu_elements[info.menu_element_count].bounds.x -
+	//	MeasureText(
+	//	    info.menu_elements[info.menu_element_count].text,
+	//	    info.menu_elements[info.menu_element_count].bounds.height -
+	//		text_x_offset) -
+	//	text_x_offset,
+	//      info.menu_elements[info.menu_element_count].bounds.y +
+	//	text_x_offset,
+	//      info.menu_elements[info.menu_element_count].bounds.height -
+	//	text_y_offset,
+	//      text_color);
 }
 
 void display_name_conf(DisplayConfigureInfo const info) {
-	ClearBackground(BACKGROUND_COLOR);
+	ClearBackground(COLOR_BACKGROUND);
 	char title_name[] = "Enter your name:";
 	DrawText(title_name,
 		 p.screen_width / 2 -
 		     MeasureText(title_name, p.font_size_big) / 2,
-		 p.screen_height / 4, p.font_size_big, TEXT_COLOR);
+		 p.screen_height / 4, p.font_size_big, COLOR_TEXT_BASE);
 	Rectangle textBox = {p.screen_width / 2.0f - 100,
 			     p.screen_height / 4.f + 50, 225, 50};
 	DrawRectangleRec(textBox, LIGHTGRAY);
@@ -281,13 +287,13 @@ void display_name_conf(DisplayConfigureInfo const info) {
 }
 
 void display_width_conf(DisplayConfigureInfo const info) {
-	ClearBackground(BACKGROUND_COLOR);
+	ClearBackground(COLOR_BACKGROUND);
 	display_menu_conf(info);
 	DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(),
 		      Fade(BLACK, 0.7f));
 	set_start_coords_grid(info.width, info.height);
 	grid_draw(info.width, info.height, p.start_x, p.start_y,
-		  p.board_wall_thickness, p.delta, GRID_COLOR);
+		  p.board_wall_thickness, p.delta, COLOR_GRID);
 	char title_width[] = "Set board width:";
 	DrawText(title_width,
 		 p.screen_width / 2 -
@@ -310,25 +316,12 @@ void display_width_conf(DisplayConfigureInfo const info) {
 		 p.font_size_big + p.screen_height / 4, p.font_size_big,
 		 MAROON);
 	for (int i = 0; i < info.sub_element_count; i++) {
-		DrawUIElement(&info.sub_elements[i]);
+		DrawUIElement(&info.sub_elements[i], p.font_size_big);
 	}
-
-	// DrawRectangleLinesEx(decrease.bounds,
-	//		     decrease.rectangle_thickness_lines, GRAY);
-	// DrawRectangleLinesEx(increase.bounds,
-	//		     increase.rectangle_thickness_lines, GRAY);
-	// if (decrease.is_hovered)
-	//	DrawRectangleRec(decrease.highlighted_portion, GREEN);
-	// if (increase.is_hovered)
-	//	DrawRectangleRec(increase.highlighted_portion, GREEN);
-	// DrawText(decrease.text, decrease.text_x, decrease.text_y,
-	//	 p.font_size_big, TEXT_COLOR);
-	// DrawText(increase.text, increase.text_x, increase.text_y,
-	//	 p.font_size_big, TEXT_COLOR);
 }
 
-void DrawUIElement(UIElement const *el) {
-	Color btn_color = BACKGROUND_COLOR;
+void DrawUIElement(UIElement const *el, int font_size) {
+	Color btn_color = COLOR_BACKGROUND;
 	Color text_color = el->is_hovered ? GREEN : WHITE;
 
 	// 2. Draw the main button body
@@ -339,11 +332,12 @@ void DrawUIElement(UIElement const *el) {
 		Rectangle border = {el->bounds.x + 2, el->bounds.y + 2,
 				    el->bounds.width - 4,
 				    el->bounds.height - 4};
-		DrawRectangleLinesEx(border, el->outline_thickness, YELLOW);
+		DrawRectangleLinesEx(border, el->outline_thickness,
+				     COLOR_BOX_BUTTON);
 	}
 
 	// 4. Center and draw the text automatically
-	int font_size = 30;
+	// int font_size = 30;
 	int text_width = MeasureText(el->text, font_size);
 	char str[] = "test";
 
@@ -355,18 +349,18 @@ void DrawUIElement(UIElement const *el) {
 }
 
 void display_height_conf(DisplayConfigureInfo const info) {
-	ClearBackground(BACKGROUND_COLOR);
+	ClearBackground(COLOR_BACKGROUND);
 	display_menu_conf(info);
 	DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(),
 		      Fade(BLACK, 0.7f));
 	set_start_coords_grid(info.width, info.height);
 	grid_draw(info.width, info.height, p.start_x, p.start_y,
-		  p.board_wall_thickness, p.delta, GRID_COLOR);
+		  p.board_wall_thickness, p.delta, COLOR_GRID);
 	char title_height[] = "Set board height:";
 	DrawText(title_height,
 		 p.screen_width / 2 -
 		     MeasureText(title_height, p.font_size_big) / 2,
-		 p.screen_height / 4, p.font_size_big, TEXT_COLOR);
+		 p.screen_height / 4, p.font_size_big, COLOR_TEXT_BASE);
 	char height_number_string[5];
 	char height_string[] = " tiles high";
 	sprintf(height_number_string, "%d", info.height);
@@ -384,7 +378,7 @@ void display_height_conf(DisplayConfigureInfo const info) {
 		     height_number_string_len,
 		 40 + p.screen_height / 4, p.font_size_big, MAROON);
 	for (int i = 0; i < info.sub_element_count; i++) {
-		DrawUIElement(&info.sub_elements[i]);
+		DrawUIElement(&info.sub_elements[i], p.font_size_big);
 	}
 }
 
@@ -396,7 +390,7 @@ void display_wrapping_conf(DisplayConfigureInfo const info) {
 }
 void display_snake_speed_conf(DisplayConfigureInfo const info) {
 
-	ClearBackground(BACKGROUND_COLOR);
+	ClearBackground(COLOR_BACKGROUND);
 	display_menu_conf(info);
 	DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(),
 		      Fade(BLACK, 0.7f));
@@ -405,7 +399,7 @@ void display_snake_speed_conf(DisplayConfigureInfo const info) {
 	DrawText(title_speed,
 		 p.screen_width / 2 -
 		     MeasureText(title_speed, p.font_size_big) / 2,
-		 p.screen_height / 4, p.font_size_big, TEXT_COLOR);
+		 p.screen_height / 4, p.font_size_big, COLOR_TEXT_BASE);
 	char speed_number_string[5];
 	char speed_string[] = " ticks/second (Hz)";
 	sprintf(speed_number_string, "%.2f", info.freq);
@@ -423,17 +417,17 @@ void display_snake_speed_conf(DisplayConfigureInfo const info) {
 		 40 + p.screen_height / 4, p.font_size_big, MAROON);
 
 	for (int i = 0; i < info.sub_element_count; i++) {
-		DrawUIElement(&info.sub_elements[i]);
+		DrawUIElement(&info.sub_elements[i], p.font_size_big);
 	}
 }
 
 void display_high_score(HighScoreEntry const *h, int const num_entries) {
-	ClearBackground(BACKGROUND_COLOR);
+	ClearBackground(COLOR_BACKGROUND);
 	char title[] = "Highscores";
 	int const center_x_title =
 	    (p.screen_width - MeasureText(title, p.font_size_big)) / 2;
 	DrawText(title, center_x_title, 0.1 * p.screen_height, p.font_size_big,
-		 TEXT_COLOR);
+		 COLOR_TEXT_BASE);
 	if (h) {
 		int const interval = 0.1 * p.screen_height;
 		for (int i = 0; i < num_entries; i++) {
@@ -447,11 +441,11 @@ void display_high_score(HighScoreEntry const *h, int const num_entries) {
 			DrawText(h[i].name,
 				 margin -
 				     MeasureText(h[i].name, p.font_size_small),
-				 y_text, p.font_size_small, TEXT_COLOR);
+				 y_text, p.font_size_small, COLOR_TEXT_BASE);
 			DrawText(score_str,
 				 p.screen_width - margin -
 				     MeasureText(score_str, p.font_size_small),
-				 y_text, p.font_size_small, TEXT_COLOR);
+				 y_text, p.font_size_small, COLOR_TEXT_BASE);
 		}
 	}
 }

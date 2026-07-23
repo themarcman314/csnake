@@ -2,12 +2,22 @@
 #include "engine.h"
 #include "game.h"
 #include "raylib.h"
+#include <stdbool.h>
 #include <string.h>
 
-void navigate_menu(GameConfigureSelectedState *state, int const direction);
+// void navigate_menu(UIElement *el, GameConfigureSelectedState *state,
+//		   int const direction);
 
-void navigate_menu(GameConfigureSelectedState *state, int const direction) {
-	*state = (*state + direction + 5) % 5;
+void navigate_menu(DisplayConfigureInfo *info, int const direction);
+
+void navigate_menu(DisplayConfigureInfo *info, int const direction) {
+	int num_buttons = info->menu_element_count + 1;
+	for (int i = 0; i < info->menu_element_count + 1; i++)
+		info->menu_elements[i].is_hovered = false;
+	info->state_select =
+	    (info->state_select + direction + num_buttons) % num_buttons;
+	info->menu_elements[info->state_select].is_hovered = true;
+	//*state = (*state + direction + 5) % 5;
 }
 
 int update_wrapping_conf(Game *g, DisplayConfigureInfo *i) {
@@ -34,10 +44,13 @@ int update_menu_conf(Game *g, DisplayConfigureInfo *i) {
 			bool is_mouse_over = CheckCollisionPointRec(
 			    current_mouse_pos, i->menu_elements[idx].bounds);
 			if (is_mouse_over) {
+				i->menu_elements[idx].is_hovered = true;
 				i->state_select = idx;
 				if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
 					return KEY_ENTER;
 				}
+			} else {
+				i->menu_elements[idx].is_hovered = false;
 			}
 		}
 	}
@@ -46,11 +59,11 @@ int update_menu_conf(Game *g, DisplayConfigureInfo *i) {
 		switch (g->in.in_key) {
 		case KEY_J:
 		case KEY_DOWN:
-			navigate_menu(&i->state_select, +1);
+			navigate_menu(i, +1);
 			break;
 		case KEY_K:
 		case KEY_UP:
-			navigate_menu(&i->state_select, -1);
+			navigate_menu(i, -1);
 			break;
 		}
 	}
@@ -230,16 +243,19 @@ void init_height_conf(DisplayConfigureInfo *i) {
 	i->sub_elements[0].bounds = (Rectangle){100, 200, 50, 50};
 	strcpy(i->sub_elements[0].text, "-");
 	i->sub_elements[0].id = BTN_DECREASE;
+	i->sub_elements[0].outline_thickness = 2.f;
 
 	// Button 1: Increase Width
 	i->sub_elements[1].bounds = (Rectangle){200, 200, 50, 50};
 	strcpy(i->sub_elements[1].text, "+");
 	i->sub_elements[1].id = BTN_INCREASE;
+	i->sub_elements[1].outline_thickness = 2.f;
 
 	// Button 2: Accept
 	i->sub_elements[2].bounds = (Rectangle){100, 300, 150, 50};
 	strcpy(i->sub_elements[2].text, "OK");
 	i->sub_elements[2].id = BTN_ACCEPT;
+	i->sub_elements[2].outline_thickness = 2.f;
 }
 
 void init_speed_conf(DisplayConfigureInfo *i) {
@@ -249,16 +265,19 @@ void init_speed_conf(DisplayConfigureInfo *i) {
 	i->sub_elements[0].bounds = (Rectangle){100, 200, 50, 50};
 	strcpy(i->sub_elements[0].text, "-");
 	i->sub_elements[0].id = BTN_DECREASE;
+	i->sub_elements[0].outline_thickness = 2.f;
 
 	// Button 1: Increase Width
 	i->sub_elements[1].bounds = (Rectangle){200, 200, 50, 50};
 	strcpy(i->sub_elements[1].text, "+");
 	i->sub_elements[1].id = BTN_INCREASE;
+	i->sub_elements[1].outline_thickness = 2.f;
 
 	// Button 2: Accept
 	i->sub_elements[2].bounds = (Rectangle){100, 300, 150, 50};
 	strcpy(i->sub_elements[2].text, "OK");
 	i->sub_elements[2].id = BTN_ACCEPT;
+	i->sub_elements[2].outline_thickness = 2.f;
 }
 
 void init_menu_conf(DisplayConfigureInfo *i) {
@@ -266,10 +285,9 @@ void init_menu_conf(DisplayConfigureInfo *i) {
 	int screen_width = GetScreenWidth();
 	int screen_height = GetScreenHeight();
 
-	int const border_fraction_screen_width = 15;
+	int const border_fraction_screen_width = 5;
 	int const border_fraction_screen_height = 15;
 	int rectangle_height = screen_height / 20;
-	int rectangle_fill_offset = 5;
 	int rectangle_width = (border_fraction_screen_width - 2) *
 			      screen_width / border_fraction_screen_width;
 	int rectangle_y_base = screen_height / border_fraction_screen_height;
@@ -277,27 +295,30 @@ void init_menu_conf(DisplayConfigureInfo *i) {
 	    screen_height / (i->menu_element_count + 1);
 	int rectangle_x = screen_width / border_fraction_screen_width;
 
+	const char *labels[] = {"Board width", "Board height", "Snake speed",
+				"Board wrapping"};
+
 	// assign rectangle boxes
 	for (int idx = 0; idx < i->menu_element_count; idx++) {
-		i->menu_elements[idx].bounds.x =
-		    rectangle_x + rectangle_fill_offset;
+		i->menu_elements[idx].bounds.x = rectangle_x;
 		i->menu_elements[idx].bounds.y =
 		    idx * rectangle_height_spacing + rectangle_y_base;
 		i->menu_elements[idx].bounds.width = rectangle_width;
 		i->menu_elements[idx].bounds.height = rectangle_height;
+		sprintf(i->menu_elements[idx].text, "%s", labels[idx]);
 	}
 
+	// init play button
+	i->menu_elements[i->menu_element_count].outline_thickness = 2.f;
+	sprintf(i->menu_elements[i->menu_element_count].text, "Play");
 	int const rectangle_thickness_lines = 2;
-	char play_button[] = "Play";
-	int button_width =
-	    MeasureText(play_button, rectangle_height - rectangle_fill_offset);
+	int button_width = MeasureText(
+	    i->menu_elements[i->menu_element_count].text, rectangle_height);
 	i->menu_elements[i->menu_element_count].bounds.x =
-	    screen_width - rectangle_x - button_width -
-	    2 * rectangle_fill_offset;
+	    screen_width - rectangle_x - button_width;
 	i->menu_elements[i->menu_element_count].bounds.y =
 	    i->menu_element_count * rectangle_height_spacing + rectangle_y_base;
-	i->menu_elements[i->menu_element_count].bounds.width =
-	    button_width + rectangle_fill_offset * 2;
+	i->menu_elements[i->menu_element_count].bounds.width = button_width;
 	i->menu_elements[i->menu_element_count].bounds.height =
 	    rectangle_height;
 }
