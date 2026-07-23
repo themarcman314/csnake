@@ -202,6 +202,7 @@ GameState game_configure(Game *g) {
 	}
 	if (state_conf == STATE_CONFIGURE_APPLY) {
 		initialized = false;
+		g->wrapping = info.board_wrapping;
 		g->tick_speed = 1000.0F / info.freq;
 		g->b = board_create(info.width, info.height);
 		return STATE_GAME_RUN;
