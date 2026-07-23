@@ -13,6 +13,7 @@ typedef enum {
 	BTN_DECREASE,
 	BTN_INCREASE,
 	BTN_ACCEPT,
+	BTN_TOGGLE,
 	BTN_CANCEL,
 } ElementID;
 
@@ -40,13 +41,14 @@ typedef struct {
 } DisplayConfigureInfo;
 
 void get_screen_measurements();
-typedef void (*ConfDisplayFunc)(DisplayConfigureInfo const info);
-void display_menu_conf(DisplayConfigureInfo const info);
-void display_name_conf(DisplayConfigureInfo const info);
-void display_width_conf(DisplayConfigureInfo const info);
-void display_height_conf(DisplayConfigureInfo const info);
-void display_snake_speed_conf(DisplayConfigureInfo const info);
-void display_wrapping_conf(DisplayConfigureInfo const info);
+typedef void (*ConfDisplayFunc)(DisplayConfigureInfo info);
+void display_menu_conf(DisplayConfigureInfo info);
+void display_name_conf(DisplayConfigureInfo info);
+void display_width_conf(DisplayConfigureInfo info);
+void display_height_conf(DisplayConfigureInfo info);
+void display_snake_speed_conf(DisplayConfigureInfo info);
+void display_wrap_conf(DisplayConfigureInfo info);
+void display_wrapping_conf(DisplayConfigureInfo info);
 bool is_display_name_box_overflown(char *name);
 
 void board_draw(Board const *b, int score, bool is_draw_game_over,

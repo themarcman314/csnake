@@ -25,6 +25,7 @@ typedef struct {
 void init_width_conf(DisplayConfigureInfo *i);
 void init_height_conf(DisplayConfigureInfo *i);
 void init_speed_conf(DisplayConfigureInfo *i);
+void init_wrapping_conf(DisplayConfigureInfo *i);
 void init_menu_conf(DisplayConfigureInfo *i);
 
 int update_name_conf(Game *g, DisplayConfigureInfo *i);

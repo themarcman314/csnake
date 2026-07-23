@@ -1,12 +1,10 @@
 #include "board.h"
 #include "conf.h"
 #include "engine.h"
-#include "game.h"
 #include "raylib.h"
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 #define COLOR_BACKGROUND CLITERAL(Color){31, 31, 31, 255}
@@ -36,6 +34,7 @@ DrawingParameters p = {.draw_fps = true,
 		       .font_size_small = 20};
 
 void DrawUIElement(UIElement const *el, int font_size);
+void display_menu_dimmed(DisplayConfigureInfo info);
 
 void set_keyboard_type() {
 #ifndef PLATFORM_WEB
@@ -191,7 +190,7 @@ void set_start_coords_grid(int grid_width, int grid_height) {
 		    2;
 }
 
-void display_menu_conf(DisplayConfigureInfo const info) {
+void display_menu_conf(DisplayConfigureInfo info) {
 
 	ClearBackground(COLOR_BACKGROUND);
 	p.screen_width = GetScreenWidth();
@@ -272,7 +271,7 @@ void display_menu_conf(DisplayConfigureInfo const info) {
 	//      text_color);
 }
 
-void display_name_conf(DisplayConfigureInfo const info) {
+void display_name_conf(DisplayConfigureInfo info) {
 	ClearBackground(COLOR_BACKGROUND);
 	char title_name[] = "Enter your name:";
 	DrawText(title_name,
@@ -286,11 +285,9 @@ void display_name_conf(DisplayConfigureInfo const info) {
 		 p.font_size_big, MAROON);
 }
 
-void display_width_conf(DisplayConfigureInfo const info) {
+void display_width_conf(DisplayConfigureInfo info) {
 	ClearBackground(COLOR_BACKGROUND);
-	display_menu_conf(info);
-	DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(),
-		      Fade(BLACK, 0.7f));
+	display_menu_dimmed(info);
 	set_start_coords_grid(info.width, info.height);
 	grid_draw(info.width, info.height, p.start_x, p.start_y,
 		  p.board_wall_thickness, p.delta, COLOR_GRID);
@@ -337,7 +334,6 @@ void DrawUIElement(UIElement const *el, int font_size) {
 	}
 
 	// 4. Center and draw the text automatically
-	// int font_size = 30;
 	int text_width = MeasureText(el->text, font_size);
 	char str[] = "test";
 
@@ -348,11 +344,9 @@ void DrawUIElement(UIElement const *el, int font_size) {
 	DrawText(el->text, text_x, text_y, font_size, text_color);
 }
 
-void display_height_conf(DisplayConfigureInfo const info) {
+void display_height_conf(DisplayConfigureInfo info) {
 	ClearBackground(COLOR_BACKGROUND);
-	display_menu_conf(info);
-	DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(),
-		      Fade(BLACK, 0.7f));
+	display_menu_dimmed(info);
 	set_start_coords_grid(info.width, info.height);
 	grid_draw(info.width, info.height, p.start_x, p.start_y,
 		  p.board_wall_thickness, p.delta, COLOR_GRID);
@@ -382,18 +376,27 @@ void display_height_conf(DisplayConfigureInfo const info) {
 	}
 }
 
-void display_wrapping_conf(DisplayConfigureInfo const info) {
+void display_wrapping_conf(DisplayConfigureInfo info) {
+	ClearBackground(COLOR_BACKGROUND);
+	display_menu_dimmed(info);
+	board_draw(info.demo, 0, false, false);
+	sprintf(info.sub_elements[0].text,
+		info.board_wrapping ? "enabled" : "disabled");
+	for (int i = 0; i < info.sub_element_count; i++) {
+		DrawUIElement(&info.sub_elements[i], p.font_size_big);
+	}
+}
+
+void display_menu_dimmed(DisplayConfigureInfo info) {
 	display_menu_conf(info);
 	DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(),
 		      Fade(BLACK, 0.7f));
-	board_draw(info.demo, 0, false, false);
 }
-void display_snake_speed_conf(DisplayConfigureInfo const info) {
+
+void display_snake_speed_conf(DisplayConfigureInfo info) {
 
 	ClearBackground(COLOR_BACKGROUND);
-	display_menu_conf(info);
-	DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(),
-		      Fade(BLACK, 0.7f));
+	display_menu_dimmed(info);
 	board_draw(info.demo, 0, false, false);
 	char title_speed[] = "Set snake speed:";
 	DrawText(title_speed,

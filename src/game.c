@@ -187,6 +187,9 @@ GameState game_configure(Game *g) {
 			case STATE_CONFIGURE_SNAKE_SPEED:
 				init_speed_conf(&info);
 				break;
+			case STATE_CONFIGURE_WRAPPING:
+				init_wrapping_conf(&info);
+				break;
 			}
 			if (!info.demo || info.demo->width != info.width ||
 			    info.demo->height != info.height) {

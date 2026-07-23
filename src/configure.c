@@ -20,9 +20,23 @@ void navigate_menu(DisplayConfigureInfo *info, int const direction) {
 	//*state = (*state + direction + 5) % 5;
 }
 
-int update_wrapping_conf(Game *g, DisplayConfigureInfo *i) {
-	// g->wrapping = !g->wrapping;
-	// i->board_wrapping = g->wrapping;
+int update_wrapping_conf(Game *g, DisplayConfigureInfo *info) {
+	Vector2 mouse_pos = GetMousePosition();
+	for (int i = 0; i < info->sub_element_count; i++) {
+		// 1. Update hover status
+		info->sub_elements[i].is_hovered = CheckCollisionPointRec(
+		    mouse_pos, info->sub_elements[i].bounds);
+
+		// 2. Handle click logic
+		if (info->sub_elements[i].is_hovered &&
+		    IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+			if (info->sub_elements[i].id == BTN_TOGGLE) {
+				info->board_wrapping = !info->board_wrapping;
+			} else if (info->sub_elements[i].id == BTN_ACCEPT) {
+				return KEY_ENTER;
+			}
+		}
+	}
 	return KEY_NULL;
 }
 
@@ -211,6 +225,8 @@ int update_snake_speed_conf(Game *g, DisplayConfigureInfo *info) {
 	return KEY_NULL;
 }
 
+int update_wrap_conf(Game *g, DisplayConfigureInfo *info) {}
+
 void init_width_conf(DisplayConfigureInfo *i) {
 	i->sub_element_count = 3; // We are using 3 buttons
 
@@ -261,23 +277,36 @@ void init_height_conf(DisplayConfigureInfo *i) {
 void init_speed_conf(DisplayConfigureInfo *i) {
 	i->sub_element_count = 3; // We are using 3 buttons
 
-	// Button 0: Decrease Width
 	i->sub_elements[0].bounds = (Rectangle){100, 200, 50, 50};
 	strcpy(i->sub_elements[0].text, "-");
 	i->sub_elements[0].id = BTN_DECREASE;
 	i->sub_elements[0].outline_thickness = 2.f;
 
-	// Button 1: Increase Width
 	i->sub_elements[1].bounds = (Rectangle){200, 200, 50, 50};
 	strcpy(i->sub_elements[1].text, "+");
 	i->sub_elements[1].id = BTN_INCREASE;
 	i->sub_elements[1].outline_thickness = 2.f;
 
-	// Button 2: Accept
 	i->sub_elements[2].bounds = (Rectangle){100, 300, 150, 50};
 	strcpy(i->sub_elements[2].text, "OK");
 	i->sub_elements[2].id = BTN_ACCEPT;
 	i->sub_elements[2].outline_thickness = 2.f;
+}
+
+void init_wrapping_conf(DisplayConfigureInfo *i) {
+	i->sub_element_count = 2;
+
+	i->sub_elements[0].bounds = (Rectangle){100, 200, 150, 50};
+	sprintf(i->sub_elements[0].text,
+		i->board_wrapping ? "enabled" : "disabled");
+	i->sub_elements[0].id = BTN_TOGGLE;
+	i->sub_elements[0].outline_thickness = 2.f;
+
+	// Button 2: Accept
+	i->sub_elements[1].bounds = (Rectangle){100, 300, 150, 50};
+	sprintf(i->sub_elements[1].text, "OK");
+	i->sub_elements[1].id = BTN_ACCEPT;
+	i->sub_elements[1].outline_thickness = 2.f;
 }
 
 void init_menu_conf(DisplayConfigureInfo *i) {
