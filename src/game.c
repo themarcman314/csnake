@@ -6,12 +6,16 @@
 #include "engine.h"
 #include "input.h"
 #include "raylib.h"
+#include "score.h"
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#if defined(PLATFORM_WEB)
+#include <emscripten/fetch.h>
+#endif
 
 GameState game_welcome(Input in);
 void game_init(Game *g);
@@ -195,27 +199,55 @@ GameState game_configure(Game *g) {
 	}
 	return STATE_GAME_CONFIGURE;
 }
+void downloadSucceeded(emscripten_fetch_t *fetch) {
+	printf("Finished downloading %llu bytes from URL %s.\n",
+	       fetch->numBytes, fetch->url);
+	printf("data:\n");
+	for (int i = 0; i < fetch->numBytes; i++)
+		putchar(fetch->data[i]);
+	HighScoreEntry *entries = fetch->userData;
 
-GameState game_high_score(Game *g) {
 	static int num_lines = 0;
-	if (g->high_scores == NULL) {
-		FILE *f = fopen(HIGH_SCORE_FILE_PATH, "r");
-		if (f) {
-			num_lines = count_lines_file(f);
-			g->high_scores =
-			    malloc(sizeof(HighScoreEntry) * num_lines);
-			if (g->high_scores) {
-				parse_high_score_entries(f, g->high_scores,
-							 num_lines);
-				sort_highscore_entries(g->high_scores,
-						       num_lines);
-			}
-			fclose(f);
-		} else {
-			display_high_score(NULL, 0);
+	if (entries == NULL) {
+		num_lines = count_lines_string(fetch->data, fetch->numBytes);
+		printf("file has %d lines\n", num_lines);
+		entries = malloc(sizeof(HighScoreEntry) * num_lines);
+		if (entries) {
+			printf("allocated mem for entries\n");
+			parse_high_score_entries(fetch->data, entries,
+						 num_lines);
+			for (int i = 0; i < num_lines; i++)
+				printf("name: %s, score: %d\n", entries[i].name,
+				       entries[i].score);
+			sort_highscore_entries(entries, num_lines);
 		}
 	}
-	display_high_score(g->high_scores, num_lines);
+	emscripten_fetch_close(fetch); // Free data associated with the fetch.
+}
+
+void downloadFailed(emscripten_fetch_t *fetch) {
+	printf("Downloading %s failed, HTTP failure status code: %d.\n",
+	       fetch->url, fetch->status);
+	emscripten_fetch_close(fetch); // Also free data on failure.
+}
+
+GameState game_high_score(Game *g) {
+	static bool fetched = false;
+	emscripten_fetch_attr_t attr;
+	emscripten_fetch_attr_init(&attr);
+	attr.userData = g->high_scores;
+	// char testchar[] = "nice";
+	// memcpy(g->high_scores->name, testchar, sizeof(testchar));
+	// g->high_scores->score = 45;
+	strcpy(attr.requestMethod, "GET");
+	attr.attributes = EMSCRIPTEN_FETCH_LOAD_TO_MEMORY;
+	attr.onsuccess = downloadSucceeded;
+	attr.onerror = downloadFailed;
+	if (!fetched) {
+		emscripten_fetch(&attr, "highscores.csv");
+		fetched = true;
+	}
+	// display_high_score(g->high_scores, num_lines);
 	if (g->in.in_key == KEY_R) {
 		game_restart(g);
 		return STATE_GAME_RUN;
@@ -234,6 +266,7 @@ void game_fsm_run(Game *g) {
 		UpdateDrawFrame(g);
 	}
 }
+
 Game *game_create() {
 	Game *g = malloc(sizeof(Game));
 	game_init(g);
@@ -272,8 +305,8 @@ void UpdateDrawFrame(Game *g) {
 		g->state = game_end(g);
 		break;
 	case STATE_GAME_HIGH_SCORE:
-		g->state = STATE_GAME_END;
-		break;
+		// g->state = STATE_GAME_END;
+		// break;
 		g->state = game_high_score(g);
 		break;
 	case STATE_GAME_CONFIGURE:

@@ -34,31 +34,34 @@ void save_score(char const *name, unsigned const score) {
 	}
 }
 
-void parse_high_score_entries(FILE *f, HighScoreEntry *h,
+void parse_high_score_entries(char const *string, HighScoreEntry *h,
 			      int const entry_count) {
 	for (int i = 0; i < entry_count; i++)
 		memset(h[i].name, 0, sizeof(h->name));
-	int const line_size = 100;
-	char line[line_size];
+	int namesize = 0;
+	char *start_line = string;
 	for (int i = 0; i < entry_count; i++) {
-		fgets(line, line_size, f);
-		char *end_line = line;
-		while (*end_line != ',')
-			end_line++;
-		char name[20] = "";
-		memcpy(h[i].name, line, end_line - line);
-		h[i].score = atoi((char *)(end_line + 1));
+		// fgets(line, line_size, f);
+		char *c = start_line;
+		while (*c != ',') {
+			c++;
+			namesize++;
+		}
+		memcpy(h[i].name, start_line, namesize);
+		h[i].name[namesize] = '\0';
+		namesize = 0;
+		h[i].score = atoi((char *)(c + 1));
+		while (*start_line != '\n')
+			start_line++;
+		start_line++; // ignore '\n' and go to next line
 	}
 }
 
-int count_lines_file(FILE *f) {
-	fseek(f, 0, SEEK_SET); // move to start of file
-	char c;
+int count_lines_string(char const *string, int size) {
 	int num_lines = 0;
-	while ((c = fgetc(f)) != EOF) {
-		if (c == '\n')
+	for (int i = 0; i < size; i++) {
+		if (string[i] == '\n')
 			num_lines++;
 	}
-	fseek(f, 0, SEEK_SET); // move to start of file
 	return num_lines;
 }
