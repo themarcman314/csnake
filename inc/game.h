@@ -29,6 +29,7 @@ typedef struct Game {
 	bool wrapping;
 	unsigned score;
 	HighScoreEntry *high_scores;
+	int num_high_scores;
 	int tick_speed;
 	Board *b;
 	int death_timestamp;

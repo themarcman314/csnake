@@ -431,7 +431,9 @@ void display_high_score(HighScoreEntry const *h, int const num_entries) {
 	    (p.screen_width - MeasureText(title, p.font_size_big)) / 2;
 	DrawText(title, center_x_title, 0.1 * p.screen_height, p.font_size_big,
 		 COLOR_TEXT_BASE);
+	printf("number of entries: %d\n", num_entries);
 	if (h) {
+		printf("entries exist\n");
 		int const interval = 0.1 * p.screen_height;
 		for (int i = 0; i < num_entries; i++) {
 			char score_str[10] = "";

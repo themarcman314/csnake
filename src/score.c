@@ -1,5 +1,6 @@
 #include "score.h"
 #include "conf.h"
+#include "game.h"
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
@@ -25,13 +26,17 @@ void sort_highscore_entries(HighScoreEntry *h, int const num_entries) {
 // FIXME: implement version with sockets for web version
 //  highscores should be saved on vps not on client machine lol
 void save_score(char const *name, unsigned const score) {
-	FILE *f = fopen(HIGH_SCORE_FILE_PATH, "a");
-	if (f) {
-		// fseek(f, 0, SEEK_END);
-		if (strlen(name) > 0)
-			fprintf(f, "%s,%d\n", name, score);
-		fclose(f);
-	}
+	emscripten_fetch_attr_t attr;
+	emscripten_fetch_attr_init(&attr);
+	strcpy(attr.requestMethod, "GET");
+
+	// FILE *f = fopen(HIGH_SCORE_FILE_PATH, "a");
+	// if (f) {
+	//	// fseek(f, 0, SEEK_END);
+	//	if (strlen(name) > 0)
+	//		fprintf(f, "%s,%d\n", name, score);
+	//	fclose(f);
+	// }
 }
 
 void parse_high_score_entries(char const *string, HighScoreEntry *h,
@@ -65,3 +70,42 @@ int count_lines_string(char const *string, int size) {
 	}
 	return num_lines;
 }
+
+#ifdef PLATFORM_WEB
+void downloadSucceeded(emscripten_fetch_t *fetch) {
+	printf("Finished downloading %llu bytes from URL %s.\n",
+	       fetch->numBytes, fetch->url);
+	printf("data:\n");
+	for (int i = 0; i < fetch->numBytes; i++)
+		putchar(fetch->data[i]);
+	Game *g = fetch->userData;
+	HighScoreEntry *entries = g->high_scores;
+
+	g->num_high_scores = 0;
+	if (entries == NULL) {
+		g->num_high_scores =
+		    count_lines_string(fetch->data, fetch->numBytes);
+		printf("file has %d lines\n", g->num_high_scores);
+		entries = malloc(sizeof(HighScoreEntry) * g->num_high_scores);
+		if (entries) {
+			printf("allocated mem for entries\n");
+			parse_high_score_entries(fetch->data, entries,
+						 g->num_high_scores);
+			for (int i = 0; i < g->num_high_scores; i++)
+				printf("name: %s, score: %d\n", entries[i].name,
+				       entries[i].score);
+			sort_highscore_entries(entries, g->num_high_scores);
+			for (int i = 0; i < g->num_high_scores; i++)
+				printf("name: %s, score: %d\n", entries[i].name,
+				       entries[i].score);
+			g->high_scores = entries;
+		}
+	}
+	emscripten_fetch_close(fetch); // Free data associated with the fetch.
+}
+void downloadFailed(emscripten_fetch_t *fetch) {
+	printf("Downloading %s failed, HTTP failure status code: %d.\n",
+	       fetch->url, fetch->status);
+	emscripten_fetch_close(fetch); // Also free data on failure.
+}
+#endif
