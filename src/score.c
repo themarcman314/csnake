@@ -23,20 +23,34 @@ void sort_highscore_entries(HighScoreEntry *h, int const num_entries) {
 	} while (!sorted);
 }
 
+void score_sent_success(emscripten_fetch_t *fetch) {
+	printf("Score was sent!\n");
+}
+void score_sent_fail(emscripten_fetch_t *fetch) {
+	printf("Score was not sent\n");
+}
+
 // FIXME: implement version with sockets for web version
 //  highscores should be saved on vps not on client machine lol
 void save_score(char const *name, unsigned const score) {
 	emscripten_fetch_attr_t attr;
 	emscripten_fetch_attr_init(&attr);
-	strcpy(attr.requestMethod, "GET");
 
-	// FILE *f = fopen(HIGH_SCORE_FILE_PATH, "a");
-	// if (f) {
-	//	// fseek(f, 0, SEEK_END);
-	//	if (strlen(name) > 0)
-	//		fprintf(f, "%s,%d\n", name, score);
-	//	fclose(f);
-	// }
+	// set request method
+	strcpy(attr.requestMethod, "POST");
+
+	// add headers
+	const char *headers[] = {"Content-Type", "application/json", NULL};
+	attr.requestHeaders = NULL;
+	const char *json_payload =
+	    "{\"name\": \"John Doe\", \"score\": \"24\"}";
+	attr.requestData = json_payload;
+	attr.requestDataSize = strlen(json_payload);
+	attr.attributes = EMSCRIPTEN_FETCH_LOAD_TO_MEMORY;
+	attr.onsuccess = score_sent_success;
+	attr.onerror = score_sent_fail;
+
+	emscripten_fetch(&attr, "http://localhost:8888");
 }
 
 void parse_high_score_entries(char const *string, HighScoreEntry *h,
