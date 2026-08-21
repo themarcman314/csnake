@@ -25,7 +25,6 @@
   </head>
 
   <body>
-
 	<ul class="menu">
 		<li><a href="projects/myprojects.html">My Projects</a></li>
 		<li><a href="resources.html">Resources</a></li>
@@ -61,6 +60,12 @@
 
     <!--<textarea id="output" rows="8"></textarea>-->
 
+
+<script>
+  if (/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) {
+    alert("This game requires a keyboard to play, touch only is not supported.");
+  }
+</script>
 
 <script>
   window.addEventListener("keydown", function(e) {
