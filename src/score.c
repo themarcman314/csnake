@@ -2,8 +2,12 @@
 #include "conf.h"
 #include "game.h"
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
+
+size_t parse_name_high_score_entry(char const *line_start, char *name);
+size_t parse_score_high_score_entry(char const *score_start, int *score);
 
 void sort_highscore_entries(HighScoreEntry *h, int const num_entries) {
 	HighScoreEntry temp;
@@ -65,23 +69,49 @@ void parse_high_score_entries(char const *string, HighScoreEntry *h,
 			      int const entry_count) {
 	for (int i = 0; i < entry_count; i++)
 		memset(h[i].name, 0, sizeof(h->name));
-	int namesize = 0;
-	char const *start_line = string;
+	char const *cursor = string;
 	for (int i = 0; i < entry_count; i++) {
-		// fgets(line, line_size, f);
-		char const *c = start_line;
-		while (*c != ',') {
-			c++;
-			namesize++;
+		size_t consumed =
+		    parse_name_high_score_entry(cursor, h[i].name);
+		if (consumed > 0) {
+			cursor += consumed;
+			printf("name is: %s\n", h[i].name);
 		}
-		memcpy(h[i].name, start_line, namesize);
-		h[i].name[namesize] = '\0';
-		namesize = 0;
-		h[i].score = atoi((char *)(c + 1));
-		while (*start_line != '\n')
-			start_line++;
-		start_line++; // ignore '\n' and go to next line
+		if (*cursor == ',')
+			cursor++;
+		consumed = parse_score_high_score_entry(cursor, &h[i].score);
+		if (consumed > 0) {
+			cursor += consumed;
+			printf("num_digits: %lu\n", consumed);
+			printf("score: %d\n", h[i].score);
+		}
+		while (*cursor != '\n')
+			cursor++;
+		cursor++; // ignore '\n' and go to next line
 	}
+}
+
+size_t parse_name_high_score_entry(char const *line_start, char *name) {
+	char const *cursor = line_start;
+	int namesize = 0;
+	while (*cursor != ',') {
+		cursor++;
+		namesize++;
+	}
+	memcpy(name, line_start, namesize);
+	name[namesize] = '\0';
+	return namesize;
+}
+
+size_t parse_score_high_score_entry(char const *score_start, int *score) {
+	*score = atoi((char *)(score_start));
+	char const *cursor = score_start;
+	size_t num_digits = 0;
+	while (*cursor >= 0x30 && *cursor <= 0x39) { // is digit
+		num_digits++;
+		cursor++;
+	}
+	return num_digits;
 }
 
 int count_lines_string(char const *string, int size) {

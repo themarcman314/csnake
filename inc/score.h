@@ -7,6 +7,9 @@
 typedef struct {
 	char name[50];
 	int score;
+	bool board_wrapping;
+	int board_width;
+	int board_height;
 } HighScoreEntry;
 
 int count_lines_string(char const *string, int size);
