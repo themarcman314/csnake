@@ -43,8 +43,8 @@ int update_wrapping_conf(Game *g, DisplayConfigureInfo *info) {
 
 int update_menu_conf(Game *g, DisplayConfigureInfo *i) {
 
-	int screen_height = GetScreenHeight();
-	int screen_width = GetScreenWidth();
+	// int screen_height = GetScreenHeight();
+	// int screen_width = GetScreenWidth();
 
 	Vector2 current_mouse_pos = GetMousePosition();
 	bool mouse_moved = (current_mouse_pos.x != i->last_mouse_pos.x ||
@@ -157,7 +157,6 @@ int update_height_conf(Game *g, DisplayConfigureInfo *info) {
 	int font_size_big = 35;
 
 	int btn_width = 50, btn_height = 50;
-	int inner_spacing = 50;
 
 	Vector2 mouse_pos = GetMousePosition();
 	for (int i = 0; i < info->sub_element_count; i++) {

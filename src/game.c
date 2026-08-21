@@ -85,11 +85,14 @@ GameState game_end(Game *g) {
 		save_score(g->player_name, g->score);
 	}
 	if (g->in.in_key == KEY_R || g->in.in_key == KEY_ENTER) {
+		saved = false;
 		game_restart(g);
 		return STATE_GAME_RUN;
 	} else if (g->in.in_key == KEY_C) {
+		saved = false;
 		return STATE_GAME_CONFIGURE;
 	} else if (g->in.in_key == KEY_H) {
+		saved = false;
 		return STATE_GAME_HIGH_SCORE;
 	}
 	return STATE_GAME_END;
@@ -218,6 +221,7 @@ GameState game_high_score(Game *g) {
 	}
 #endif
 	if (g->in.in_key == KEY_R) {
+		fetched = false;
 		game_restart(g);
 		return STATE_GAME_RUN;
 	}
