@@ -335,7 +335,6 @@ void DrawUIElement(UIElement const *el, int font_size) {
 
 	// 4. Center and draw the text automatically
 	int text_width = MeasureText(el->text, font_size);
-	char str[] = "test";
 
 	// memcpy((void *)el->text, str, sizeof(str));
 	int text_x = el->bounds.x + (el->bounds.width - text_width) / 2;
@@ -483,7 +482,6 @@ bool is_display_name_box_overflown(char *name) {
 UIElement CreateButton(float x, float y, float width, float height,
 		       char *text) {
 	UIElement btn = {0};
-	int fill_offset = 5;
 	btn.bounds = (Rectangle){x, y, width, height};
 	memcpy(btn.text, text, sizeof(btn.text));
 	btn.outline_thickness = 2.0f;

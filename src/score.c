@@ -3,11 +3,16 @@
 #include "game.h"
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 size_t parse_name_high_score_entry(char const *line_start, char *name);
 size_t parse_score_high_score_entry(char const *score_start, int *score);
+size_t parse_board_wrapping_high_score_entry(char const *score_start,
+					     bool *board_wrapping);
+size_t parse_board_dimentions_high_score_entry(char const *score_start,
+					       int *width, int *height);
 
 void sort_highscore_entries(HighScoreEntry *h, int const num_entries) {
 	HighScoreEntry temp;
@@ -36,9 +41,7 @@ void score_sent_fail(emscripten_fetch_t *fetch) {
 }
 #endif
 
-// FIXME: implement version with sockets for web version
-//  highscores should be saved on vps not on client machine lol
-void save_score(char const *name, unsigned const score) {
+void save_score(Game const *g) {
 #ifdef PLATFORM_WEB
 	emscripten_fetch_attr_t attr;
 	emscripten_fetch_attr_init(&attr);
@@ -50,10 +53,11 @@ void save_score(char const *name, unsigned const score) {
 	// const char *headers[] = {"Content-Type", "application/json", NULL};
 	attr.requestHeaders = NULL;
 	char *json_payload = malloc(256);
-	snprintf(json_payload, 256, "{\"name\": \"%s\", \"score\": %u}", name,
-		 score);
-	// sprintf(json_payload, "{\"name\": \"%s\", \"score\": %u}", name,
-	// score);
+	snprintf(json_payload, 256,
+		 "{\"name\": \"%s\", \"score\": %u, \"board wrapping\": %d, "
+		 "\"board width\": %d, \"board height\": %d}",
+		 g->player_name, g->score, g->wrapping, g->b->width,
+		 g->b->height);
 	printf("payload:\n%s\n", json_payload);
 	attr.requestData = json_payload;
 	attr.requestDataSize = strlen(json_payload);
@@ -85,6 +89,27 @@ void parse_high_score_entries(char const *string, HighScoreEntry *h,
 			printf("num_digits: %lu\n", consumed);
 			printf("score: %d\n", h[i].score);
 		}
+		if (*cursor == ',') {
+			cursor++;
+		}
+		consumed = parse_board_wrapping_high_score_entry(
+		    cursor, &h[i].board_wrapping);
+		if (consumed > 0) {
+			cursor += consumed;
+			printf("board_wrapping: %s\n",
+			       h[i].board_wrapping ? "true" : "false");
+		}
+		if (*cursor == ',') {
+			cursor++;
+		}
+		consumed = parse_board_dimentions_high_score_entry(
+		    cursor, &h[i].board_width, &h[i].board_height);
+		if (consumed > 0) {
+			cursor += consumed;
+			printf("width: %d, height: %d\n", h[i].board_width,
+			       h[i].board_height);
+		}
+
 		while (*cursor != '\n')
 			cursor++;
 		cursor++; // ignore '\n' and go to next line
@@ -93,25 +118,64 @@ void parse_high_score_entries(char const *string, HighScoreEntry *h,
 
 size_t parse_name_high_score_entry(char const *line_start, char *name) {
 	char const *cursor = line_start;
-	int namesize = 0;
 	while (*cursor != ',') {
 		cursor++;
-		namesize++;
 	}
-	memcpy(name, line_start, namesize);
-	name[namesize] = '\0';
-	return namesize;
+	size_t name_size = cursor - line_start;
+	memcpy(name, line_start, name_size);
+	name[name_size] = '\0';
+	return name_size;
 }
 
 size_t parse_score_high_score_entry(char const *score_start, int *score) {
 	*score = atoi((char *)(score_start));
 	char const *cursor = score_start;
-	size_t num_digits = 0;
+	while (*cursor == ' ')
+		cursor++;
 	while (*cursor >= 0x30 && *cursor <= 0x39) { // is digit
-		num_digits++;
 		cursor++;
 	}
-	return num_digits;
+	return cursor - score_start;
+}
+size_t parse_board_wrapping_high_score_entry(char const *start,
+					     bool *board_wrapping) {
+	char const *cursor = start;
+	while (*cursor == ' ')
+		cursor++;
+	if (atoi(cursor) == true)
+		*board_wrapping = true;
+	else
+		*board_wrapping = false;
+
+	while (*cursor >= 0x30 && *cursor <= 0x39) { // is digit
+		cursor++;
+	}
+	return cursor - start;
+}
+
+size_t parse_board_dimentions_high_score_entry(char const *start, int *width,
+					       int *height) {
+
+	char const *cursor = start;
+	while (*cursor == ' ')
+		cursor++;
+	*width = atoi(cursor);
+	while (*cursor >= 0x30 && *cursor <= 0x39) { // is digit
+		cursor++;
+	}
+	while (*cursor == ' ')
+		cursor++;
+	if (*cursor == ',')
+		cursor++;
+	while (*cursor == ' ')
+		cursor++;
+	*height = atoi(cursor);
+	while (*cursor >= 0x30 && *cursor <= 0x39) { // is digit
+		cursor++;
+	}
+	while (*cursor == ' ')
+		cursor++;
+	return cursor - start;
 }
 
 int count_lines_string(char const *string, int size) {
@@ -142,6 +206,8 @@ void downloadSucceeded(emscripten_fetch_t *fetch) {
 	    malloc(sizeof(HighScoreEntry) * g->num_high_scores);
 	if (new_entries) {
 		printf("allocated mem for entries\n");
+		for (int i = 0; i < fetch->numBytes; i++)
+			printf("%c", fetch->data[i]);
 		parse_high_score_entries(fetch->data, new_entries,
 					 g->num_high_scores);
 		sort_highscore_entries(new_entries, g->num_high_scores);

@@ -1,6 +1,4 @@
-#ifndef BOARD
-#define BOARD
-
+#pragma once
 #include "input.h"
 #include "raylib.h"
 #include <stdbool.h>
@@ -40,5 +38,3 @@ void snake_right_direction_to_current(Snake *s);
 void food_init(Board *b);
 void food_spawn(Board *b);
 void food_destroy(Food **f);
-
-#endif

@@ -22,6 +22,8 @@ GameState game_configure(Game *g);
 GameState game_high_score(Game *g);
 void game_restart(Game *g);
 
+void save_score(Game const *g);
+
 GameConfigureStateTransition conf_transitions[] = {
     {STATE_CONFIGURE_MENU, STATE_CONFIGURE_SELECTED_WIDTH, KEY_ENTER,
      STATE_CONFIGURE_WIDTH},
@@ -82,7 +84,7 @@ GameState game_end(Game *g) {
 	display_end(g->b, g->score, g->death_timestamp);
 	if (!saved) {
 		saved = true;
-		save_score(g->player_name, g->score);
+		save_score(g);
 	}
 	if (g->in.in_key == KEY_R || g->in.in_key == KEY_ENTER) {
 		saved = false;
@@ -213,6 +215,13 @@ GameState game_high_score(Game *g) {
 		attr.attributes = EMSCRIPTEN_FETCH_LOAD_TO_MEMORY;
 		attr.onsuccess = downloadSucceeded;
 		attr.onerror = downloadFailed;
+
+		const char *headers[] = {"Cache-Control",
+					 "no-cache, no-store, must-revalidate",
+					 "Pragma", "no-cache", NULL};
+
+		attr.requestHeaders = headers;
+
 		emscripten_fetch(&attr, "highscores.csv");
 		fetched = true;
 	}

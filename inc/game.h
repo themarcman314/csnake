@@ -1,5 +1,4 @@
-#ifndef GAME
-#define GAME
+#pragma once
 #include "board.h"
 #include "score.h"
 #include <stdbool.h>
@@ -45,5 +44,3 @@ Game *game_create();
 void game_fsm_run(Game *g);
 void game_clean(Game *g);
 void UpdateDrawFrame(Game *g);
-
-#endif
