@@ -3,6 +3,7 @@
 #include "game.h"
 #include "raylib.h"
 #include <stdbool.h>
+#include <stdio.h>
 #include <string.h>
 
 // void navigate_menu(UIElement *el, GameConfigureSelectedState *state,

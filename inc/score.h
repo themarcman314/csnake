@@ -1,6 +1,5 @@
 #pragma once
-// #include "game.h"
-#include <stdio.h>
+#include <stdbool.h>
 #if defined(PLATFORM_WEB)
 #include <emscripten/fetch.h>
 #endif
