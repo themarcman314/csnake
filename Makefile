@@ -1,5 +1,6 @@
 BUILDDIR_NATIVE=build/native
 BUILDDIR_WEB=build/web
+NGINX_DIR=/usr/share/nginx/html/
 
 CC=gcc
 FLAGS=-I$(INCLUDEDIR) -std=gnu99
@@ -12,7 +13,7 @@ WEB_FLAGS = $(FLAGS)
 WEB_FLAGS += -DPLATFORM_WEB
 WEB_LFLAGS = --shell-file src/shell.html -s USE_GLFW=3 -s ASYNCIFY -s STACK_SIZE=1MB --preload-file sounds --preload-file persistent -sINITIAL_MEMORY=67108864 -sFETCH
 WEB_LIB=./libs/libraylib_web.a
-TARGET_WEB=csnake.html
+TARGET_WEB=/csnake.html
 PORT = 8000
 
 SOURCEDIR=src
@@ -41,13 +42,21 @@ $(OBJ_NATIVE): $(BUILDDIR_NATIVE)/%.o: $(SOURCEDIR)/%.c
 $(OBJ_WEB): $(BUILDDIR_WEB)/%.o: $(SOURCEDIR)/%.c
 	$(WEB_CC) -c $(WEB_FLAGS) $< -o $@
 
-run: all
-	$(BUILDDIR_NATIVE)/$(TARGET)
+#run: all
+#	$(BUILDDIR_NATIVE)/$(TARGET)
 
-runweb: web
-	@echo "Starting server at http://localhost:$(PORT)"
-	@sleep 5 && firefox --new-window http://localhost:$(PORT)/$(TARGET_WEB) &
-	python -m http.server $(PORT) -d $(BUILDDIR_WEB)
+.PHONY:server
+
+server: server/server.c
+	$(CC) $< -o $(BUILDDIR_WEB)/server -lcjson
+
+run: runweb
+
+runweb: web server
+	systemctl stop snake_server
+	cp $(BUILDDIR_WEB)/* $(NGINX_DIR)
+	systemctl start snake_server
+	firefox --new-window http://localhost:$(TARGET_WEB)
 
 clean:
 	rm -rf build
