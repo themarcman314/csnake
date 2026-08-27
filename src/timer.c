@@ -1,6 +1,7 @@
 #ifdef _WIN32
 #error "This program does not support windows :("
 #else
+#define _POSIX_C_SOURCE 199309L // Enables POSIX features like clock_gettime
 #include <stdint.h>
 #include <time.h>
 #endif

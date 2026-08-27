@@ -5,6 +5,7 @@
 #endif
 
 typedef struct {
+	int rank;
 	char name[50];
 	int score;
 	bool board_wrapping;

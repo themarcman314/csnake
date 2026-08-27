@@ -225,10 +225,8 @@ GameState game_high_score(Game *g) {
 		emscripten_fetch(&attr, "highscores.csv");
 		fetched = true;
 	}
-	if (g->high_scores != NULL) {
-		display_high_score(g->high_scores, g->num_high_scores);
-	}
 #endif
+	display_high_score(g->high_scores, g->num_high_scores);
 	if (g->in.in_key == KEY_R) {
 		fetched = false;
 		game_restart(g);
@@ -270,7 +268,6 @@ void game_clean(Game *g) {
 
 void UpdateDrawFrame(Game *g) {
 	BeginDrawing();
-	get_screen_measurements();
 	g->in.in_key = GetKeyPressed();
 	if (!IsSoundPlaying(g->sound_background_music))
 		PlaySound(g->sound_background_music);

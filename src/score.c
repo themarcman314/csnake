@@ -203,7 +203,7 @@ void downloadSucceeded(emscripten_fetch_t *fetch) {
 	}
 
 	HighScoreEntry *new_entries =
-	    malloc(sizeof(HighScoreEntry) * g->num_high_scores);
+	    calloc(sizeof(HighScoreEntry) * g->num_high_scores, 1);
 	if (new_entries) {
 		printf("allocated mem for entries\n");
 		for (int i = 0; i < fetch->numBytes; i++)
