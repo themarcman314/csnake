@@ -1,0 +1,7 @@
+CompileFlags:
+  Add:
+    - "-DPLATFORM_WEB"
+    - "-isystem"
+    - "/usr/lib/emscripten/cache/sysroot/include"
+    - "-isystem"
+    - "/usr/lib/emscripten/system/include"
