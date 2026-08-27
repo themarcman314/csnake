@@ -230,8 +230,6 @@ int update_snake_speed_conf(Game *g, DisplayConfigureInfo *info) {
 	return KEY_NULL;
 }
 
-int update_wrap_conf(Game *g, DisplayConfigureInfo *info) {}
-
 void init_width_conf(DisplayConfigureInfo *i) {
 	i->sub_element_count = 3; // We are using 3 buttons
 

@@ -6,13 +6,18 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 
-#define COLOR_BACKGROUND CLITERAL(Color){31, 31, 31, 255}
-#define COLOR_TEXT_BASE WHITE
+#define COLOR_YELLOW_SITE (Color){240, 182, 52, 255}
+#define COLOR_BACKGROUND_SITE (Color){31, 31, 31, 255}
+#define COLOR_GREEN_SITE (Color){58, 166, 138, 255}
+#define COLOR_TEXT_BASE (Color){214, 211, 209, 255}
+
 #define COLOR_TEXT_HIGHLIGHT GREEN
 #define COLOR_GRID DARKGRAY
 #define COLOR_BOX_BUTTON GRAY
-#define COLOR_YELLOW_SITE (Color){240, 182, 52, 255}
+#define COLOR_FOOD ORANGE
+#define COLOR_SNAKE GREEN
 
 bool is_azerty = false;
 
@@ -80,7 +85,7 @@ void grid_draw(int const board_size_x, int const board_size_y,
 
 void board_draw(Board const *b, int score, bool is_draw_game_over,
 		bool show_score) {
-	ClearBackground(COLOR_BACKGROUND);
+	ClearBackground(COLOR_BACKGROUND_SITE);
 
 	set_start_coords_grid(b->width, b->height);
 
@@ -91,10 +96,10 @@ void board_draw(Board const *b, int score, bool is_draw_game_over,
 		for (int x = 0; x < b->width; x++) {
 			const char c = board_get_square(b, x, y);
 			if (c == FOOD_CHAR) {
-				draw_square(&p, x, y, ORANGE);
+				draw_square(&p, x, y, COLOR_FOOD);
 			} else if (c == SNAKE_BODY_CHAR ||
 				   (c == SNAKE_HEAD_CHAR && !is_draw_game_over))
-				draw_square(&p, x, y, GREEN);
+				draw_square(&p, x, y, COLOR_SNAKE);
 			if (show_score) {
 				char score_text[20] = "";
 				sprintf(score_text, "score: %d", score);
@@ -118,7 +123,7 @@ void draw_square(DrawingParameters const *p, int const x, int const y,
 }
 
 void display_welcome() {
-	ClearBackground(COLOR_BACKGROUND);
+	ClearBackground(COLOR_BACKGROUND_SITE);
 	set_keyboard_type();
 
 	int const width = GetScreenWidth();
@@ -127,7 +132,7 @@ void display_welcome() {
 	char title[] = "csnake";
 	int const font_size = p.font_size_big;
 	DrawText(title, width / 2 - MeasureText(title, p.font_size_big) / 2,
-		 title_height, p.font_size_big, GREEN);
+		 title_height, p.font_size_big, COLOR_TEXT_HIGHLIGHT);
 	char press_key[] = "press any key to start...";
 	DrawText(press_key,
 		 width / 2 - MeasureText(press_key, p.font_size_small) / 2,
@@ -142,14 +147,13 @@ void display_welcome() {
 }
 
 void display_end(Board const *b, int const score, int game_over_timestamp) {
-	ClearBackground(COLOR_BACKGROUND);
+	ClearBackground(COLOR_BACKGROUND_SITE);
 	int x, y;
 	snake_get_head_position(b->s, &x, &y);
 	board_draw(b, score, true, false);
 	board_draw_collision(b, x, y);
 	int now = millis();
 	if (now - game_over_timestamp < 1000) {
-		DrawText(".", -10, -10, 1, WHITE);
 		return;
 	}
 	DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(),
@@ -161,7 +165,6 @@ void display_end(Board const *b, int const score, int game_over_timestamp) {
 	char high_score_text[] = "press 'h' to view high scores";
 	char score_text[20];
 	sprintf(score_text, "score: %d", score);
-	// board_draw(b, score, false);
 	DrawText(text,
 		 screen_width / 2 - MeasureText(text, p.font_size_big) / 2,
 		 screen_height / 5, p.font_size_big, RED);
@@ -173,12 +176,6 @@ void display_end(Board const *b, int const score, int game_over_timestamp) {
 		 screen_width / 2 -
 		     MeasureText(restart_text, p.font_size_small) / 2,
 		 3 * screen_height / 4, p.font_size_small, COLOR_TEXT_BASE);
-	// DrawText(high_score_text,
-	//	 3 * screen_width / 4 -
-	//	     MeasureText(high_score_text,
-	// p.font_size_small) /
-	// 2, 	 3 * screen_height / 4, p.font_size_small,
-	// BLACK);
 }
 
 void set_start_coords_grid(int grid_width, int grid_height) {
@@ -192,7 +189,7 @@ void set_start_coords_grid(int grid_width, int grid_height) {
 
 void display_menu_conf(DisplayConfigureInfo info) {
 
-	ClearBackground(COLOR_BACKGROUND);
+	ClearBackground(COLOR_BACKGROUND_SITE);
 	int const border_fraction_screen_width = 5;
 	int const border_fraction_screen_height = 15;
 	int const rectangle_thickness_lines = 2;
@@ -245,34 +242,10 @@ void display_menu_conf(DisplayConfigureInfo info) {
 	    &info.menu_elements[info.menu_element_count],
 	    info.menu_elements[info.menu_element_count].bounds.height -
 		text_y_offset);
-	// int button_width =
-	//     MeasureText(info.menu_elements[info.menu_element_count].text,
-	//		rectangle_height - text_x_offset);
-	//  if (info.menu_elements[info.menu_element_count].is_hovered) {
-	//	text_color = COLOR_TEXT_HIGHLIGHT;
-	//	DrawRectangleLinesEx(
-	//	    info.menu_elements[info.menu_element_count].bounds,
-	//	    rectangle_thickness_lines, GRAY);
-	//  } else
-	//	text_color = COLOR_TEXT_BASE;
-	//  DrawText(
-	//      info.menu_elements[info.menu_element_count].text,
-	//      info.menu_elements[info.menu_element_count].bounds.width +
-	//	info.menu_elements[info.menu_element_count].bounds.x -
-	//	MeasureText(
-	//	    info.menu_elements[info.menu_element_count].text,
-	//	    info.menu_elements[info.menu_element_count].bounds.height -
-	//		text_x_offset) -
-	//	text_x_offset,
-	//      info.menu_elements[info.menu_element_count].bounds.y +
-	//	text_x_offset,
-	//      info.menu_elements[info.menu_element_count].bounds.height -
-	//	text_y_offset,
-	//      text_color);
 }
 
 void display_name_conf(DisplayConfigureInfo info) {
-	ClearBackground(COLOR_BACKGROUND);
+	ClearBackground(COLOR_BACKGROUND_SITE);
 	char title_name[] = "Enter your name:";
 	DrawText(title_name,
 		 GetScreenWidth() / 2 -
@@ -286,7 +259,7 @@ void display_name_conf(DisplayConfigureInfo info) {
 }
 
 void display_width_conf(DisplayConfigureInfo info) {
-	ClearBackground(COLOR_BACKGROUND);
+	ClearBackground(COLOR_BACKGROUND_SITE);
 	display_menu_dimmed(info);
 	set_start_coords_grid(info.width, info.height);
 	grid_draw(info.width, info.height, p.start_x, p.start_y,
@@ -319,8 +292,9 @@ void display_width_conf(DisplayConfigureInfo info) {
 }
 
 void DrawUIElement(UIElement const *el, int font_size) {
-	Color btn_color = COLOR_BACKGROUND;
-	Color text_color = el->is_hovered ? GREEN : WHITE;
+	Color btn_color = COLOR_BACKGROUND_SITE;
+	Color text_color =
+	    el->is_hovered ? COLOR_TEXT_HIGHLIGHT : COLOR_TEXT_BASE;
 
 	// 2. Draw the main button body
 	DrawRectangleRec(el->bounds, btn_color);
@@ -345,7 +319,7 @@ void DrawUIElement(UIElement const *el, int font_size) {
 }
 
 void display_height_conf(DisplayConfigureInfo info) {
-	ClearBackground(COLOR_BACKGROUND);
+	ClearBackground(COLOR_BACKGROUND_SITE);
 	display_menu_dimmed(info);
 	set_start_coords_grid(info.width, info.height);
 	grid_draw(info.width, info.height, p.start_x, p.start_y,
@@ -377,7 +351,7 @@ void display_height_conf(DisplayConfigureInfo info) {
 }
 
 void display_wrapping_conf(DisplayConfigureInfo info) {
-	ClearBackground(COLOR_BACKGROUND);
+	ClearBackground(COLOR_BACKGROUND_SITE);
 	display_menu_dimmed(info);
 	board_draw(info.demo, 0, false, false);
 	sprintf(info.sub_elements[0].text,
@@ -395,7 +369,7 @@ void display_menu_dimmed(DisplayConfigureInfo info) {
 
 void display_snake_speed_conf(DisplayConfigureInfo info) {
 
-	ClearBackground(COLOR_BACKGROUND);
+	ClearBackground(COLOR_BACKGROUND_SITE);
 	display_menu_dimmed(info);
 	board_draw(info.demo, 0, false, false);
 	char title_speed[] = "Set snake speed:";
@@ -425,11 +399,11 @@ void display_snake_speed_conf(DisplayConfigureInfo info) {
 }
 
 void display_high_score(HighScoreEntry const *h, int const num_entries) {
-	ClearBackground(COLOR_BACKGROUND);
-	int const title_y = 50;
-	draw_title_centered("Highscores", title_y);
+	ClearBackground(COLOR_BACKGROUND_SITE);
+	int current_y = 50;
+	draw_title_centered("Leaderboard", current_y);
 	int const margin_x = 50;
-	int const usable_width = GetScreenWidth() - margin_x * 2;
+	int const usable_width = GetScreenWidth() - (margin_x * 2);
 	enum {
 		RANK = 0,
 		NAME,
@@ -437,6 +411,7 @@ void display_high_score(HighScoreEntry const *h, int const num_entries) {
 		WRAPPING,
 		WIDTH,
 		HEIGHT,
+		DATE,
 		NUM_PARAMS
 	} column_index;
 
@@ -446,44 +421,55 @@ void display_high_score(HighScoreEntry const *h, int const num_entries) {
 	};
 
 	struct columns c[NUM_PARAMS] = {
-	    {margin_x + usable_width * 0.10f, "RANK"},
-	    {margin_x + usable_width * 0.20f, "NAME"},
-	    {margin_x + usable_width * 0.30f, "SCORE"},
-	    {margin_x + usable_width * 0.40f, "BOARD WRAPPING"},
-	    {margin_x + usable_width * 0.60f, "BOARD WIDTH"},
-	    {margin_x + usable_width * 0.80f, "BOARD HEIGHT"},
+	    {margin_x + (usable_width * 0.0f), "RANK"},
+	    {margin_x + (usable_width * 0.10f), "NAME"},
+	    {margin_x + (usable_width * 0.20f), "SCORE"},
+	    {margin_x + (usable_width * 0.30f), "BOARD WRAPPING"},
+	    {margin_x + (usable_width * 0.50f), "BOARD WIDTH"},
+	    {margin_x + (usable_width * 0.70f), "BOARD HEIGHT"},
+	    {margin_x + (usable_width * 0.90f), "DATE"},
 	};
 
+	current_y += 1.5f * p.font_size_big;
 	for (int i = 0; i < NUM_PARAMS; i++) {
-		DrawText(c[i].col_title, c[i].col_x,
-			 title_y + 1.5f * p.font_size_big, p.font_size_small,
-			 COLOR_YELLOW_SITE);
+		DrawText(c[i].col_title, c[i].col_x, current_y,
+			 p.font_size_small, COLOR_YELLOW_SITE);
 	}
 	if (h) {
-
 		for (int i = 0; i < num_entries; i++) {
-			int const y_text =
-			    0.1 * GetScreenHeight() + p.font_size_big + 30 * i;
+			current_y += p.font_size_big;
 
 			DrawText(TextFormat("#%d", h[i].rank), c[RANK].col_x,
-				 y_text, p.font_size_small, COLOR_TEXT_BASE);
+				 current_y, p.font_size_small, COLOR_TEXT_BASE);
+			DrawText(TextFormat("%s", h[i].name), c[NAME].col_x,
+				 current_y, p.font_size_small, COLOR_TEXT_BASE);
+			DrawText(TextFormat("%d", h[i].score), c[SCORE].col_x,
+				 current_y, p.font_size_small, COLOR_TEXT_BASE);
+			DrawText(TextFormat("%s", h[i].board_wrapping
+						      ? "enabled"
+						      : "disabled"),
+				 c[WRAPPING].col_x, current_y,
+				 p.font_size_small, COLOR_TEXT_BASE);
+			DrawText(TextFormat("%d", h[i].board_width),
+				 c[WIDTH].col_x, current_y, p.font_size_small,
+				 COLOR_TEXT_BASE);
+			DrawText(TextFormat("%d", h[i].board_height),
+				 c[HEIGHT].col_x, current_y, p.font_size_small,
+				 COLOR_TEXT_BASE);
+			time_t timestamp = (time_t)h[i].timestamp;
+			// printf("timestamp: %lld\n", h[i].timestamp);
+			struct tm *tm;
+			tm = gmtime(&timestamp);
+			DrawText(TextFormat("%d/%d/%d %d:%d:%d", tm->tm_mday,
+					    tm->tm_mon, tm->tm_year,
+					    tm->tm_hour, tm->tm_min,
+					    tm->tm_sec),
+				 c[DATE].col_x, current_y, p.font_size_small,
+				 COLOR_TEXT_BASE);
 
-			// char score_str[10] = "";
-			// sprintf(score_str, "%d", h[i].score);
-			// int const margin = GetScreenWidth() / 8;
-			// int const y_text =
-			//     0.1 * GetScreenHeight() + p.font_size_big + 30 *
-			//     i;
-			// if (y_text > GetScreenHeight())
-			//	break;
-			// DrawText(h[i].name,
-			//	 margin -
-			//	     MeasureText(h[i].name, p.font_size_small),
-			//	 y_text, p.font_size_small, COLOR_TEXT_BASE);
-			// DrawText(score_str,
-			//	 GetScreenWidth() - margin -
-			//	     MeasureText(score_str, p.font_size_small),
-			//	 y_text, p.font_size_small, COLOR_TEXT_BASE);
+			//  DrawText(TextFormat("%d", ),
+			//  c[HEIGHT].col_x, current_y, p.font_size_small,
+			//  COLOR_TEXT_BASE);
 		}
 	}
 }

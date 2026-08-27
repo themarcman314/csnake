@@ -1,5 +1,6 @@
 #pragma once
 #include <stdbool.h>
+#include <time.h>
 #if defined(PLATFORM_WEB)
 #include <emscripten/fetch.h>
 #endif
@@ -11,6 +12,7 @@ typedef struct {
 	bool board_wrapping;
 	int board_width;
 	int board_height;
+	long long timestamp;
 } HighScoreEntry;
 
 int count_lines_string(char const *string, int size);

@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 size_t parse_name_high_score_entry(char const *line_start, char *name);
 size_t parse_score_high_score_entry(char const *score_start, int *score);
@@ -13,6 +14,7 @@ size_t parse_board_wrapping_high_score_entry(char const *score_start,
 					     bool *board_wrapping);
 size_t parse_board_dimentions_high_score_entry(char const *score_start,
 					       int *width, int *height);
+void assign_ranks(HighScoreEntry *h, int num_entries);
 
 void sort_highscore_entries(HighScoreEntry *h, int const num_entries) {
 	HighScoreEntry temp;
@@ -32,6 +34,11 @@ void sort_highscore_entries(HighScoreEntry *h, int const num_entries) {
 	} while (!sorted);
 }
 
+void assign_ranks(HighScoreEntry *h, int num_entries) {
+	for (int i = 0; i < num_entries; i++)
+		h[i].rank = i + 1;
+}
+
 #ifdef PLATFORM_WEB
 void score_sent_success(emscripten_fetch_t *fetch) {
 	printf("Score was sent!\n");
@@ -49,23 +56,28 @@ void save_score(Game const *g) {
 	// set request method
 	strcpy(attr.requestMethod, "POST");
 
-	// add headers
-	// const char *headers[] = {"Content-Type", "application/json", NULL};
 	attr.requestHeaders = NULL;
-	char *json_payload = malloc(256);
-	snprintf(json_payload, 256,
-		 "{\"name\": \"%s\", \"score\": %u, \"board wrapping\": %d, "
-		 "\"board width\": %d, \"board height\": %d}",
-		 g->player_name, g->score, g->wrapping, g->b->width,
-		 g->b->height);
-	printf("payload:\n%s\n", json_payload);
-	attr.requestData = json_payload;
-	attr.requestDataSize = strlen(json_payload);
-	attr.attributes = EMSCRIPTEN_FETCH_LOAD_TO_MEMORY;
-	attr.onsuccess = score_sent_success;
-	attr.onerror = score_sent_fail;
+	char *json_payload = calloc(256, 1);
+	if (json_payload != NULL) {
+		time_t t = time(NULL);
+		snprintf(
+		    json_payload, 256,
+		    "{\"name\": \"%s\", \"score\": %u, \"board wrapping\": %d, "
+		    "\"board width\": %d, \"board height\": %d, \"timestamp\": "
+		    "%lld}",
+		    g->player_name, g->score, g->wrapping, g->b->width,
+		    g->b->height, t);
+		printf("payload:\n%s\n", json_payload);
+		attr.requestData = json_payload;
+		attr.requestDataSize = strlen(json_payload);
+		attr.attributes = EMSCRIPTEN_FETCH_LOAD_TO_MEMORY;
+		attr.onsuccess = score_sent_success;
+		attr.onerror = score_sent_fail;
 
-	emscripten_fetch(&attr, "/submit_score");
+		emscripten_fetch(&attr, "/submit_score");
+	} else {
+		fprintf(stderr, "failed to allocate memory for post request\n");
+	}
 #endif
 }
 
@@ -189,8 +201,8 @@ int count_lines_string(char const *string, int size) {
 
 #ifdef PLATFORM_WEB
 void downloadSucceeded(emscripten_fetch_t *fetch) {
-	printf("Finished downloading %llu bytes from URL %s.\n",
-	       fetch->numBytes, fetch->url);
+	printf("Finished downloading %lu bytes from URL %s.\n", fetch->numBytes,
+	       fetch->url);
 	Game *g = fetch->userData;
 	HighScoreEntry *entries = g->high_scores;
 
@@ -211,6 +223,7 @@ void downloadSucceeded(emscripten_fetch_t *fetch) {
 		parse_high_score_entries(fetch->data, new_entries,
 					 g->num_high_scores);
 		sort_highscore_entries(new_entries, g->num_high_scores);
+		assign_ranks(new_entries, g->num_high_scores);
 		g->high_scores = new_entries;
 	}
 	emscripten_fetch_close(fetch); // Free data associated with the fetch.

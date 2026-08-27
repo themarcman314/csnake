@@ -1,3 +1,4 @@
+#include "../inc/score.h"
 #include <arpa/inet.h>
 #include <cjson/cJSON.h>
 #include <fcntl.h>
@@ -17,14 +18,14 @@
 #define BACKLOG 5 // maximum number of pending connections in the queue
 #define DATA_BUF_SIZE 1000
 
-typedef struct {
-	char name[50];
-	int score;
-	bool board_wrapping;
-	int board_width;
-	int board_height;
-	long long timestamp;
-} HighScoreEntry;
+// typedef struct {
+//	char name[50];
+//	int score;
+//	bool board_wrapping;
+//	int board_width;
+//	int board_height;
+//	long long timestamp;
+// } HighScoreEntry;
 
 size_t parse_post_prefix(char const *start_req, size_t num_bytes);
 size_t parse_uri(char const *start_of_uri, size_t num_bytes);
@@ -223,6 +224,9 @@ int parse_json(char const *body, HighScoreEntry *e, size_t max_name_str_size) {
 	timestamp = cJSON_GetObjectItemCaseSensitive(json_data, "timestamp");
 	if (cJSON_IsNumber(timestamp)) {
 		e->timestamp = (time_t)timestamp->valuedouble;
+		printf("timestamp from json: %lld\n", e->timestamp);
+	} else {
+		printf("timestamp is not number!!!\n");
 	}
 
 end:
