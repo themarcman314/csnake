@@ -3,7 +3,7 @@ BUILDDIR_WEB=build/web
 NGINX_DIR=/usr/share/nginx/html/
 
 CC=gcc
-FLAGS=-I$(INCLUDEDIR) -std=gnu99
+FLAGS=-I$(INCLUDEDIR) -std=c99
 LFLAGS=-lm -lGL -lm -lpthread -ldl -lrt -lX11
 LIB=./libs/libraylib.a
 TARGET=csnake
