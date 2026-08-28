@@ -1,12 +1,10 @@
 #pragma once
 #include "input.h"
-#include "raylib.h"
-#include <stdbool.h>
 
 typedef struct Snake Snake;
 typedef struct Food Food;
 
-typedef struct {
+typedef struct Board {
 	int width, height;
 	Snake *s;
 	Food *f;

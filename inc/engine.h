@@ -1,44 +1,12 @@
-#ifndef ENGINE
-#define ENGINE
+#pragma once
 #include "board.h"
-#include "game.h"
+#include "configure_types.h"
 #include "raylib.h"
+#include "score.h"
 #include "timer.h"
 #include <stdint.h>
 
 typedef struct DrawingParameters DrawingParameters;
-
-typedef enum {
-	BTN_NONE,
-	BTN_DECREASE,
-	BTN_INCREASE,
-	BTN_ACCEPT,
-	BTN_TOGGLE,
-	BTN_CANCEL,
-} ElementID;
-
-typedef struct {
-	Rectangle bounds;
-	float outline_thickness;
-	bool is_hovered;
-	char text[20];
-	ElementID id;
-} UIElement;
-
-typedef struct {
-	Board *demo;
-	GameConfigureSelectedState state_select;
-	float freq;
-	int width;
-	int height;
-	bool board_wrapping;
-	char *name;
-	UIElement menu_elements[5];
-	UIElement sub_elements[5];
-	int menu_element_count;
-	int sub_element_count;
-	Vector2 last_mouse_pos;
-} DisplayConfigureInfo;
 
 void get_screen_measurements();
 typedef void (*ConfDisplayFunc)(DisplayConfigureInfo info);
@@ -73,5 +41,3 @@ void draw_square(DrawingParameters const *p, int const x, int const y, Color c);
 UIElement CreateButton(float x, float y, float width, float height, char *text);
 
 void set_start_coords_grid(int grid_width, int grid_height);
-
-#endif

@@ -6,9 +6,6 @@
 #include <stdio.h>
 #include <string.h>
 
-// void navigate_menu(UIElement *el, GameConfigureSelectedState *state,
-//		   int const direction);
-
 void navigate_menu(DisplayConfigureInfo *info, int const direction);
 
 void navigate_menu(DisplayConfigureInfo *info, int const direction) {

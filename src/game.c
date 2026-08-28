@@ -2,6 +2,7 @@
 #include "board.h"
 #include "conf.h"
 #include "configure.h"
+#include "configure_types.h"
 #include "debug.h"
 #include "engine.h"
 #include "input.h"
@@ -14,6 +15,7 @@
 #include <string.h>
 #include <unistd.h>
 
+void update_logic(Game *g);
 GameState game_welcome(Input in);
 void game_init(Game *g);
 GameState game_end(Game *g);
@@ -21,8 +23,13 @@ GameState game_run(Game *g);
 GameState game_configure(Game *g);
 GameState game_high_score(Game *g);
 void game_restart(Game *g);
-
 void save_score(Game const *g);
+
+void game_welcome_draw();
+void game_configure_draw(GameConfigureContext ctx);
+
+void game_end_draw(Game const *g);
+void game_run_draw(Game const *g);
 
 GameConfigureStateTransition conf_transitions[] = {
     {STATE_CONFIGURE_MENU, STATE_CONFIGURE_SELECTED_WIDTH, KEY_ENTER,
@@ -61,6 +68,15 @@ GameConfigureStateTransition conf_transitions[] = {
      STATE_CONFIGURE_MENU},
 };
 
+static const GameConfigureFunc conf_logic_funcs[] = {
+    [STATE_CONFIGURE_NAME] = update_name_conf,
+    [STATE_CONFIGURE_MENU] = update_menu_conf,
+    [STATE_CONFIGURE_WIDTH] = update_width_conf,
+    [STATE_CONFIGURE_HEIGHT] = update_height_conf,
+    [STATE_CONFIGURE_WRAPPING] = update_wrapping_conf,
+    [STATE_CONFIGURE_SNAKE_SPEED] = update_snake_speed_conf,
+};
+
 void game_init(Game *g) {
 	memset(g, 0, sizeof(Game));
 	engine_init();
@@ -81,7 +97,6 @@ void game_init(Game *g) {
 
 GameState game_end(Game *g) {
 	static bool saved = false;
-	display_end(g->b, g->score, g->death_timestamp);
 	if (!saved) {
 		saved = true;
 		save_score(g);
@@ -118,87 +133,107 @@ GameState game_run(Game *g) {
 		if (board_check_all_collisions(g->b)) {
 			PlaySound(g->sound_death);
 			g->death_timestamp = millis();
-			board_draw(g->b, g->score, true, true);
 			return STATE_GAME_END;
 		}
 	}
-	board_draw(g->b, g->score, false, true);
 	return STATE_GAME_RUN;
 }
 
 GameState game_welcome(Input in) {
-	display_welcome();
 	if (in.in_key != KEY_NULL || IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
 		return STATE_GAME_CONFIGURE;
 	return STATE_GAME_WELCOME;
 }
 
+void game_welcome_draw() { display_welcome(); }
+
+static const ConfDisplayFunc conf_display_funcs[] = {
+    [STATE_CONFIGURE_NAME] = display_name_conf,
+    [STATE_CONFIGURE_MENU] = display_menu_conf,
+    [STATE_CONFIGURE_WIDTH] = display_width_conf,
+    [STATE_CONFIGURE_HEIGHT] = display_height_conf,
+    [STATE_CONFIGURE_SNAKE_SPEED] = display_snake_speed_conf,
+    [STATE_CONFIGURE_WRAPPING] = display_wrapping_conf,
+};
+
+void game_configure_draw(GameConfigureContext ctx) {
+	if (conf_display_funcs[ctx.state_conf]) {
+		conf_display_funcs[ctx.state_conf](ctx.info);
+	}
+}
+
+void game_end_draw(Game const *g) {
+	board_draw(g->b, g->score, true, true);
+	display_end(g->b, g->score, g->death_timestamp);
+}
+
+void game_run_draw(Game const *g) { board_draw(g->b, g->score, false, true); }
+
 GameState game_configure(Game *g) {
-	static GameConfigureState state_conf;
-	static DisplayConfigureInfo info;
 	static bool initialized = false;
 	if (!initialized) {
-		state_conf = STATE_CONFIGURE_NAME;
-		info.state_select = STATE_CONFIGURE_SELECTED_WIDTH;
-		info.freq = TICK_FREQUENCY;
-		info.width = BOARD_WIDTH;
-		info.height = BOARD_HEIGHT;
-		info.name = g->player_name;
-		info.board_wrapping = true;
+		g->ctx.state_conf = STATE_CONFIGURE_NAME;
+		g->ctx.info.state_select = STATE_CONFIGURE_SELECTED_WIDTH;
+		g->ctx.info.freq = TICK_FREQUENCY;
+		g->ctx.info.width = BOARD_WIDTH;
+		g->ctx.info.height = BOARD_HEIGHT;
+		g->ctx.info.name = g->player_name;
+		g->ctx.info.board_wrapping = true;
 		initialized = true;
-		info.demo = board_create(info.width, info.height);
-		init_menu_conf(&info);
+		g->ctx.info.demo =
+		    board_create(g->ctx.info.width, g->ctx.info.height);
+		init_menu_conf(&g->ctx.info);
 	}
 
-	snake_demo(info.demo, info.freq, info.board_wrapping);
+	snake_demo(g->ctx.info.demo, g->ctx.info.freq,
+		   g->ctx.info.board_wrapping);
 
 	int const num_of_conf_transitions =
 	    sizeof(conf_transitions) / sizeof(GameConfigureStateTransition);
 
-	if (conf_logic_funcs[state_conf]) {
-		int simulated_in = conf_logic_funcs[state_conf](g, &info);
+	if (conf_logic_funcs[g->ctx.state_conf]) {
+		int simulated_in =
+		    conf_logic_funcs[g->ctx.state_conf](g, &g->ctx.info);
 		if (simulated_in != KEY_NULL)
 			g->in.in_key = simulated_in;
-	}
-	if (conf_display_funcs[state_conf]) {
-		conf_display_funcs[state_conf](info);
 	}
 
 	for (GameConfigureState i = 0; i < num_of_conf_transitions; i++) {
 		GameConfigureStateTransition *t = &conf_transitions[i];
-		bool state_match = (state_conf == t->current_state);
+		bool state_match = (g->ctx.state_conf == t->current_state);
 
 		// TODO: remove me this should be redundant
 		if (g->in.in_key == KEY_NULL &&
 		    IsMouseButtonPressed(MOUSE_LEFT_BUTTON) &&
-		    state_conf == STATE_CONFIGURE_MENU) {
+		    g->ctx.state_conf == STATE_CONFIGURE_MENU) {
 			g->in.in_key = KEY_ENTER;
 		}
 
 		bool key_match = (g->in.in_key == t->input_key);
 		bool sel_match =
 		    (t->selected_item == STATE_CONFIGURE_SELECTED_NONE ||
-		     info.state_select == t->selected_item);
+		     g->ctx.info.state_select == t->selected_item);
 		if (IsWindowResized())
-			init_conf(state_conf, &info);
+			init_conf(g->ctx.state_conf, &g->ctx.info);
 		else if ((state_match && key_match && sel_match)) {
-			state_conf = t->next_state;
-			init_conf(state_conf, &info);
+			g->ctx.state_conf = t->next_state;
+			init_conf(g->ctx.state_conf, &g->ctx.info);
 			PlaySound(g->sound_click);
-			if (!info.demo || info.demo->width != info.width ||
-			    info.demo->height != info.height) {
-				board_destroy(&info.demo);
-				info.demo =
-				    board_create(info.width, info.height);
+			if (!g->ctx.info.demo ||
+			    g->ctx.info.demo->width != g->ctx.info.width ||
+			    g->ctx.info.demo->height != g->ctx.info.height) {
+				board_destroy(&g->ctx.info.demo);
+				g->ctx.info.demo = board_create(
+				    g->ctx.info.width, g->ctx.info.height);
 			}
 			break;
 		}
 	}
-	if (state_conf == STATE_CONFIGURE_APPLY) {
+	if (g->ctx.state_conf == STATE_CONFIGURE_APPLY) {
 		initialized = false;
-		g->wrapping = info.board_wrapping;
-		g->tick_speed = 1000.0F / info.freq;
-		g->b = board_create(info.width, info.height);
+		g->wrapping = g->ctx.info.board_wrapping;
+		g->tick_speed = 1000.0F / g->ctx.info.freq;
+		g->b = board_create(g->ctx.info.width, g->ctx.info.height);
 		return STATE_GAME_RUN;
 	}
 	return STATE_GAME_CONFIGURE;
@@ -226,7 +261,6 @@ GameState game_high_score(Game *g) {
 		fetched = true;
 	}
 #endif
-	display_high_score(g->high_scores, g->num_high_scores);
 	if (g->in.in_key == KEY_R) {
 		fetched = false;
 		game_restart(g);
@@ -244,6 +278,39 @@ void game_restart(Game *g) {
 void game_fsm_run(Game *g) {
 	while (!WindowShouldClose()) {
 		UpdateDrawFrame(g);
+	}
+}
+
+void update_logic(Game *g) {
+	g->in.in_key = GetKeyPressed();
+	if (!IsSoundPlaying(g->sound_background_music))
+		PlaySound(g->sound_background_music);
+
+	switch (g->state) {
+	case STATE_GAME_WELCOME:
+		g->state = game_welcome(g->in);
+		break;
+	case STATE_GAME_RUN:
+		snake_head_direction_set_next(g->b->s, g->in);
+		g->state = game_run(g);
+		break;
+	case STATE_GAME_END:
+		g->state = game_end(g);
+		break;
+	case STATE_GAME_HIGH_SCORE:
+		// g->state = STATE_GAME_END;
+		// break;
+		g->state = game_high_score(g);
+		break;
+	case STATE_GAME_CONFIGURE:
+		g->state = game_configure(g);
+		break;
+	case STATE_GAME_EXIT:
+		return;
+
+	default:
+		g->state = STATE_GAME_EXIT;
+		break;
 	}
 }
 
@@ -267,29 +334,26 @@ void game_clean(Game *g) {
 }
 
 void UpdateDrawFrame(Game *g) {
-	BeginDrawing();
-	g->in.in_key = GetKeyPressed();
-	if (!IsSoundPlaying(g->sound_background_music))
-		PlaySound(g->sound_background_music);
+	update_logic(g);
 
+	BeginDrawing();
 	switch (g->state) {
 	case STATE_GAME_WELCOME:
-		g->state = game_welcome(g->in);
+		game_welcome_draw();
 		break;
 	case STATE_GAME_RUN:
-		snake_head_direction_set_next(g->b->s, g->in);
-		g->state = game_run(g);
+		game_run_draw(g);
 		break;
 	case STATE_GAME_END:
-		g->state = game_end(g);
+		game_end_draw(g);
 		break;
 	case STATE_GAME_HIGH_SCORE:
+		display_high_score(g->high_scores, g->num_high_scores);
 		// g->state = STATE_GAME_END;
 		// break;
-		g->state = game_high_score(g);
 		break;
 	case STATE_GAME_CONFIGURE:
-		g->state = game_configure(g);
+		game_configure_draw(g->ctx);
 		break;
 	case STATE_GAME_EXIT:
 		return;

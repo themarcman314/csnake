@@ -1,5 +1,6 @@
 #include "board.h"
 #include "conf.h"
+#include "configure.h"
 #include "engine.h"
 #include "raylib.h"
 #include <stdbool.h>
@@ -58,7 +59,7 @@ void set_keyboard_type() {
 void engine_init() {
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
 	InitWindow(800, 450, "csnake");
-	SetTargetFPS(60);
+	SetTargetFPS(0);
 	int const screenWidth = GetMonitorWidth(GetCurrentMonitor());
 	int const screenHeight = GetMonitorHeight(GetCurrentMonitor());
 	int const win_border_size = 50;
@@ -492,7 +493,6 @@ void window_periodic_end() {
 }
 
 bool is_display_name_box_overflown(char *name) {
-	// 225, 50
 	int text_width = MeasureText(name, p.font_size_big);
 	if (text_width < 225) {
 		return false;
@@ -506,6 +506,5 @@ UIElement CreateButton(float x, float y, float width, float height,
 	btn.bounds = (Rectangle){x, y, width, height};
 	memcpy(btn.text, text, sizeof(btn.text));
 	btn.outline_thickness = 2.0f;
-	// center the text
 	return btn;
 }

@@ -1,17 +1,9 @@
 #pragma once
 #include "board.h"
+#include "configure.h"
+#include "raylib.h"
 #include "score.h"
 #include <stdbool.h>
-
-typedef enum {
-	STATE_CONFIGURE_SELECTED_WIDTH,
-	STATE_CONFIGURE_SELECTED_HEIGHT,
-	STATE_CONFIGURE_SELECTED_SNAKE_SPEED,
-	STATE_CONFIGURE_SELECTED_WRAPPING,
-	STATE_CONFIGURE_SELECTED_PLAY,
-	STATE_CONFIGURE_SELECTED_MENU,
-	STATE_CONFIGURE_SELECTED_NONE,
-} GameConfigureSelectedState;
 
 typedef enum {
 	STATE_GAME_WELCOME,
@@ -23,8 +15,9 @@ typedef enum {
 	STATE_GAME_EXIT
 } GameState;
 
-typedef struct Game {
+struct Game {
 	GameState state;
+	GameConfigureContext ctx;
 	bool wrapping;
 	unsigned score;
 	HighScoreEntry *high_scores;
@@ -38,7 +31,7 @@ typedef struct Game {
 	Sound sound_background_music;
 	Sound sound_death;
 	Sound sound_click;
-} Game;
+};
 
 Game *game_create();
 void game_fsm_run(Game *g);
