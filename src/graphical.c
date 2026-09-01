@@ -59,7 +59,7 @@ void set_keyboard_type() {
 void engine_init() {
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
 	InitWindow(800, 450, "csnake");
-	SetTargetFPS(0);
+	SetTargetFPS(60);
 	int const screenWidth = GetMonitorWidth(GetCurrentMonitor());
 	int const screenHeight = GetMonitorHeight(GetCurrentMonitor());
 	int const win_border_size = 50;
@@ -457,12 +457,12 @@ void display_high_score(HighScoreEntry const *h, int const num_entries) {
 			DrawText(TextFormat("%d", h[i].board_height),
 				 c[HEIGHT].col_x, current_y, p.font_size_small,
 				 COLOR_TEXT_BASE);
-			time_t timestamp = (time_t)h[i].timestamp;
+			time_t timestamp = (long long)h[i].timestamp;
 			// printf("timestamp: %lld\n", h[i].timestamp);
 			struct tm *tm;
 			tm = gmtime(&timestamp);
 			DrawText(TextFormat("%d/%d/%d %d:%d:%d", tm->tm_mday,
-					    tm->tm_mon, tm->tm_year,
+					    tm->tm_mon + 1, tm->tm_year + 1900,
 					    tm->tm_hour, tm->tm_min,
 					    tm->tm_sec),
 				 c[DATE].col_x, current_y, p.font_size_small,

@@ -1,6 +1,5 @@
 #pragma once
 #include <stdbool.h>
-#include <time.h>
 #if defined(PLATFORM_WEB)
 #include <emscripten/fetch.h>
 #endif

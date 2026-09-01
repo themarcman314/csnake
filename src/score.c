@@ -121,6 +121,12 @@ void parse_high_score_entries(char const *string, HighScoreEntry *h,
 			printf("width: %d, height: %d\n", h[i].board_width,
 			       h[i].board_height);
 		}
+		if (*cursor == ',') {
+			cursor++;
+		}
+		while (*cursor == ' ')
+			cursor++;
+		h[i].timestamp = atoll(cursor);
 
 		while (*cursor != '\n')
 			cursor++;
