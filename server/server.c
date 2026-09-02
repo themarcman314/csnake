@@ -149,9 +149,9 @@ int main(void) {
 			       e.score);
 			char score_entry[250] = "";
 			// TODO: Store unix time as well
-			sprintf(score_entry, "%s,%u,%d,%d,%d,%lld\n", e.name,
+			sprintf(score_entry, "%s,%u,%d,%d,%d,%lld,%s\n", e.name,
 				e.score, e.board_wrapping, e.board_width,
-				e.board_height, e.timestamp);
+				e.board_height, e.timestamp, e.country_code);
 			printf("body received: %s\n", cursor);
 			append_to_file("highscores.csv", score_entry,
 				       strlen(score_entry));
@@ -182,6 +182,7 @@ int parse_json(char const *body, HighScoreEntry *e, size_t max_name_str_size) {
 	const cJSON *width = NULL;
 	const cJSON *height = NULL;
 	const cJSON *timestamp = NULL;
+	const cJSON *country_code = NULL;
 
 	name = cJSON_GetObjectItemCaseSensitive(json_data, "name");
 	if (cJSON_IsString(name) && (name->valuestring != NULL)) {
@@ -218,6 +219,14 @@ int parse_json(char const *body, HighScoreEntry *e, size_t max_name_str_size) {
 		printf("timestamp from json: %lld\n", e->timestamp);
 	} else {
 		printf("timestamp is not number!!!\n");
+	}
+
+	country_code =
+	    cJSON_GetObjectItemCaseSensitive(json_data, "country code");
+	if (cJSON_IsString(country_code)) {
+		memcpy(e->country_code, country_code->valuestring, 2);
+	} else {
+		printf("country code is not a string!!!\n");
 	}
 
 end:

@@ -11,9 +11,9 @@ TARGET=csnake
 WEB_CC=emcc
 WEB_FLAGS = $(FLAGS)
 WEB_FLAGS += -DPLATFORM_WEB
-WEB_LFLAGS = --shell-file src/shell.html -s USE_GLFW=3 -s ASYNCIFY -s STACK_SIZE=1MB --preload-file sounds --preload-file persistent -sINITIAL_MEMORY=67108864 -sFETCH
+WEB_LFLAGS = --shell-file src/shell.html -s USE_GLFW=3 -s ASYNCIFY -s STACK_SIZE=1MB --preload-file sounds --preload-file flags/flags_strip.png -sINITIAL_MEMORY=67108864 -sFETCH
 WEB_LIB=./libs/libraylib_web.a
-TARGET_WEB=/csnake.html
+TARGET_WEB=csnake.html
 PORT = 8000
 
 SOURCEDIR=src
@@ -60,7 +60,7 @@ runweb: web server
 	systemctl stop snake_server
 	cp $(BUILDDIR_WEB)/* $(NGINX_DIR)
 	systemctl start snake_server
-	firefox --new-window http://localhost:$(TARGET_WEB)
+	firefox --new-window http://localhost:/$(TARGET_WEB)
 
 clean:
 	rm -rf build

@@ -41,7 +41,7 @@ DrawingParameters p = {.draw_fps = true,
 void DrawUIElement(UIElement const *el, int font_size);
 void display_menu_dimmed(DisplayConfigureInfo info);
 void draw_title_centered(char const *title, int y);
-void draw_flag(char const *code, Vector2 position);
+void draw_flag(Texture2D *f, char const *code, Vector2 position, int font_size);
 
 void set_keyboard_type() {
 #ifndef PLATFORM_WEB
@@ -400,19 +400,27 @@ void display_snake_speed_conf(DisplayConfigureInfo info) {
 	}
 }
 
-void draw_flag(char const *code, Vector2 position) {
+void draw_flag(Texture2D *f, char const *code, Vector2 position,
+	       int font_size) {
+	printf("country code: %s\n", code);
 	Rectangle r = {.x = 0, .width = FLAG_WIDTH, .height = FLAG_HEIGHT};
+	Rectangle destination = {.x = position.x,
+				 .y = position.y,
+				 //.width = font_size * FLAG_WIDTH / 3 / 24,
+				 //.height = font_size * FLAG_HEIGHT / 3 / 24};
+				 .width = FLAG_WIDTH / 3,
+				 .height = FLAG_HEIGHT / 3};
 	for (int i = 0; i < COUNTRY_CODE_COUNT; i++) {
 		if (strcmp(code, country_codes[i]) == 0) {
 			r.y = i * FLAG_HEIGHT;
-			Texture2D f = LoadTexture("flags/flags_strip.png");
-			Vector2 v = {.x = 100, .y = 100};
-			DrawTextureRec(f, r, v, WHITE);
+			DrawTexturePro(*f, r, destination, (Vector2){0, 0},
+				       0.0f, WHITE);
 		}
 	}
 }
 
-void display_high_score(HighScoreEntry const *h, int const num_entries) {
+void display_high_score(HighScoreEntry const *h, int const num_entries,
+			Texture2D *flags) {
 	ClearBackground(COLOR_BACKGROUND_SITE);
 	int current_y = 50;
 	draw_title_centered("Leaderboard", current_y);
@@ -484,8 +492,8 @@ void display_high_score(HighScoreEntry const *h, int const num_entries) {
 					    tm->tm_min, tm->tm_sec),
 				 c[DATE].col_x, current_y, font_size,
 				 COLOR_TEXT_BASE);
-			Vector2 v = {c->col_x, current_y};
-			draw_flag(h->country_code, v);
+			Vector2 v = {.x = c[COUNTRY].col_x, .y = current_y};
+			draw_flag(flags, h[i].country_code, v, font_size);
 		}
 	}
 }

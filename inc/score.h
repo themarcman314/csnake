@@ -19,6 +19,7 @@ int count_lines_string(char const *string, int size);
 void parse_high_score_entries(char const *s, HighScoreEntry *h,
 			      int const entry_count);
 void sort_highscore_entries(HighScoreEntry *h, int const num_entries);
+void fill_country_code(char *code);
 
 #if defined(PLATFORM_WEB)
 void downloadSucceeded(emscripten_fetch_t *fetch);

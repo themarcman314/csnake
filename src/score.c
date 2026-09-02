@@ -14,8 +14,8 @@ size_t parse_board_wrapping_high_score_entry(char const *score_start,
 					     bool *board_wrapping);
 size_t parse_board_dimentions_high_score_entry(char const *score_start,
 					       int *width, int *height);
+size_t parse_time_high_score_entry(char const *start, long long *timestamp);
 void assign_ranks(HighScoreEntry *h, int num_entries);
-void fill_country_code(char *code);
 
 void sort_highscore_entries(HighScoreEntry *h, int const num_entries) {
 	HighScoreEntry temp;
@@ -47,6 +47,22 @@ void score_sent_success(emscripten_fetch_t *fetch) {
 void score_sent_fail(emscripten_fetch_t *fetch) {
 	printf("Score was not sent\n");
 }
+
+void country_code_dl_success(emscripten_fetch_t *fetch) {
+	char *code = fetch->userData;
+	char const *cursor = fetch->data;
+	char const success_str[] = "success";
+	if (memcmp(cursor, success_str, sizeof success_str - 1) == 0) {
+		cursor += sizeof success_str;
+		if (*cursor == ',')
+			cursor++;
+		memcpy(code, cursor, 2);
+	}
+}
+void country_code_dl_failed(emscripten_fetch_t *fetch) {
+	printf("Unable to download country code\n");
+}
+
 #endif
 
 void save_score(Game const *g) {
@@ -65,9 +81,9 @@ void save_score(Game const *g) {
 		    json_payload, 256,
 		    "{\"name\": \"%s\", \"score\": %u, \"board wrapping\": %d, "
 		    "\"board width\": %d, \"board height\": %d, \"timestamp\": "
-		    "%lld}",
+		    "%lld, \"country code\": \"%s\"}",
 		    g->player_name, g->score, g->wrapping, g->b->width,
-		    g->b->height, t);
+		    g->b->height, t, g->country_code);
 		printf("payload:\n%s\n", json_payload);
 		attr.requestData = json_payload;
 		attr.requestDataSize = strlen(json_payload);
@@ -83,21 +99,18 @@ void save_score(Game const *g) {
 }
 
 void fill_country_code(char *code) {
+#ifdef PLATFORM_WEB
 	emscripten_fetch_attr_t attr;
 	emscripten_fetch_attr_init(&attr);
 	attr.userData = code;
 	strcpy(attr.requestMethod, "GET");
 	attr.attributes = EMSCRIPTEN_FETCH_LOAD_TO_MEMORY;
-	attr.onsuccess = downloadSucceeded;
-	attr.onerror = downloadFailed;
+	attr.onsuccess = country_code_dl_success;
+	attr.onerror = country_code_dl_failed;
 
-	// const char *headers[] = {"Cache-Control",
-	//			 "no-cache, no-store, must-revalidate",
-	//			 "Pragma", "no-cache", NULL};
-
-	// attr.requestHeaders = headers;
-
-	emscripten_fetch(&attr, "highscores.csv");
+	emscripten_fetch(&attr,
+			 "http://ip-api.com/csv/?fields=status,countryCode");
+#endif
 }
 
 void parse_high_score_entries(char const *string, HighScoreEntry *h,
@@ -143,9 +156,10 @@ void parse_high_score_entries(char const *string, HighScoreEntry *h,
 		if (*cursor == ',') {
 			cursor++;
 		}
-		while (*cursor == ' ')
-			cursor++;
-		h[i].timestamp = atoll(cursor);
+		consumed = parse_time_high_score_entry(cursor, &h[i].timestamp);
+		if (consumed > 0) {
+			cursor += consumed;
+		}
 
 		if (*cursor == ',') {
 			cursor++;
@@ -153,6 +167,7 @@ void parse_high_score_entries(char const *string, HighScoreEntry *h,
 		while (*cursor == ' ')
 			cursor++;
 		memcpy(h->country_code, cursor, 2);
+		printf("found country... %s\n", h->country_code);
 
 		while (*cursor != '\n')
 			cursor++;
@@ -169,6 +184,17 @@ size_t parse_name_high_score_entry(char const *line_start, char *name) {
 	memcpy(name, line_start, name_size);
 	name[name_size] = '\0';
 	return name_size;
+}
+
+size_t parse_time_high_score_entry(char const *start, long long *timestamp) {
+	char const *cursor = start;
+	while (*cursor == ' ')
+		cursor++;
+	*timestamp = atoll(cursor);
+	while (*cursor >= 0x30 && *cursor <= 0x39) { // is digit
+		cursor++;
+	}
+	return cursor - start;
 }
 
 size_t parse_score_high_score_entry(char const *score_start, int *score) {

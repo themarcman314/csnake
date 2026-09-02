@@ -29,7 +29,8 @@ void engine_init();
 void display_end(Board const *b, int const score, int game_over_timestamp);
 void display_welcome();
 void display_configure(DisplayConfigureInfo const info);
-void display_high_score(HighScoreEntry const *h, int const num_entries);
+void display_high_score(HighScoreEntry const *h, int const num_entries,
+			Texture2D *flags);
 
 void window_periodic_start();
 void window_periodic_end();

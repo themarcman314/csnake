@@ -10,7 +10,6 @@
 #include "score.h"
 #include <stdbool.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -81,6 +80,7 @@ void game_init(Game *g) {
 	memset(g, 0, sizeof(Game));
 	engine_init();
 	debug_init();
+	fill_country_code(g->country_code);
 	g->high_scores = NULL;
 	g->num_high_scores = 0;
 	g->tick_speed = 1000.0 / TICK_FREQUENCY;
@@ -91,6 +91,7 @@ void game_init(Game *g) {
 	g->sound_death = LoadSound("sounds/death.mp3");
 	g->sound_background_music = LoadSound("sounds/knox-dior.mp3");
 	g->sound_click = LoadSound("sounds/click.mp3");
+	g->flags = LoadTexture("flags/flags_strip.png");
 	SetSoundVolume(g->sound_click, 0.5);
 	SetSoundVolume(g->sound_background_music, 0.5);
 }
@@ -348,7 +349,8 @@ void UpdateDrawFrame(Game *g) {
 		game_end_draw(g);
 		break;
 	case STATE_GAME_HIGH_SCORE:
-		display_high_score(g->high_scores, g->num_high_scores);
+		display_high_score(g->high_scores, g->num_high_scores,
+				   &g->flags);
 		// g->state = STATE_GAME_END;
 		// break;
 		break;
