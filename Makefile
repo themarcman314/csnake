@@ -42,15 +42,19 @@ $(OBJ_NATIVE): $(BUILDDIR_NATIVE)/%.o: $(SOURCEDIR)/%.c
 $(OBJ_WEB): $(BUILDDIR_WEB)/%.o: $(SOURCEDIR)/%.c
 	$(WEB_CC) -c $(WEB_FLAGS) $< -o $@
 
-#run: all
-#	$(BUILDDIR_NATIVE)/$(TARGET)
+run: all
+	$(BUILDDIR_NATIVE)/$(TARGET)
+
+#run: runweb
 
 .PHONY:server
+
+prod:
+	rsync $(BUILDDIR_WEB)/* root@marcrobison.com:/var/www/my_site/
 
 server: server/server.c
 	$(CC) $< -o $(BUILDDIR_WEB)/server -lcjson
 
-run: runweb
 
 runweb: web server
 	systemctl stop snake_server

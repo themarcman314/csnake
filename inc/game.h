@@ -27,6 +27,7 @@ struct Game {
 	int death_timestamp;
 	Input in;
 	char player_name[20];
+	char country_code[2];
 	Sound sound_eat;
 	Sound sound_background_music;
 	Sound sound_death;

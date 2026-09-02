@@ -12,6 +12,7 @@ typedef struct {
 	int board_width;
 	int board_height;
 	long long timestamp;
+	char country_code[2];
 } HighScoreEntry;
 
 int count_lines_string(char const *string, int size);

@@ -1,6 +1,6 @@
 #include "board.h"
 #include "conf.h"
-#include "configure.h"
+#include "country_codes.h"
 #include "engine.h"
 #include "raylib.h"
 #include <stdbool.h>
@@ -41,6 +41,7 @@ DrawingParameters p = {.draw_fps = true,
 void DrawUIElement(UIElement const *el, int font_size);
 void display_menu_dimmed(DisplayConfigureInfo info);
 void draw_title_centered(char const *title, int y);
+void draw_flag(char const *code, Vector2 position);
 
 void set_keyboard_type() {
 #ifndef PLATFORM_WEB
@@ -399,6 +400,18 @@ void display_snake_speed_conf(DisplayConfigureInfo info) {
 	}
 }
 
+void draw_flag(char const *code, Vector2 position) {
+	Rectangle r = {.x = 0, .width = FLAG_WIDTH, .height = FLAG_HEIGHT};
+	for (int i = 0; i < COUNTRY_CODE_COUNT; i++) {
+		if (strcmp(code, country_codes[i]) == 0) {
+			r.y = i * FLAG_HEIGHT;
+			Texture2D f = LoadTexture("flags/flags_strip.png");
+			Vector2 v = {.x = 100, .y = 100};
+			DrawTextureRec(f, r, v, WHITE);
+		}
+	}
+}
+
 void display_high_score(HighScoreEntry const *h, int const num_entries) {
 	ClearBackground(COLOR_BACKGROUND_SITE);
 	int current_y = 50;
@@ -413,6 +426,7 @@ void display_high_score(HighScoreEntry const *h, int const num_entries) {
 		WIDTH,
 		HEIGHT,
 		DATE,
+		COUNTRY,
 		NUM_PARAMS
 	} column_index;
 
@@ -423,54 +437,55 @@ void display_high_score(HighScoreEntry const *h, int const num_entries) {
 
 	struct columns c[NUM_PARAMS] = {
 	    {margin_x + (usable_width * 0.0f), "RANK"},
-	    {margin_x + (usable_width * 0.10f), "NAME"},
-	    {margin_x + (usable_width * 0.20f), "SCORE"},
-	    {margin_x + (usable_width * 0.30f), "BOARD WRAPPING"},
-	    {margin_x + (usable_width * 0.50f), "BOARD WIDTH"},
-	    {margin_x + (usable_width * 0.70f), "BOARD HEIGHT"},
-	    {margin_x + (usable_width * 0.90f), "DATE"},
+	    {margin_x + (usable_width * 0.05f), "NAME"},
+	    {margin_x + (usable_width * 0.18f), "SCORE"},
+	    {margin_x + (usable_width * 0.25f), "BOARD WRAPPING"},
+	    {margin_x + (usable_width * 0.40f), "BOARD WIDTH"},
+	    {margin_x + (usable_width * 0.55f), "BOARD HEIGHT"},
+	    {margin_x + (usable_width * 0.70f), "DATE (UTC)"},
+	    {margin_x + (usable_width * 0.88f), "COUNTRY"},
 	};
+
+	int scalling_factor = 80;
+	int font_size = GetScreenWidth() / scalling_factor;
 
 	current_y += 1.5f * p.font_size_big;
 	for (int i = 0; i < NUM_PARAMS; i++) {
-		DrawText(c[i].col_title, c[i].col_x, current_y,
-			 p.font_size_small, COLOR_YELLOW_SITE);
+		DrawText(c[i].col_title, c[i].col_x, current_y, font_size,
+			 COLOR_YELLOW_SITE);
 	}
 	if (h) {
 		for (int i = 0; i < num_entries; i++) {
-			current_y += p.font_size_big;
+			current_y += font_size;
 
 			DrawText(TextFormat("#%d", h[i].rank), c[RANK].col_x,
-				 current_y, p.font_size_small, COLOR_TEXT_BASE);
+				 current_y, font_size, COLOR_TEXT_BASE);
 			DrawText(TextFormat("%s", h[i].name), c[NAME].col_x,
-				 current_y, p.font_size_small, COLOR_TEXT_BASE);
+				 current_y, font_size, COLOR_TEXT_BASE);
 			DrawText(TextFormat("%d", h[i].score), c[SCORE].col_x,
-				 current_y, p.font_size_small, COLOR_TEXT_BASE);
+				 current_y, font_size, COLOR_TEXT_BASE);
 			DrawText(TextFormat("%s", h[i].board_wrapping
 						      ? "enabled"
 						      : "disabled"),
-				 c[WRAPPING].col_x, current_y,
-				 p.font_size_small, COLOR_TEXT_BASE);
+				 c[WRAPPING].col_x, current_y, font_size,
+				 COLOR_TEXT_BASE);
 			DrawText(TextFormat("%d", h[i].board_width),
-				 c[WIDTH].col_x, current_y, p.font_size_small,
+				 c[WIDTH].col_x, current_y, font_size,
 				 COLOR_TEXT_BASE);
 			DrawText(TextFormat("%d", h[i].board_height),
-				 c[HEIGHT].col_x, current_y, p.font_size_small,
+				 c[HEIGHT].col_x, current_y, font_size,
 				 COLOR_TEXT_BASE);
 			time_t timestamp = (long long)h[i].timestamp;
-			// printf("timestamp: %lld\n", h[i].timestamp);
 			struct tm *tm;
 			tm = gmtime(&timestamp);
-			DrawText(TextFormat("%d/%d/%d %d:%d:%d", tm->tm_mday,
-					    tm->tm_mon + 1, tm->tm_year + 1900,
-					    tm->tm_hour, tm->tm_min,
-					    tm->tm_sec),
-				 c[DATE].col_x, current_y, p.font_size_small,
+			DrawText(TextFormat("%02d/%02d/%d %02d:%02d:%02d",
+					    tm->tm_mday, tm->tm_mon + 1,
+					    tm->tm_year + 1900, tm->tm_hour,
+					    tm->tm_min, tm->tm_sec),
+				 c[DATE].col_x, current_y, font_size,
 				 COLOR_TEXT_BASE);
-
-			//  DrawText(TextFormat("%d", ),
-			//  c[HEIGHT].col_x, current_y, p.font_size_small,
-			//  COLOR_TEXT_BASE);
+			Vector2 v = {c->col_x, current_y};
+			draw_flag(h->country_code, v);
 		}
 	}
 }

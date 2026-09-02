@@ -18,15 +18,6 @@
 #define BACKLOG 5 // maximum number of pending connections in the queue
 #define DATA_BUF_SIZE 1000
 
-// typedef struct {
-//	char name[50];
-//	int score;
-//	bool board_wrapping;
-//	int board_width;
-//	int board_height;
-//	long long timestamp;
-// } HighScoreEntry;
-
 size_t parse_post_prefix(char const *start_req, size_t num_bytes);
 size_t parse_uri(char const *start_of_uri, size_t num_bytes);
 size_t parse_request_line(char const *start_req, size_t num_bytes);

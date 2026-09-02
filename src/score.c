@@ -15,6 +15,7 @@ size_t parse_board_wrapping_high_score_entry(char const *score_start,
 size_t parse_board_dimentions_high_score_entry(char const *score_start,
 					       int *width, int *height);
 void assign_ranks(HighScoreEntry *h, int num_entries);
+void fill_country_code(char *code);
 
 void sort_highscore_entries(HighScoreEntry *h, int const num_entries) {
 	HighScoreEntry temp;
@@ -81,6 +82,24 @@ void save_score(Game const *g) {
 #endif
 }
 
+void fill_country_code(char *code) {
+	emscripten_fetch_attr_t attr;
+	emscripten_fetch_attr_init(&attr);
+	attr.userData = code;
+	strcpy(attr.requestMethod, "GET");
+	attr.attributes = EMSCRIPTEN_FETCH_LOAD_TO_MEMORY;
+	attr.onsuccess = downloadSucceeded;
+	attr.onerror = downloadFailed;
+
+	// const char *headers[] = {"Cache-Control",
+	//			 "no-cache, no-store, must-revalidate",
+	//			 "Pragma", "no-cache", NULL};
+
+	// attr.requestHeaders = headers;
+
+	emscripten_fetch(&attr, "highscores.csv");
+}
+
 void parse_high_score_entries(char const *string, HighScoreEntry *h,
 			      int const entry_count) {
 	for (int i = 0; i < entry_count; i++)
@@ -127,6 +146,13 @@ void parse_high_score_entries(char const *string, HighScoreEntry *h,
 		while (*cursor == ' ')
 			cursor++;
 		h[i].timestamp = atoll(cursor);
+
+		if (*cursor == ',') {
+			cursor++;
+		}
+		while (*cursor == ' ')
+			cursor++;
+		memcpy(h->country_code, cursor, 2);
 
 		while (*cursor != '\n')
 			cursor++;
