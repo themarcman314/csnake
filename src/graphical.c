@@ -403,7 +403,7 @@ void display_snake_speed_conf(DisplayConfigureInfo info) {
 void draw_flag(Texture2D *f, char const *code, Vector2 position,
 	       int font_size) {
 	// printf("country code: %s\n", code);
-	Rectangle r = {.x = 0, .width = FLAG_WIDTH, .height = FLAG_HEIGHT};
+	Rectangle r = {.width = FLAG_WIDTH, .height = FLAG_HEIGHT};
 	Rectangle destination = {.x = position.x,
 				 .y = position.y,
 				 .width = font_size * FLAG_WIDTH / 3 / 24,
@@ -412,7 +412,8 @@ void draw_flag(Texture2D *f, char const *code, Vector2 position,
 	//.height = FLAG_HEIGHT / 3};
 	for (int i = 0; i < COUNTRY_CODE_COUNT; i++) {
 		if (strcmp(code, country_codes[i]) == 0) {
-			r.y = i * FLAG_HEIGHT;
+			r.x = (i % FLAG_COLS) * FLAG_WIDTH;
+			r.y = (i / FLAG_COLS) * FLAG_HEIGHT;
 			DrawTexturePro(*f, r, destination, (Vector2){0, 0},
 				       0.0f, WHITE);
 		}

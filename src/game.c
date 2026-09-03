@@ -92,7 +92,7 @@ void game_init(Game *g) {
 	g->sound_death = LoadSound("sounds/death.mp3");
 	g->sound_background_music = LoadSound("sounds/knox-dior.mp3");
 	g->sound_click = LoadSound("sounds/click.mp3");
-	g->flags = LoadTexture("flags/flags_strip.png");
+	g->flags = LoadTexture("flags/flags_grid.png");
 	int maxSize;
 	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxSize);
 	TraceLog(LOG_INFO, "GL_MAX_TEXTURE_SIZE: %d", maxSize);
