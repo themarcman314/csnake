@@ -224,44 +224,23 @@ Direction snake_head_direction_translate_from_input(Input const in,
 						    Direction const current) {
 	switch (in.in_key) {
 	case KEY_UP:
+	case KEY_Z:
+	case KEY_W:
 		return SNAKE_UP;
 	case KEY_DOWN:
-		return SNAKE_DOWN;
-	case KEY_LEFT:
-		return SNAKE_LEFT;
-	case KEY_RIGHT:
-		return SNAKE_RIGHT;
-	default:
-		break;
-	}
-
-	if (!in.is_azerty) {
-		switch (in.in_key) {
-		case KEY_W:
-			return SNAKE_UP;
-		case KEY_A:
-			return SNAKE_LEFT;
-		default:
-			break;
-		}
-	} else {
-		switch (in.in_key) {
-		case KEY_Z:
-			return SNAKE_UP;
-		case KEY_Q:
-			return SNAKE_LEFT;
-		default:
-			break;
-		}
-	}
-	switch (in.in_key) {
 	case KEY_S:
 		return SNAKE_DOWN;
+	case KEY_LEFT:
+	case KEY_Q:
+	case KEY_A:
+		return SNAKE_LEFT;
+	case KEY_RIGHT:
 	case KEY_D:
 		return SNAKE_RIGHT;
 	default:
 		break;
 	}
+
 	return current;
 }
 
