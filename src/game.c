@@ -8,6 +8,7 @@
 #include "input.h"
 #include "raylib.h"
 #include "score.h"
+#include <GL/gl.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -92,6 +93,9 @@ void game_init(Game *g) {
 	g->sound_background_music = LoadSound("sounds/knox-dior.mp3");
 	g->sound_click = LoadSound("sounds/click.mp3");
 	g->flags = LoadTexture("flags/flags_strip.png");
+	int maxSize;
+	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxSize);
+	TraceLog(LOG_INFO, "GL_MAX_TEXTURE_SIZE: %d", maxSize);
 	SetSoundVolume(g->sound_click, 0.5);
 	SetSoundVolume(g->sound_background_music, 0.5);
 }
