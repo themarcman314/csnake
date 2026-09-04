@@ -51,11 +51,7 @@ void score_sent_fail(emscripten_fetch_t *fetch) {
 void country_code_dl_success(emscripten_fetch_t *fetch) {
 	char *code = fetch->userData;
 	char const *cursor = fetch->data;
-	char const success_str[] = "success";
-	if (memcmp(cursor, success_str, sizeof success_str - 1) == 0) {
-		cursor += sizeof success_str;
-		if (*cursor == ',')
-			cursor++;
+	if (fetch->status == 200) {
 		memcpy(code, cursor, 2);
 	}
 }
@@ -108,8 +104,9 @@ void fill_country_code(char *code) {
 	attr.onsuccess = country_code_dl_success;
 	attr.onerror = country_code_dl_failed;
 
-	emscripten_fetch(&attr,
-			 "http://ip-api.com/csv/?fields=status,countryCode");
+	emscripten_fetch(
+	    &attr,
+	    "https://api.ipinfo.io/lite/me/country_code?token=3763e778d65497");
 #endif
 }
 
@@ -167,7 +164,7 @@ void parse_high_score_entries(char const *string, HighScoreEntry *h,
 		while (*cursor == ' ')
 			cursor++;
 		memcpy(h[i].country_code, cursor, 2);
-		printf("found country... %s\n", h->country_code);
+		// printf("found country... %s\n", h->country_code);
 
 		while (*cursor != '\n')
 			cursor++;

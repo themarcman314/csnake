@@ -466,10 +466,11 @@ void display_high_score(HighScoreEntry const *h, int const num_entries,
 			char buffer[25] = "";
 			sprintf(buffer, "%d", h[i].rank);
 			int right_allignment =
-			    MeasureText(c[NAME].col_title, font_size) -
+			    MeasureText(c[RANK].col_title, font_size) -
 			    MeasureText(buffer, font_size);
 			DrawText(buffer, c[RANK].col_x + right_allignment,
 				 current_y, font_size, COLOR_TEXT_BASE);
+
 			DrawText(TextFormat("%s", h[i].name), c[NAME].col_x,
 				 current_y, font_size, COLOR_TEXT_BASE);
 
@@ -477,13 +478,15 @@ void display_high_score(HighScoreEntry const *h, int const num_entries,
 			right_allignment =
 			    MeasureText(c[SCORE].col_title, font_size) -
 			    MeasureText(buffer, font_size);
-			DrawText(buffer, right_allignment, current_y, font_size,
-				 COLOR_TEXT_BASE);
+			DrawText(buffer, c[SCORE].col_x + right_allignment,
+				 current_y, font_size, COLOR_TEXT_BASE);
+
 			DrawText(TextFormat("%s", h[i].board_wrapping
 						      ? "enabled"
 						      : "disabled"),
 				 c[WRAPPING].col_x, current_y, font_size,
 				 COLOR_TEXT_BASE);
+
 			DrawText(TextFormat("%d", h[i].board_width),
 				 c[WIDTH].col_x, current_y, font_size,
 				 COLOR_TEXT_BASE);
