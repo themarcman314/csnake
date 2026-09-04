@@ -32,6 +32,11 @@ struct DrawingParameters {
 	int const font_size_small;
 };
 
+struct columns {
+	int const col_x;
+	char col_title[20];
+};
+
 DrawingParameters p = {.draw_fps = true,
 		       .delta = 25,
 		       .board_wall_thickness = 5,
@@ -41,7 +46,8 @@ DrawingParameters p = {.draw_fps = true,
 void DrawUIElement(UIElement const *el, int font_size);
 void display_menu_dimmed(DisplayConfigureInfo info);
 void draw_title_centered(char const *title, int y);
-void draw_flag(Texture2D *f, char const *code, Vector2 position, int font_size);
+void draw_flag(Texture2D *f, char const *code, Rectangle draw_location,
+	       int font_size);
 
 void set_keyboard_type() {
 #ifndef PLATFORM_WEB
@@ -400,21 +406,17 @@ void display_snake_speed_conf(DisplayConfigureInfo info) {
 	}
 }
 
-void draw_flag(Texture2D *f, char const *code, Vector2 position,
+void draw_flag(Texture2D *f, char const *code, Rectangle draw_location,
 	       int font_size) {
 	// printf("country code: %s\n", code);
 	Rectangle r = {.width = FLAG_WIDTH, .height = FLAG_HEIGHT};
-	Rectangle destination = {.x = position.x,
-				 .y = position.y,
-				 .width = font_size * FLAG_WIDTH / 3 / 24,
-				 .height = font_size * FLAG_HEIGHT / 3 / 24};
 	//.width = FLAG_WIDTH / 3,
 	//.height = FLAG_HEIGHT / 3};
 	for (int i = 0; i < COUNTRY_CODE_COUNT; i++) {
 		if (strcmp(code, country_codes[i]) == 0) {
 			r.x = (i % FLAG_COLS) * FLAG_WIDTH;
 			r.y = (i / FLAG_COLS) * FLAG_HEIGHT;
-			DrawTexturePro(*f, r, destination, (Vector2){0, 0},
+			DrawTexturePro(*f, r, draw_location, (Vector2){0, 0},
 				       0.0f, WHITE);
 		}
 	}
@@ -439,23 +441,18 @@ void display_high_score(HighScoreEntry const *h, int const num_entries,
 		NUM_PARAMS
 	} column_index;
 
-	struct columns {
-		int const col_x;
-		char col_title[20];
-	};
-
 	struct columns c[NUM_PARAMS] = {
 	    {margin_x + (usable_width * 0.0f), "RANK"},
-	    {margin_x + (usable_width * 0.05f), "NAME"},
+	    {margin_x + (usable_width * 0.07f), "NAME"},
 	    {margin_x + (usable_width * 0.18f), "SCORE"},
-	    {margin_x + (usable_width * 0.25f), "BOARD WRAPPING"},
-	    {margin_x + (usable_width * 0.40f), "BOARD WIDTH"},
-	    {margin_x + (usable_width * 0.55f), "BOARD HEIGHT"},
-	    {margin_x + (usable_width * 0.70f), "DATE (UTC)"},
-	    {margin_x + (usable_width * 0.88f), "COUNTRY"},
+	    {margin_x + (usable_width * 0.27f), "BOARD WRAPPING"},
+	    {margin_x + (usable_width * 0.45f), "BOARD WIDTH"},
+	    {margin_x + (usable_width * 0.58f), "BOARD HEIGHT"},
+	    {margin_x + (usable_width * 0.73f), "DATE (UTC)"},
+	    {margin_x + (usable_width * 0.93f), "COUNTRY"},
 	};
 
-	int scalling_factor = 80;
+	int scalling_factor = 65;
 	int font_size = GetScreenWidth() / scalling_factor;
 
 	current_y += 1.5f * p.font_size_big;
@@ -466,13 +463,22 @@ void display_high_score(HighScoreEntry const *h, int const num_entries,
 	if (h) {
 		for (int i = 0; i < num_entries; i++) {
 			current_y += font_size;
-
-			DrawText(TextFormat("#%d", h[i].rank), c[RANK].col_x,
+			char buffer[25] = "";
+			sprintf(buffer, "%d", h[i].rank);
+			int right_allignment =
+			    MeasureText(c[NAME].col_title, font_size) -
+			    MeasureText(buffer, font_size);
+			DrawText(buffer, c[RANK].col_x + right_allignment,
 				 current_y, font_size, COLOR_TEXT_BASE);
 			DrawText(TextFormat("%s", h[i].name), c[NAME].col_x,
 				 current_y, font_size, COLOR_TEXT_BASE);
-			DrawText(TextFormat("%d", h[i].score), c[SCORE].col_x,
-				 current_y, font_size, COLOR_TEXT_BASE);
+
+			sprintf(buffer, "%d", h[i].score);
+			right_allignment =
+			    MeasureText(c[SCORE].col_title, font_size) -
+			    MeasureText(buffer, font_size);
+			DrawText(buffer, right_allignment, current_y, font_size,
+				 COLOR_TEXT_BASE);
 			DrawText(TextFormat("%s", h[i].board_wrapping
 						      ? "enabled"
 						      : "disabled"),
@@ -493,8 +499,17 @@ void display_high_score(HighScoreEntry const *h, int const num_entries,
 					    tm->tm_min, tm->tm_sec),
 				 c[DATE].col_x, current_y, font_size,
 				 COLOR_TEXT_BASE);
-			Vector2 v = {.x = c[COUNTRY].col_x, .y = current_y};
-			draw_flag(flags, h[i].country_code, v, font_size);
+			int flag_w_resized = font_size * FLAG_WIDTH / 3 / 24;
+			Rectangle destination = {
+			    .width = flag_w_resized,
+			    .height = font_size * FLAG_HEIGHT / 3 / 24,
+			    .x = c[COUNTRY].col_x +
+				 (MeasureText(c[COUNTRY].col_title, font_size) -
+				  flag_w_resized) /
+				     2,
+			    .y = current_y};
+			draw_flag(flags, h[i].country_code, destination,
+				  font_size);
 		}
 	}
 }
