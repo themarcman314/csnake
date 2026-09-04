@@ -230,80 +230,62 @@ int update_snake_speed_conf(Game *g, DisplayConfigureInfo *info) {
 void init_width_conf(DisplayConfigureInfo *i) {
 	i->sub_element_count = 3; // We are using 3 buttons
 
+	int const small_button_w = 50;
+	int const small_button_h = 50;
+	int const accept_button_w = 150;
+	int const accept_button_h = small_button_h;
+	int const quarter_w = GetScreenWidth() / 4;
+	int const small_button_y =
+	    GetScreenHeight() / 2 - (2 * small_button_h + 100) / 2;
+
 	// Button 0: Decrease Width
-	i->sub_elements[0].bounds = (Rectangle){100, 200, 50, 50};
+	i->sub_elements[0].bounds = (Rectangle){quarter_w, small_button_y,
+						small_button_w, small_button_h};
 	memset(i->sub_elements[0].text, 0, sizeof(i->menu_elements[0].text));
 	strcpy(i->sub_elements[0].text, "-");
 	i->sub_elements[0].id = BTN_DECREASE;
 	i->sub_elements[0].outline_thickness = 2.f;
 
 	// Button 1: Increase Width
-	i->sub_elements[1].bounds = (Rectangle){200, 200, 50, 50};
+	i->sub_elements[1].bounds = (Rectangle){quarter_w + 100, small_button_y,
+						small_button_w, small_button_h};
 	memset(i->sub_elements[1].text, 0, sizeof(i->menu_elements[1].text));
 	strcpy(i->sub_elements[1].text, "+");
 	i->sub_elements[1].id = BTN_INCREASE;
 	i->sub_elements[1].outline_thickness = 2.f;
 
 	// Button 2: Accept
-	i->sub_elements[2].bounds = (Rectangle){100, 300, 150, 50};
+	i->sub_elements[2].bounds = (Rectangle){
+	    quarter_w, small_button_y + 100, accept_button_w, small_button_h};
 	memset(i->sub_elements[2].text, 0, sizeof(i->menu_elements[2].text));
 	strcpy(i->sub_elements[2].text, "OK");
 	i->sub_elements[2].id = BTN_ACCEPT;
 	i->sub_elements[2].outline_thickness = 2.f;
 }
 
-void init_height_conf(DisplayConfigureInfo *i) {
-	i->sub_element_count = 3; // We are using 3 buttons
+void init_height_conf(DisplayConfigureInfo *i) { init_width_conf(i); }
 
-	// Button 0: Decrease Width
-	i->sub_elements[0].bounds = (Rectangle){100, 200, 50, 50};
-	strcpy(i->sub_elements[0].text, "-");
-	i->sub_elements[0].id = BTN_DECREASE;
-	i->sub_elements[0].outline_thickness = 2.f;
-
-	// Button 1: Increase Width
-	i->sub_elements[1].bounds = (Rectangle){200, 200, 50, 50};
-	strcpy(i->sub_elements[1].text, "+");
-	i->sub_elements[1].id = BTN_INCREASE;
-	i->sub_elements[1].outline_thickness = 2.f;
-
-	// Button 2: Accept
-	i->sub_elements[2].bounds = (Rectangle){100, 300, 150, 50};
-	strcpy(i->sub_elements[2].text, "OK");
-	i->sub_elements[2].id = BTN_ACCEPT;
-	i->sub_elements[2].outline_thickness = 2.f;
-}
-
-void init_speed_conf(DisplayConfigureInfo *i) {
-	i->sub_element_count = 3; // We are using 3 buttons
-
-	i->sub_elements[0].bounds = (Rectangle){100, 200, 50, 50};
-	strcpy(i->sub_elements[0].text, "-");
-	i->sub_elements[0].id = BTN_DECREASE;
-	i->sub_elements[0].outline_thickness = 2.f;
-
-	i->sub_elements[1].bounds = (Rectangle){200, 200, 50, 50};
-	strcpy(i->sub_elements[1].text, "+");
-	i->sub_elements[1].id = BTN_INCREASE;
-	i->sub_elements[1].outline_thickness = 2.f;
-
-	i->sub_elements[2].bounds = (Rectangle){100, 300, 150, 50};
-	strcpy(i->sub_elements[2].text, "OK");
-	i->sub_elements[2].id = BTN_ACCEPT;
-	i->sub_elements[2].outline_thickness = 2.f;
-}
+void init_speed_conf(DisplayConfigureInfo *i) { init_width_conf(i); }
 
 void init_wrapping_conf(DisplayConfigureInfo *i) {
+	int const button_h = 50;
+	int const accept_button_w = 150;
+	int const quarter_w = GetScreenWidth() / 4;
+	int const first_button_y =
+	    GetScreenHeight() / 2 - (2 * button_h + 100) / 2;
+
 	i->sub_element_count = 2;
 
-	i->sub_elements[0].bounds = (Rectangle){100, 200, 150, 50};
+	i->sub_elements[0].bounds =
+	    (Rectangle){quarter_w, first_button_y, accept_button_w, button_h};
 	sprintf(i->sub_elements[0].text,
 		i->board_wrapping ? "enabled" : "disabled");
 	i->sub_elements[0].id = BTN_TOGGLE;
 	i->sub_elements[0].outline_thickness = 2.f;
 
 	// Button 2: Accept
-	i->sub_elements[1].bounds = (Rectangle){100, 300, 150, 50};
+	i->sub_elements[1].bounds = (Rectangle){quarter_w, first_button_y + 100,
+						accept_button_w, button_h};
 	sprintf(i->sub_elements[1].text, "OK");
 	i->sub_elements[1].id = BTN_ACCEPT;
 	i->sub_elements[1].outline_thickness = 2.f;
