@@ -164,7 +164,6 @@ void parse_high_score_entries(char const *string, HighScoreEntry *h,
 		while (*cursor == ' ')
 			cursor++;
 		memcpy(h[i].country_code, cursor, 2);
-		// printf("found country... %s\n", h->country_code);
 
 		while (*cursor != '\n')
 			cursor++;

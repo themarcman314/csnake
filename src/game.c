@@ -265,6 +265,11 @@ GameState game_high_score(Game *g) {
 		game_restart(g);
 		return STATE_GAME_RUN;
 	}
+	if (g->in.in_key == KEY_C) {
+		fetched = false;
+		game_restart(g);
+		return STATE_GAME_CONFIGURE;
+	}
 	return STATE_GAME_HIGH_SCORE;
 }
 
@@ -297,8 +302,6 @@ void update_logic(Game *g) {
 		g->state = game_end(g);
 		break;
 	case STATE_GAME_HIGH_SCORE:
-		// g->state = STATE_GAME_END;
-		// break;
 		g->state = game_high_score(g);
 		break;
 	case STATE_GAME_CONFIGURE:

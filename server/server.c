@@ -61,7 +61,6 @@ int main(void) {
 	for (p = result; p != NULL; p = p->ai_next) {
 		s = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
 		if (s == -1) {
-			// fprintf(stderr, "Could not create a socket\n");
 			continue;
 		}
 
@@ -198,9 +197,8 @@ int parse_json(char const *body, HighScoreEntry *e, size_t max_name_str_size) {
 
 	wrapping =
 	    cJSON_GetObjectItemCaseSensitive(json_data, "board wrapping");
-	if (cJSON_IsNumber(wrapping) &&
-	    ((wrapping->valueint == 1) || (wrapping->valueint == 0))) {
-		e->score = score->valueint;
+	if (cJSON_IsNumber(wrapping)) {
+		e->board_wrapping = wrapping->valueint;
 	}
 
 	width = cJSON_GetObjectItemCaseSensitive(json_data, "board width");
