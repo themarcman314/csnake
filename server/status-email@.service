@@ -1,0 +1,10 @@
+[Unit]
+Description=Send Status Email for %i
+# Allow this email unit to run MAX 1 time per 1 hour
+StartLimitIntervalSec=1h
+StartLimitBurst=1
+
+[Service]
+Type=oneshot
+# Plain one-liner email send
+ExecStart=/bin/sh -c 'journalctl -u %i -n 20 | mail -s "Status of %i" marc@marcrobison.com'

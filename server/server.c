@@ -23,6 +23,7 @@ size_t parse_uri(char const *start_of_uri, size_t num_bytes);
 size_t parse_request_line(char const *start_req, size_t num_bytes);
 size_t parse_http_version(char const *start_req, size_t num_bytes);
 size_t parse_content_length(char const *data, size_t num_bytes);
+void send_bad_req(int receive_s);
 
 char const *locate_string_bounded(char const *haystack, size_t nbytes_hay,
 				  char const *needle, size_t nbytes_needle);
@@ -32,7 +33,7 @@ int parse_json(char const *body, HighScoreEntry *e, size_t max_name_str_size);
 void append_to_file(char *filename, char *data, int size);
 
 int main(void) {
-
+	setbuf(stdout, NULL);
 	// sockaddr_in is identical to sockaddr.
 	// sockaddr_in (in stands for internet)
 	// was created for convinience
@@ -87,80 +88,96 @@ int main(void) {
 		exit(EXIT_FAILURE);
 	}
 
-	printf("listening...\n");
 	if (listen(s, BACKLOG) == -1) {
 		fprintf(stderr, "Could not listen\n");
 		exit(EXIT_FAILURE);
 	}
 
-	socklen_t addr_size = sizeof(struct sockaddr_storage);
-	struct sockaddr_storage client_addr;
-	int receive_s;
-	printf("waiting for client...\n");
-	receive_s = accept(s, (struct sockaddr *)&client_addr, &addr_size);
-	if (receive_s == -1) {
-		fprintf(stderr, "Could not accept\n");
-		exit(EXIT_FAILURE);
-	}
-	char data[DATA_BUF_SIZE + 1] = "";
-	int num_bytes;
-	num_bytes = recv(receive_s, data, DATA_BUF_SIZE, 0);
-	printf("recv() returned %d bytes\n", num_bytes);
-
-	char const *cursor = data;
-	size_t parsed;
-	size_t bytes_left = num_bytes;
-	size_t content_size;
-	if (num_bytes > 0) {
-		data[num_bytes] = '\0';
-		printf("%s\n", data);
-		parsed = parse_request_line(cursor, bytes_left);
-		if (parsed == 0)
-			goto close_conn_err;
-		cursor += parsed;
-		bytes_left -= parsed;
-		content_size = parse_content_length(cursor, bytes_left);
-		if (content_size > 0) {
-			printf("number of content bytes: %lu\n", content_size);
-			char const end_of_headers[] = "\r\n\r\n";
-			cursor = locate_string_bounded(
-			    cursor, bytes_left, end_of_headers,
-			    sizeof end_of_headers - 1);
-			if (cursor == NULL)
-				goto close_conn_err;
-			cursor += sizeof end_of_headers - 1;
-			// start of body
-			bytes_left = content_size;
-
-			HighScoreEntry e = {0};
-			if (parse_json(cursor, &e, sizeof e.name) == 0) {
-				char const all_ok[] = "HTTP/1.1 200 OK\r\n\r\n";
-				if (send(receive_s, all_ok, sizeof all_ok - 1,
-					 0) == -1)
-					fprintf(stderr,
-						"There was an issue sending "
-						"the response\n");
-				else
-					printf("sent all ok response\n");
-				close(receive_s);
-			}
-			printf("parsed name: %s\nparsed score: %u\n", e.name,
-			       e.score);
-			char score_entry[250] = "";
-			// TODO: Store unix time as well
-			sprintf(score_entry, "%s,%u,%d,%d,%d,%lld,%s\n", e.name,
-				e.score, e.board_wrapping, e.board_width,
-				e.board_height, e.timestamp, e.country_code);
-			printf("body received: %s\n", cursor);
-			append_to_file("highscores.csv", score_entry,
-				       strlen(score_entry));
+	while (1) {
+		socklen_t addr_size = sizeof(struct sockaddr_storage);
+		struct sockaddr_storage client_addr;
+		int receive_s;
+		printf("waiting for client...\n");
+		receive_s =
+		    accept(s, (struct sockaddr *)&client_addr, &addr_size);
+		if (receive_s == -1) {
+			fprintf(stderr, "Could not accept\n");
+			exit(EXIT_FAILURE);
 		}
-	close_conn_err:
-		// send(receive_s, , size_t n, int flags);
-		close(receive_s);
+		char data[DATA_BUF_SIZE + 1] = "";
+		int num_bytes;
+		num_bytes = recv(receive_s, data, DATA_BUF_SIZE, 0);
+		printf("recv() returned %d bytes\n", num_bytes);
+
+		char const *cursor = data;
+		size_t parsed;
+		size_t bytes_left = num_bytes;
+		size_t content_size;
+		if (num_bytes > 0) {
+			data[num_bytes] = '\0';
+			parsed = parse_request_line(cursor, bytes_left);
+			if (parsed == 0) {
+				send_bad_req(receive_s);
+				goto close_rx;
+			}
+			cursor += parsed;
+			bytes_left -= parsed;
+			content_size = parse_content_length(cursor, bytes_left);
+			if (content_size > 0) {
+				printf("number of content bytes: %lu\n",
+				       content_size);
+				char const end_of_headers[] = "\r\n\r\n";
+				cursor = locate_string_bounded(
+				    cursor, bytes_left, end_of_headers,
+				    sizeof end_of_headers - 1);
+				if (cursor == NULL) {
+					send_bad_req(receive_s);
+					goto close_rx;
+				}
+				cursor += sizeof end_of_headers - 1;
+				// start of body
+				bytes_left = content_size;
+
+				HighScoreEntry e = {0};
+				if (parse_json(cursor, &e, sizeof e.name) ==
+				    0) {
+					char const all_ok[] =
+					    "HTTP/1.1 200 OK\r\n\r\n";
+					if (send(receive_s, all_ok,
+						 sizeof all_ok - 1, 0) == -1)
+						fprintf(stderr,
+							"There was an issue "
+							"sending "
+							"the response\n");
+					else
+						printf(
+						    "sent all ok response\n");
+					close(receive_s);
+				}
+				char score_entry[250] = "";
+				// TODO: Store unix time as well
+				sprintf(score_entry, "%s,%u,%d,%d,%d,%lld,%s\n",
+					e.name, e.score, e.board_wrapping,
+					e.board_width, e.board_height,
+					e.timestamp, e.country_code);
+				printf("body received: %s\n", cursor);
+				append_to_file("highscores.csv", score_entry,
+					       strlen(score_entry));
+			}
+		close_rx:
+			close(receive_s);
+		}
 	}
 	close(s);
 	return EXIT_SUCCESS;
+}
+
+void send_bad_req(int receive_s) {
+	char const response[] = "HTTP/1.1 400\r\n\r\n";
+	if (send(receive_s, response, sizeof response - 1, 0) == -1)
+		fprintf(stderr, "There was an issue "
+				"sending "
+				"the response\n");
 }
 
 int parse_json(char const *body, HighScoreEntry *e, size_t max_name_str_size) {
@@ -214,7 +231,6 @@ int parse_json(char const *body, HighScoreEntry *e, size_t max_name_str_size) {
 	timestamp = cJSON_GetObjectItemCaseSensitive(json_data, "timestamp");
 	if (cJSON_IsNumber(timestamp)) {
 		e->timestamp = (time_t)timestamp->valuedouble;
-		printf("timestamp from json: %lld\n", e->timestamp);
 	} else {
 		printf("timestamp is not number!!!\n");
 	}
