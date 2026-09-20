@@ -49,8 +49,9 @@ run: all
 
 .PHONY:server
 
-prod:
+prod: web server
 	rsync $(BUILDDIR_WEB)/* root@marcrobison.com:/var/www/my_site/
+	ssh root@marcrobison.com "systemctl restart snake_server && chown www-data /var/www/my_site/server"
 
 server: server/server.c
 	$(CC) $< -o $(BUILDDIR_WEB)/server -lcjson
