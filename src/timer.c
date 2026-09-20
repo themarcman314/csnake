@@ -11,7 +11,6 @@ int millis(void) {
 #ifdef _WIN32
 #error "This program does not support windows :("
 #else
-	// printf("this is posix system");
 	struct timespec ts;
 	clock_gettime(CLOCK_MONOTONIC, &ts);
 	ms = ts.tv_sec *

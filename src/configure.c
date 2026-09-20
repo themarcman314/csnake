@@ -15,7 +15,6 @@ void navigate_menu(DisplayConfigureInfo *info, int const direction) {
 	info->state_select =
 	    (info->state_select + direction + num_buttons) % num_buttons;
 	info->menu_elements[info->state_select].is_hovered = true;
-	//*state = (*state + direction + 5) % 5;
 }
 
 int update_wrapping_conf(Game *g, DisplayConfigureInfo *info) {

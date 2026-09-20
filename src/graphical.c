@@ -170,7 +170,7 @@ void display_end(Board const *b, int const score, int game_over_timestamp) {
 	int const screen_height = GetScreenHeight();
 	char text[] = "game over :(";
 	char restart_text[] = "press 'r' to play again";
-	char high_score_text[] = "press 'h' to view high scores";
+	char high_score_text[] = "press 'h' to view leaderboard";
 	char score_text[20];
 	sprintf(score_text, "score: %d", score);
 	DrawText(text,
@@ -181,8 +181,12 @@ void display_end(Board const *b, int const score, int game_over_timestamp) {
 		     MeasureText(score_text, p.font_size_big) / 2,
 		 screen_height / 5 + 50, p.font_size_big, BLUE);
 	DrawText(restart_text,
-		 screen_width / 2 -
+		 screen_width / 4 -
 		     MeasureText(restart_text, p.font_size_small) / 2,
+		 3 * screen_height / 4, p.font_size_small, COLOR_TEXT_BASE);
+	DrawText(high_score_text,
+		 3 * screen_width / 4 -
+		     MeasureText(high_score_text, p.font_size_small) / 2,
 		 3 * screen_height / 4, p.font_size_small, COLOR_TEXT_BASE);
 }
 

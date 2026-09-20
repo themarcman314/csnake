@@ -45,7 +45,8 @@ void score_sent_success(emscripten_fetch_t *fetch) {
 	printf("Score was sent!\n");
 }
 void score_sent_fail(emscripten_fetch_t *fetch) {
-	printf("Score was not sent\n");
+	printf("Score was not sent, encountered error %d: %s\n", fetch->status,
+	       fetch->statusText);
 }
 
 void country_code_dl_success(emscripten_fetch_t *fetch) {
