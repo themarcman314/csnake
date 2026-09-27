@@ -16,7 +16,7 @@
 
 #define PORT "8888"
 #define BACKLOG 5 // maximum number of pending connections in the queue
-#define DATA_BUF_SIZE 1000
+#define DATA_BUF_SIZE 10000
 
 size_t parse_post_prefix(char const *start_req, size_t num_bytes);
 size_t parse_uri(char const *start_of_uri, size_t num_bytes);
@@ -69,7 +69,7 @@ int main(void) {
 		if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &yes,
 			       sizeof(int)) == -1) {
 			perror("setsockopt");
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
 
 		// we need to bind the socket to the port we are going

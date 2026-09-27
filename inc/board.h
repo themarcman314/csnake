@@ -1,5 +1,6 @@
 #pragma once
 #include "input.h"
+#include "score.h"
 
 typedef struct Snake Snake;
 typedef struct Food Food;
@@ -30,7 +31,7 @@ void snake_get_head_position(Snake const *s, int *x, int *y);
 void snake_update_square_position(Snake *s, int const b_width,
 				  int const b_height, bool wrapping_enabled);
 void snake_head_direction_set_next(Snake *const s, Input const key);
-void snake_head_direction_set(Snake *s);
+void snake_head_direction_set(Snake *s, InputLog *log, int now);
 void snake_right_direction_to_current(Snake *s);
 
 void food_init(Board *b);

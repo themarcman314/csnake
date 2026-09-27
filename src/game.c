@@ -8,7 +8,6 @@
 #include "input.h"
 #include "raylib.h"
 #include "score.h"
-#include <GL/gl.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -74,24 +73,26 @@ static const GameConfigureFunc conf_logic_funcs[] = {
 void game_init(Game *g) {
 	memset(g, 0, sizeof(Game));
 	engine_init();
-	debug_init();
 	fill_country_code(g->country_code);
 	g->high_scores = NULL;
 	g->num_high_scores = 0;
 	g->tick_speed = 1000.0 / TICK_FREQUENCY;
 	g->state = STATE_GAME_WELCOME;
 	g->score = 0;
+
+#ifdef PLATFORM_WEB
+	g->in_log = input_log_create();
+#endif
+
 	InitAudioDevice();
 	g->sound_eat = LoadSound("sounds/munch.mp3");
 	g->sound_death = LoadSound("sounds/death.mp3");
 	g->sound_background_music = LoadSound("sounds/knox-dior.mp3");
 	g->sound_click = LoadSound("sounds/click.mp3");
-	g->flags = LoadTexture("flags/flags_grid.png");
-	int maxSize;
-	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxSize);
-	TraceLog(LOG_INFO, "GL_MAX_TEXTURE_SIZE: %d", maxSize);
 	SetSoundVolume(g->sound_click, 0.5);
 	SetSoundVolume(g->sound_background_music, 0.5);
+
+	g->flags = LoadTexture("flags/flags_grid.png");
 }
 
 GameState game_end(Game *g) {
@@ -119,7 +120,7 @@ GameState game_run(Game *g) {
 	int now = millis();
 	if (now - last_tick >= g->tick_speed) {
 		last_tick = now;
-		snake_head_direction_set(g->b->s);
+		snake_head_direction_set(g->b->s, g->in_log, now);
 		snake_update_square_position(g->b->s, g->b->width, g->b->height,
 					     g->wrapping);
 		if (snake_ate_food(g->b->s, g->b->f)) {
@@ -277,6 +278,10 @@ void game_restart(Game *g) {
 	g->score = 0;
 	snake_init(g->b);
 	food_init(g->b);
+#ifdef PLATFORM_WEB
+	input_log_delete(g->in_log);
+	g->in_log = input_log_create();
+#endif
 }
 
 void game_fsm_run(Game *g) {

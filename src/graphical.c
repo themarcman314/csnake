@@ -3,6 +3,7 @@
 #include "country_codes.h"
 #include "engine.h"
 #include "raylib.h"
+#include <GL/gl.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -49,20 +50,6 @@ void draw_title_centered(char const *title, int y);
 void draw_flag(Texture2D *f, char const *code, Rectangle draw_location,
 	       int font_size);
 
-void set_keyboard_type() {
-#ifndef PLATFORM_WEB
-	if (*GetKeyName(KEY_A) == 'q') {
-		is_azerty = true;
-		// if (is_azerty) {
-		//	char title[] = "is azerty";
-		//	int font_size = 35;
-		//	DrawText(title, 100 - MeasureText(title, font_size) / 2,
-		//		 500, font_size, GREEN);
-		// }
-	}
-#endif
-}
-
 void engine_init() {
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
 	InitWindow(800, 450, "csnake");
@@ -74,6 +61,10 @@ void engine_init() {
 	int const window_height = screenHeight - win_border_size;
 	// SetWindowSize(window_width, window_height);
 	SetWindowPosition(win_border_size / 2, win_border_size / 2);
+
+	int maxSize;
+	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxSize);
+	TraceLog(LOG_INFO, "GL_MAX_TEXTURE_SIZE: %d", maxSize);
 }
 
 void grid_draw(int const board_size_x, int const board_size_y,
@@ -132,7 +123,6 @@ void draw_square(DrawingParameters const *p, int const x, int const y,
 
 void display_welcome() {
 	ClearBackground(COLOR_BACKGROUND_SITE);
-	set_keyboard_type();
 
 	int const width = GetScreenWidth();
 	int const height = GetScreenHeight();

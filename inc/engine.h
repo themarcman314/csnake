@@ -35,8 +35,6 @@ void display_high_score(HighScoreEntry const *h, int const num_entries,
 void window_periodic_start();
 void window_periodic_end();
 
-void set_keyboard_type();
-
 void draw_square(DrawingParameters const *p, int const x, int const y, Color c);
 
 UIElement CreateButton(float x, float y, float width, float height, char *text);

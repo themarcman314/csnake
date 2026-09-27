@@ -1,6 +1,8 @@
 #include "score.h"
 #include "conf.h"
+#include "direction.h"
 #include "game.h"
+#include "raylib.h"
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -71,16 +73,33 @@ void save_score(Game const *g) {
 	strcpy(attr.requestMethod, "POST");
 
 	attr.requestHeaders = NULL;
-	char *json_payload = calloc(256, 1);
+
+	// upper bound estimate assuming 50 bytes per move line
+	int payload_size = 500 + 50 * g->in_log->count;
+	char *json_payload = calloc(payload_size, 1);
+	char *cursor = json_payload;
+	size_t consumed;
+
 	if (json_payload != NULL) {
 		time_t t = time(NULL);
-		snprintf(
-		    json_payload, 256,
+		consumed = snprintf(
+		    json_payload, 500,
 		    "{\"name\": \"%s\", \"score\": %u, \"board wrapping\": %d, "
 		    "\"board width\": %d, \"board height\": %d, \"timestamp\": "
-		    "%lld, \"country code\": \"%s\"}",
+		    "%lld, \"country code\": \"%s\", \"moves\": [",
 		    g->player_name, g->score, g->wrapping, g->b->width,
 		    g->b->height, t, g->country_code);
+		cursor += consumed;
+		for (size_t i = 0; i < g->in_log->count; i++) {
+			consumed =
+			    snprintf(cursor, payload_size - 500,
+				     "{\"tick\": %d, \"direction\": \"%d\"}, ",
+				     g->in_log->events[i].tick,
+				     g->in_log->events[i].dir);
+			cursor += consumed;
+		}
+		snprintf((cursor - 2), 3, "]}");
+
 		printf("payload:\n%s\n", json_payload);
 		attr.requestData = json_payload;
 		attr.requestDataSize = strlen(json_payload);
@@ -283,9 +302,44 @@ void downloadSucceeded(emscripten_fetch_t *fetch) {
 	}
 	emscripten_fetch_close(fetch); // Free data associated with the fetch.
 }
+
 void downloadFailed(emscripten_fetch_t *fetch) {
 	printf("Downloading %s failed, HTTP failure status code: %d.\n",
 	       fetch->url, fetch->status);
 	emscripten_fetch_close(fetch); // Also free data on failure.
 }
+
+InputLog *input_log_create(void) {
+	InputLog *log = malloc(sizeof *log);
+	log->capacity = 64;
+	log->count = 0;
+	log->events = malloc(log->capacity * sizeof(InputEvent));
+	if (log->events == NULL)
+		exit(EXIT_FAILURE);
+	TraceLog(LOG_INFO, "Created input log");
+	return log;
+}
+
+void input_log_push(InputLog *log, int tick, Direction dir) {
+
+	if (log->count >= log->capacity) {
+		log->capacity *= 2;
+		log->events =
+		    realloc(log->events, log->capacity * sizeof(InputEvent));
+		if (log->events == NULL)
+			exit(EXIT_FAILURE);
+	}
+	log->events[log->count].dir = dir;
+	log->events[log->count].tick = tick;
+	log->count++;
+}
+
+void input_log_delete(InputLog *buff) {
+	if (buff != NULL) {
+		free(buff->events);
+		free(buff);
+		buff = NULL;
+	}
+}
+
 #endif

@@ -1,6 +1,4 @@
 #include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <unistd.h>
 
 #define FILENAME "./snake.log"
@@ -22,6 +20,4 @@ void log_to_file(char const *file, int line, char const *format, ...) {
 #endif
 }
 
-void debug_init() {
-	remove(FILENAME);
-}
+void debug_init() {}

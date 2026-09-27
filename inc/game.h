@@ -33,6 +33,7 @@ struct Game {
 	Sound sound_death;
 	Sound sound_click;
 	Texture2D flags;
+	InputLog *in_log;
 };
 
 Game *game_create();

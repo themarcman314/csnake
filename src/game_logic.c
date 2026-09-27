@@ -1,7 +1,9 @@
 #include "board.h"
 #include "conf.h"
 #include "debug.h"
+#include "direction.h"
 #include "input.h"
+#include "score.h"
 #include "timer.h"
 #include <assert.h>
 #include <raylib.h>
@@ -10,14 +12,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-
-typedef enum {
-	SNAKE_NONE,
-	SNAKE_UP,
-	SNAKE_DOWN,
-	SNAKE_LEFT,
-	SNAKE_RIGHT,
-} Direction;
 
 #define SNAKE_DIR_QUEUE_SIZE 3
 
@@ -208,6 +202,8 @@ void snake_head_direction_set_next(Snake *const s, Input const in) {
 			s->queue.head_dir_next[s->queue.index_write] =
 			    dir_current;
 			s->queue.index_write = index_next;
+			// save direction to list for server side score
+			// evaluation
 		}
 	}
 }
@@ -244,10 +240,15 @@ Direction snake_head_direction_translate_from_input(Input const in,
 	return current;
 }
 
-void snake_head_direction_set(Snake *s) {
+void snake_head_direction_set(Snake *s, InputLog *log, int now) {
 	if (s->queue.index_write != s->queue.index_read) {
 		s->head_dir_current =
 		    s->queue.head_dir_next[s->queue.index_read];
+#ifdef PLATFORM_WEB
+		// log direction for server eval
+		input_log_push(log, now, s->head_dir_current);
+
+#endif
 		s->queue.index_read =
 		    (s->queue.index_read + 1) % SNAKE_DIR_QUEUE_SIZE;
 	}
