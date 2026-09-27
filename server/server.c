@@ -152,14 +152,16 @@ int main(void) {
 					else
 						printf(
 						    "sent all ok response\n");
-					close(receive_s);
+				} else {
+					send_bad_req(receive_s);
+					goto close_rx;
 				}
 				char score_entry[250] = "";
-				// TODO: Store unix time as well
-				sprintf(score_entry, "%s,%u,%d,%d,%d,%lld,%s\n",
-					e.name, e.score, e.board_wrapping,
-					e.board_width, e.board_height,
-					e.timestamp, e.country_code);
+				snprintf(score_entry, sizeof score_entry,
+					 "%s,%u,%d,%d,%d,%lld,%s\n", e.name,
+					 e.score, e.board_wrapping,
+					 e.board_width, e.board_height,
+					 e.timestamp, e.country_code);
 				printf("body received: %s\n", cursor);
 				append_to_file("highscores.csv", score_entry,
 					       strlen(score_entry));
