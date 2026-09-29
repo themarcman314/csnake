@@ -18,6 +18,9 @@
 #define BACKLOG 5 // maximum number of pending connections in the queue
 #define DATA_BUF_SIZE 1000
 
+int sock_create(void);
+void rx_handler(int);
+
 size_t parse_post_prefix(char const *start_req, size_t num_bytes);
 size_t parse_uri(char const *start_of_uri, size_t num_bytes);
 size_t parse_request_line(char const *start_req, size_t num_bytes);
@@ -34,59 +37,8 @@ void append_to_file(char *filename, char *data, int size);
 
 int main(void) {
 	setbuf(stdout, NULL);
-	// sockaddr_in is identical to sockaddr.
-	// sockaddr_in (in stands for internet)
-	// was created for convinience
-	// in order to reference the elements of the socket address.
 
-	// Given this is the server application we want to initialize a
-	// stream socket, bind to 8888 port and listen to incomming
-	// connections from any ip.
-
-	struct addrinfo hints, *result, *p;
-	memset(&hints, 0, sizeof hints);
-	hints.ai_family = AF_UNSPEC; // dont care if we use ipv4 or ipv6
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_flags = AI_PASSIVE; // I intend to listen to everyone
-				     // (all adresses and
-	// interfaces), give me the wildcard adress (0.0.0.0)
-
-	if (getaddrinfo(NULL, PORT, &hints, &result) != 0) {
-		fprintf(stderr, "unable to fill out information for "
-				"server socket\n");
-		exit(EXIT_FAILURE);
-	}
-
-	int s;
-	// go through each element in the linked list and show IP's
-	for (p = result; p != NULL; p = p->ai_next) {
-		s = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
-		if (s == -1) {
-			continue;
-		}
-
-		int yes = 1;
-		if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &yes,
-			       sizeof(int)) == -1) {
-			perror("setsockopt");
-			exit(1);
-		}
-
-		// we need to bind the socket to the port we are going
-		// to use so that the kernel knows where (to what
-		// process it should route the network packets coming
-		// in).
-		if (bind(s, p->ai_addr, p->ai_addrlen) == -1) {
-			// fprintf(stderr, "Could not bind the socket\n");
-			continue;
-		}
-		break;
-	}
-	freeaddrinfo(result);
-	if (p == NULL) {
-		fprintf(stderr, "Server failed to bind\n");
-		exit(EXIT_FAILURE);
-	}
+	int s = sock_create();
 
 	if (listen(s, BACKLOG) == -1) {
 		fprintf(stderr, "Could not listen\n");
@@ -104,71 +56,7 @@ int main(void) {
 			fprintf(stderr, "Could not accept\n");
 			exit(EXIT_FAILURE);
 		}
-		char data[DATA_BUF_SIZE + 1] = "";
-		int num_bytes;
-		num_bytes = recv(receive_s, data, DATA_BUF_SIZE, 0);
-		printf("recv() returned %d bytes\n", num_bytes);
-
-		char const *cursor = data;
-		size_t parsed;
-		size_t bytes_left = num_bytes;
-		size_t content_size;
-		if (num_bytes > 0) {
-			data[num_bytes] = '\0';
-			parsed = parse_request_line(cursor, bytes_left);
-			if (parsed == 0) {
-				send_bad_req(receive_s);
-				goto close_rx;
-			}
-			cursor += parsed;
-			bytes_left -= parsed;
-			content_size = parse_content_length(cursor, bytes_left);
-			if (content_size > 0) {
-				printf("number of content bytes: %lu\n",
-				       content_size);
-				char const end_of_headers[] = "\r\n\r\n";
-				cursor = locate_string_bounded(
-				    cursor, bytes_left, end_of_headers,
-				    sizeof end_of_headers - 1);
-				if (cursor == NULL) {
-					send_bad_req(receive_s);
-					goto close_rx;
-				}
-				cursor += sizeof end_of_headers - 1;
-				// start of body
-				bytes_left = content_size;
-
-				HighScoreEntry e = {0};
-				if (parse_json(cursor, &e, sizeof e.name) ==
-				    0) {
-					char const all_ok[] =
-					    "HTTP/1.1 200 OK\r\n\r\n";
-					if (send(receive_s, all_ok,
-						 sizeof all_ok - 1, 0) == -1)
-						fprintf(stderr,
-							"There was an issue "
-							"sending "
-							"the response\n");
-					else
-						printf(
-						    "sent all ok response\n");
-				} else {
-					send_bad_req(receive_s);
-					goto close_rx;
-				}
-				char score_entry[250] = "";
-				snprintf(score_entry, sizeof score_entry,
-					 "%s,%u,%d,%d,%d,%lld,%s\n", e.name,
-					 e.score, e.board_wrapping,
-					 e.board_width, e.board_height,
-					 e.timestamp, e.country_code);
-				printf("body received: %s\n", cursor);
-				append_to_file("highscores.csv", score_entry,
-					       strlen(score_entry));
-			}
-		close_rx:
-			close(receive_s);
-		}
+		rx_handler(receive_s);
 	}
 	close(s);
 	return EXIT_SUCCESS;
@@ -350,4 +238,123 @@ void append_to_file(char *filename, char *data, int size) {
 		printf("score was appended to file\n");
 	}
 	close(file);
+}
+
+int sock_create(void) {
+	// sockaddr_in is identical to sockaddr.
+	// sockaddr_in (in stands for internet)
+	// was created for convinience
+	// in order to reference the elements of the socket address.
+
+	// Given this is the server application we want to initialize a
+	// stream socket, bind to 8888 port and listen to incomming
+	// connections from any ip.
+
+	struct addrinfo hints, *result, *p;
+	memset(&hints, 0, sizeof hints);
+	hints.ai_family = AF_UNSPEC; // dont care if we use ipv4 or ipv6
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_flags = AI_PASSIVE; // I intend to listen to everyone
+				     // (all adresses and
+	// interfaces), give me the wildcard adress (0.0.0.0)
+
+	if (getaddrinfo(NULL, PORT, &hints, &result) != 0) {
+		fprintf(stderr, "unable to fill out information for "
+				"server socket\n");
+		exit(EXIT_FAILURE);
+	}
+	int s;
+	// go through each element in the linked list and show IP's
+	for (p = result; p != NULL; p = p->ai_next) {
+		s = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
+		if (s == -1) {
+			continue;
+		}
+
+		int yes = 1;
+		if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &yes,
+			       sizeof(int)) == -1) {
+			perror("setsockopt");
+			exit(1);
+		}
+
+		// we need to bind the socket to the port we are going
+		// to use so that the kernel knows where (to what
+		// process it should route the network packets coming
+		// in).
+		if (bind(s, p->ai_addr, p->ai_addrlen) == -1) {
+			// fprintf(stderr, "Could not bind the socket\n");
+			continue;
+		}
+		break;
+	}
+	freeaddrinfo(result);
+	if (p == NULL) {
+		fprintf(stderr, "Server failed to bind\n");
+		exit(EXIT_FAILURE);
+	}
+
+	return s;
+}
+
+void rx_handler(int receive_s) {
+	char data[DATA_BUF_SIZE] = "";
+	int num_bytes;
+	num_bytes = recv(receive_s, data, DATA_BUF_SIZE - 1, 0);
+	printf("recv() returned %d bytes\n", num_bytes);
+
+	char const *cursor = data;
+	size_t parsed;
+	size_t bytes_left = num_bytes;
+	size_t content_size;
+	if (num_bytes > 0) {
+		data[num_bytes] = '\0';
+		parsed = parse_request_line(cursor, bytes_left);
+		if (parsed == 0) {
+			send_bad_req(receive_s);
+			goto close_rx;
+		}
+		cursor += parsed;
+		bytes_left -= parsed;
+		content_size = parse_content_length(cursor, bytes_left);
+		if (content_size > 0) {
+			printf("number of content bytes: %lu\n", content_size);
+			char const end_of_headers[] = "\r\n\r\n";
+			cursor = locate_string_bounded(
+			    cursor, bytes_left, end_of_headers,
+			    sizeof end_of_headers - 1);
+			if (cursor == NULL) {
+				send_bad_req(receive_s);
+				goto close_rx;
+			}
+			cursor += sizeof end_of_headers - 1;
+			// start of body
+			bytes_left = content_size;
+
+			HighScoreEntry e = {0};
+			if (parse_json(cursor, &e, sizeof e.name) == 0) {
+				char const all_ok[] = "HTTP/1.1 200 OK\r\n\r\n";
+				if (send(receive_s, all_ok, sizeof all_ok - 1,
+					 0) == -1)
+					fprintf(stderr, "There was an issue "
+							"sending "
+							"the response\n");
+				else
+					printf("sent all ok response\n");
+			} else {
+				send_bad_req(receive_s);
+				goto close_rx;
+			}
+			char score_entry[250] = "";
+			snprintf(score_entry, sizeof score_entry,
+				 "%s,%u,%d,%d,%d,%lld,%s\n", e.name, e.score,
+				 e.board_wrapping, e.board_width,
+				 e.board_height, e.timestamp, e.country_code);
+			printf("body received: %s\n", cursor);
+			append_to_file("highscores.csv", score_entry,
+				       strlen(score_entry));
+		}
+	close_rx:
+		close(receive_s);
+	}
 }
