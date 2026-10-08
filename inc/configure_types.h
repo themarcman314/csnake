@@ -1,6 +1,7 @@
 #pragma once
 // #include "engine.h"
 // #include "engine.h"
+#include "board.h"
 #include "raylib.h"
 #include <stdbool.h>
 
@@ -47,8 +48,6 @@ typedef struct {
 	char text[20];
 	ElementID id;
 } UIElement;
-
-typedef struct Board Board;
 
 typedef struct {
 	Board *demo;

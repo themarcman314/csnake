@@ -3,7 +3,8 @@ BUILDDIR_WEB=build/web
 NGINX_DIR=/usr/share/nginx/html/
 
 CC=gcc
-FLAGS=-I$(INCLUDEDIR) -std=c99
+FLAGS=-I$(INCLUDEDIR) -std=c11 
+FLAGS += -Wall -Wextra -Wpedantic -Wconversion -Wshadow -Wstrict-prototypes -Wformat=2
 LFLAGS=-lm -lGL -lm -lpthread -ldl -lrt -lX11
 LIB=./libs/libraylib.a
 TARGET=csnake
@@ -42,10 +43,10 @@ $(OBJ_NATIVE): $(BUILDDIR_NATIVE)/%.o: $(SOURCEDIR)/%.c
 $(OBJ_WEB): $(BUILDDIR_WEB)/%.o: $(SOURCEDIR)/%.c
 	$(WEB_CC) -c $(WEB_FLAGS) $< -o $@
 
-run: all
-	$(BUILDDIR_NATIVE)/$(TARGET)
+#run: all
+#	$(BUILDDIR_NATIVE)/$(TARGET)
 
-#run: runweb
+run: runweb
 
 .PHONY:server
 

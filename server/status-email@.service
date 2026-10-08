@@ -8,3 +8,4 @@ StartLimitBurst=1
 Type=oneshot
 # Plain one-liner email send
 ExecStart=/bin/sh -c 'journalctl -u %i -n 20 | mail -s "Status of %i" marc@marcrobison.com'
+User=www-data

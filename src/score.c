@@ -1,6 +1,7 @@
 #include "score.h"
 #include "conf.h"
 #include "game.h"
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -62,8 +63,8 @@ void country_code_dl_failed(emscripten_fetch_t *fetch) {
 
 #endif
 
-void save_score(Game const *g) {
 #ifdef PLATFORM_WEB
+void save_score(Game const *g) {
 	emscripten_fetch_attr_t attr;
 	emscripten_fetch_attr_init(&attr);
 
@@ -92,11 +93,11 @@ void save_score(Game const *g) {
 	} else {
 		fprintf(stderr, "failed to allocate memory for post request\n");
 	}
-#endif
 }
+#endif
 
-void fill_country_code(char *code) {
 #ifdef PLATFORM_WEB
+void fill_country_code(char *code) {
 	emscripten_fetch_attr_t attr;
 	emscripten_fetch_attr_init(&attr);
 	attr.userData = code;
@@ -108,8 +109,8 @@ void fill_country_code(char *code) {
 	emscripten_fetch(
 	    &attr,
 	    "https://api.ipinfo.io/lite/me/country_code?token=3763e778d65497");
-#endif
 }
+#endif
 
 void parse_high_score_entries(char const *string, HighScoreEntry *h,
 			      int const entry_count) {
@@ -177,7 +178,7 @@ size_t parse_name_high_score_entry(char const *line_start, char *name) {
 	while (*cursor != ',') {
 		cursor++;
 	}
-	size_t name_size = cursor - line_start;
+	size_t name_size = (size_t)(cursor - line_start);
 	memcpy(name, line_start, name_size);
 	name[name_size] = '\0';
 	return name_size;
@@ -191,7 +192,7 @@ size_t parse_time_high_score_entry(char const *start, long long *timestamp) {
 	while (*cursor >= 0x30 && *cursor <= 0x39) { // is digit
 		cursor++;
 	}
-	return cursor - start;
+	return (size_t)(cursor - start);
 }
 
 size_t parse_score_high_score_entry(char const *score_start, int *score) {
@@ -202,7 +203,7 @@ size_t parse_score_high_score_entry(char const *score_start, int *score) {
 	while (*cursor >= 0x30 && *cursor <= 0x39) { // is digit
 		cursor++;
 	}
-	return cursor - score_start;
+	return (size_t)(cursor - score_start);
 }
 size_t parse_board_wrapping_high_score_entry(char const *start,
 					     bool *board_wrapping) {
@@ -217,7 +218,7 @@ size_t parse_board_wrapping_high_score_entry(char const *start,
 	while (*cursor >= 0x30 && *cursor <= 0x39) { // is digit
 		cursor++;
 	}
-	return cursor - start;
+	return (size_t)(cursor - start);
 }
 
 size_t parse_board_dimentions_high_score_entry(char const *start, int *width,
@@ -242,7 +243,7 @@ size_t parse_board_dimentions_high_score_entry(char const *start, int *width,
 	}
 	while (*cursor == ' ')
 		cursor++;
-	return cursor - start;
+	return (size_t)(cursor - start);
 }
 
 int count_lines_string(char const *string, int size) {
@@ -256,8 +257,8 @@ int count_lines_string(char const *string, int size) {
 
 #ifdef PLATFORM_WEB
 void downloadSucceeded(emscripten_fetch_t *fetch) {
-	printf("Finished downloading %lu bytes from URL %s.\n", fetch->numBytes,
-	       fetch->url);
+	printf("Finished downloading %" PRIu64 "bytes from URL %s.\n",
+	       fetch->numBytes, fetch->url);
 	Game *g = fetch->userData;
 	HighScoreEntry *entries = g->high_scores;
 

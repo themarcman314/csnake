@@ -6,6 +6,7 @@
 #include <assert.h>
 #include <raylib.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -424,7 +425,7 @@ void snake_demo(Board *demo_b, float freq, bool board_wrapping) {
 	static int last_tick = 0;
 	static int last_tick_input = 0;
 	static Direction candidate = {SNAKE_UP};
-	int now = millis();
+	uint32_t now = millis();
 
 	if (now - last_tick_input >= 200.0F) {
 		last_tick_input = now;

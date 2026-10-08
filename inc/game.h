@@ -35,7 +35,7 @@ struct Game {
 	Texture2D flags;
 };
 
-Game *game_create();
+Game *game_create(void);
 void game_fsm_run(Game *g);
 void game_clean(Game *g);
 void UpdateDrawFrame(Game *g);

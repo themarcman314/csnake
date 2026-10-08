@@ -75,7 +75,9 @@ void game_init(Game *g) {
 	memset(g, 0, sizeof(Game));
 	engine_init();
 	debug_init();
+#ifdef PLATFORM_WEB
 	fill_country_code(g->country_code);
+#endif
 	g->high_scores = NULL;
 	g->num_high_scores = 0;
 	g->tick_speed = 1000.0 / TICK_FREQUENCY;
@@ -98,7 +100,9 @@ GameState game_end(Game *g) {
 	static bool saved = false;
 	if (!saved) {
 		saved = true;
+#ifdef PLATFORM_WEB
 		save_score(g);
+#endif
 	}
 	if (g->in.in_key == KEY_R || g->in.in_key == KEY_ENTER) {
 		saved = false;
@@ -116,7 +120,7 @@ GameState game_end(Game *g) {
 
 GameState game_run(Game *g) {
 	static int last_tick = 0;
-	int now = millis();
+	uint32_t now = millis();
 	if (now - last_tick >= g->tick_speed) {
 		last_tick = now;
 		snake_head_direction_set(g->b->s);

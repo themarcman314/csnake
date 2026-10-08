@@ -46,24 +46,9 @@ DrawingParameters p = {.draw_fps = true,
 void DrawUIElement(UIElement const *el, int font_size);
 void display_menu_dimmed(DisplayConfigureInfo info);
 void draw_title_centered(char const *title, int y);
-void draw_flag(Texture2D *f, char const *code, Rectangle draw_location,
-	       int font_size);
+void draw_flag(Texture2D *f, char const *code, Rectangle draw_location);
 
-void set_keyboard_type() {
-#ifndef PLATFORM_WEB
-	if (*GetKeyName(KEY_A) == 'q') {
-		is_azerty = true;
-		// if (is_azerty) {
-		//	char title[] = "is azerty";
-		//	int font_size = 35;
-		//	DrawText(title, 100 - MeasureText(title, font_size) / 2,
-		//		 500, font_size, GREEN);
-		// }
-	}
-#endif
-}
-
-void engine_init() {
+void engine_init(void) {
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
 	InitWindow(800, 450, "csnake");
 	SetTargetFPS(60);
@@ -130,9 +115,8 @@ void draw_square(DrawingParameters const *p, int const x, int const y,
 		      p->delta - p->board_wall_thickness, c);
 }
 
-void display_welcome() {
+void display_welcome(void) {
 	ClearBackground(COLOR_BACKGROUND_SITE);
-	set_keyboard_type();
 
 	int const width = GetScreenWidth();
 	int const height = GetScreenHeight();
@@ -159,8 +143,8 @@ void display_end(Board const *b, int const score, int game_over_timestamp) {
 	int x, y;
 	snake_get_head_position(b->s, &x, &y);
 	board_draw(b, score, true, false);
-	board_draw_collision(b, x, y);
-	int now = millis();
+	board_draw_collision(x, y);
+	uint32_t now = millis();
 	if (now - game_over_timestamp < 1000) {
 		return;
 	}
@@ -202,17 +186,7 @@ void set_start_coords_grid(int grid_width, int grid_height) {
 void display_menu_conf(DisplayConfigureInfo info) {
 
 	ClearBackground(COLOR_BACKGROUND_SITE);
-	int const border_fraction_screen_width = 5;
-	int const border_fraction_screen_height = 15;
 	int const rectangle_thickness_lines = 2;
-	int rectangle_height = GetScreenHeight() / 20;
-	int rectangle_width = (border_fraction_screen_width - 2) *
-			      GetScreenWidth() / border_fraction_screen_width;
-	int rectangle_height_spacing =
-	    GetScreenHeight() / (info.menu_element_count + 1);
-	int rectangle_x = GetScreenWidth() / border_fraction_screen_width;
-	int rectangle_y_base =
-	    GetScreenHeight() / border_fraction_screen_height;
 	int text_x_offset = 5;
 	int text_y_offset = 5;
 
@@ -252,7 +226,7 @@ void display_menu_conf(DisplayConfigureInfo info) {
 	}
 	DrawUIElement(
 	    &info.menu_elements[info.menu_element_count],
-	    info.menu_elements[info.menu_element_count].bounds.height -
+	    (int)info.menu_elements[info.menu_element_count].bounds.height -
 		text_y_offset);
 }
 
@@ -263,8 +237,8 @@ void display_name_conf(DisplayConfigureInfo info) {
 		 GetScreenWidth() / 2 -
 		     MeasureText(title_name, p.font_size_big) / 2,
 		 GetScreenHeight() / 4, p.font_size_big, COLOR_TEXT_BASE);
-	Rectangle textBox = {GetScreenWidth() / 2.0f - 100,
-			     GetScreenHeight() / 4.f + 50, 225, 50};
+	Rectangle textBox = {(float)GetScreenWidth() / 2.0f - 100,
+			     (float)GetScreenHeight() / 4.f + 50, 225, 50};
 	DrawRectangleRec(textBox, LIGHTGRAY);
 	DrawText(info.name, (int)textBox.x + 5, (int)textBox.y + 8,
 		 p.font_size_big, MAROON);
@@ -324,8 +298,10 @@ void DrawUIElement(UIElement const *el, int font_size) {
 	int text_width = MeasureText(el->text, font_size);
 
 	// memcpy((void *)el->text, str, sizeof(str));
-	int text_x = el->bounds.x + (el->bounds.width - text_width) / 2;
-	int text_y = el->bounds.y + (el->bounds.height - font_size) / 2;
+	int text_x =
+	    (int)(el->bounds.x + (el->bounds.width - (float)text_width) / 2.f);
+	int text_y =
+	    (int)(el->bounds.y + (el->bounds.height - (float)font_size) / 2.f);
 
 	DrawText(el->text, text_x, text_y, font_size, text_color);
 }
@@ -410,13 +386,12 @@ void display_snake_speed_conf(DisplayConfigureInfo info) {
 	}
 }
 
-void draw_flag(Texture2D *f, char const *code, Rectangle draw_location,
-	       int font_size) {
+void draw_flag(Texture2D *f, char const *code, Rectangle draw_location) {
 	Rectangle r = {.width = FLAG_WIDTH, .height = FLAG_HEIGHT};
-	for (int i = 0; i < COUNTRY_CODE_COUNT; i++) {
+	for (size_t i = 0; i < COUNTRY_CODE_COUNT; i++) {
 		if (strcmp(code, country_codes[i]) == 0) {
-			r.x = (i % FLAG_COLS) * FLAG_WIDTH;
-			r.y = (i / FLAG_COLS) * FLAG_HEIGHT;
+			r.x = (float)(i % FLAG_COLS) * FLAG_WIDTH;
+			r.y = (float)i / FLAG_COLS * FLAG_HEIGHT;
 			DrawTexturePro(*f, r, draw_location, (Vector2){0, 0},
 				       0.0f, WHITE);
 		}
@@ -426,10 +401,10 @@ void draw_flag(Texture2D *f, char const *code, Rectangle draw_location,
 void display_high_score(HighScoreEntry const *h, int const num_entries,
 			Texture2D *flags) {
 	ClearBackground(COLOR_BACKGROUND_SITE);
-	int current_y = 50;
-	draw_title_centered("Leaderboard", current_y);
-	int const margin_x = 50;
-	int const usable_width = GetScreenWidth() - (margin_x * 2);
+	float current_y = 50.f;
+	draw_title_centered("Leaderboard", (int)current_y);
+	float const margin_x = 50.f;
+	float const usable_width = (float)GetScreenWidth() - (margin_x * 2.f);
 	enum {
 		RANK = 0,
 		NAME,
@@ -440,59 +415,59 @@ void display_high_score(HighScoreEntry const *h, int const num_entries,
 		DATE,
 		COUNTRY,
 		NUM_PARAMS
-	} column_index;
+	};
 
 	struct columns c[NUM_PARAMS] = {
-	    {margin_x + (usable_width * 0.0f), "RANK"},
-	    {margin_x + (usable_width * 0.07f), "NAME"},
-	    {margin_x + (usable_width * 0.18f), "SCORE"},
-	    {margin_x + (usable_width * 0.27f), "BOARD WRAPPING"},
-	    {margin_x + (usable_width * 0.45f), "BOARD WIDTH"},
-	    {margin_x + (usable_width * 0.58f), "BOARD HEIGHT"},
-	    {margin_x + (usable_width * 0.73f), "DATE (UTC)"},
-	    {margin_x + (usable_width * 0.93f), "COUNTRY"},
+	    {(int)(margin_x + (usable_width * 0.00f)), "RANK"},
+	    {(int)(margin_x + (usable_width * 0.07f)), "NAME"},
+	    {(int)(margin_x + (usable_width * 0.18f)), "SCORE"},
+	    {(int)(margin_x + (usable_width * 0.27f)), "BOARD WRAPPING"},
+	    {(int)(margin_x + (usable_width * 0.45f)), "BOARD WIDTH"},
+	    {(int)(margin_x + (usable_width * 0.58f)), "BOARD HEIGHT"},
+	    {(int)(margin_x + (usable_width * 0.73f)), "DATE (UTC)"},
+	    {(int)(margin_x + (usable_width * 0.93f)), "COUNTRY"},
 	};
 
 	int scalling_factor = 65;
 	int font_size = GetScreenWidth() / scalling_factor;
 
-	current_y += 1.5f * p.font_size_big;
+	current_y += 1.5f * (float)p.font_size_big;
 	for (int i = 0; i < NUM_PARAMS; i++) {
-		DrawText(c[i].col_title, c[i].col_x, current_y, font_size,
+		DrawText(c[i].col_title, c[i].col_x, (int)current_y, font_size,
 			 COLOR_YELLOW_SITE);
 	}
 	if (h) {
 		for (int i = 0; i < num_entries; i++) {
-			current_y += font_size;
+			current_y += (float)font_size;
 			char buffer[25] = "";
 			sprintf(buffer, "%d", h[i].rank);
 			int right_allignment =
 			    MeasureText(c[RANK].col_title, font_size) -
 			    MeasureText(buffer, font_size);
 			DrawText(buffer, c[RANK].col_x + right_allignment,
-				 current_y, font_size, COLOR_TEXT_BASE);
+				 (int)current_y, font_size, COLOR_TEXT_BASE);
 
 			DrawText(TextFormat("%s", h[i].name), c[NAME].col_x,
-				 current_y, font_size, COLOR_TEXT_BASE);
+				 (int)current_y, font_size, COLOR_TEXT_BASE);
 
 			sprintf(buffer, "%d", h[i].score);
 			right_allignment =
 			    MeasureText(c[SCORE].col_title, font_size) -
 			    MeasureText(buffer, font_size);
 			DrawText(buffer, c[SCORE].col_x + right_allignment,
-				 current_y, font_size, COLOR_TEXT_BASE);
+				 (int)current_y, font_size, COLOR_TEXT_BASE);
 
 			DrawText(TextFormat("%s", h[i].board_wrapping
 						      ? "enabled"
 						      : "disabled"),
-				 c[WRAPPING].col_x, current_y, font_size,
+				 c[WRAPPING].col_x, (int)current_y, font_size,
 				 COLOR_TEXT_BASE);
 
 			DrawText(TextFormat("%d", h[i].board_width),
-				 c[WIDTH].col_x, current_y, font_size,
+				 c[WIDTH].col_x, (int)current_y, font_size,
 				 COLOR_TEXT_BASE);
 			DrawText(TextFormat("%d", h[i].board_height),
-				 c[HEIGHT].col_x, current_y, font_size,
+				 c[HEIGHT].col_x, (int)current_y, font_size,
 				 COLOR_TEXT_BASE);
 			time_t timestamp = (long long)h[i].timestamp;
 			struct tm *tm;
@@ -501,19 +476,19 @@ void display_high_score(HighScoreEntry const *h, int const num_entries,
 					    tm->tm_mday, tm->tm_mon + 1,
 					    tm->tm_year + 1900, tm->tm_hour,
 					    tm->tm_min, tm->tm_sec),
-				 c[DATE].col_x, current_y, font_size,
+				 c[DATE].col_x, (int)current_y, font_size,
 				 COLOR_TEXT_BASE);
 			int flag_w_resized = font_size * FLAG_WIDTH / 3 / 24;
 			Rectangle destination = {
-			    .width = flag_w_resized,
-			    .height = font_size * FLAG_HEIGHT / 3 / 24,
-			    .x = c[COUNTRY].col_x +
-				 (MeasureText(c[COUNTRY].col_title, font_size) -
-				  flag_w_resized) /
-				     2,
-			    .y = current_y};
-			draw_flag(flags, h[i].country_code, destination,
-				  font_size);
+			    .width = (float)flag_w_resized,
+			    .height = (float)(font_size * FLAG_HEIGHT / 3 / 24),
+			    .x = (float)c[COUNTRY].col_x +
+				 (float)(MeasureText(c[COUNTRY].col_title,
+						     font_size) -
+					 flag_w_resized) /
+				     2.0f,
+			    .y = (float)current_y};
+			draw_flag(flags, h[i].country_code, destination);
 		}
 	}
 }
@@ -524,12 +499,11 @@ void draw_title_centered(char const *title, int y) {
 	DrawText(title, center_x_title, y, p.font_size_big, COLOR_TEXT_BASE);
 }
 
-void board_draw_collision(Board const *const b, int const board_x,
-			  int const board_y) {
+void board_draw_collision(int const board_x, int const board_y) {
 	draw_square(&p, board_x, board_y, RED);
 }
 
-void window_periodic_end() {
+void window_periodic_end(void) {
 	if (p.draw_fps)
 		DrawFPS(10, 10);
 	EndDrawing();

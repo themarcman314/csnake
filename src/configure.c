@@ -349,5 +349,7 @@ void init_conf(GameConfigureState state_conf, DisplayConfigureInfo *info) {
 	case STATE_CONFIGURE_WRAPPING:
 		init_wrapping_conf(info);
 		break;
+	default:
+		break;
 	}
 }
