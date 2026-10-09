@@ -390,8 +390,8 @@ void draw_flag(Texture2D *f, char const *code, Rectangle draw_location) {
 	Rectangle r = {.width = FLAG_WIDTH, .height = FLAG_HEIGHT};
 	for (size_t i = 0; i < COUNTRY_CODE_COUNT; i++) {
 		if (strcmp(code, country_codes[i]) == 0) {
-			r.x = (float)(i % FLAG_COLS) * FLAG_WIDTH;
-			r.y = (float)i / FLAG_COLS * FLAG_HEIGHT;
+			r.x = (i % FLAG_COLS) * FLAG_WIDTH;
+			r.y = (float)((unsigned)(i / FLAG_COLS) * FLAG_HEIGHT);
 			DrawTexturePro(*f, r, draw_location, (Vector2){0, 0},
 				       0.0f, WHITE);
 		}

@@ -36,6 +36,6 @@ char const *country_codes[] = {
 };
 
 #define COUNTRY_CODE_COUNT (sizeof country_codes / sizeof country_codes[0])
-#define FLAG_WIDTH 64
-#define FLAG_HEIGHT 48
-#define FLAG_COLS 15
+#define FLAG_WIDTH 64U
+#define FLAG_HEIGHT 48U
+#define FLAG_COLS 15U
